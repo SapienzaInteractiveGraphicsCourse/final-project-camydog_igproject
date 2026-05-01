@@ -57,11 +57,14 @@ var shadowFramebuffer;
 var shadowTexture;
 var shadowProgram;
 
-var SHADOW_SIZE = 1024;
+var SHADOW_SIZE = 2048;
 
 var lightViewMatrix;
 var lightProjectionMatrix;
 
+
+// variabile per rotazione automatica
+var rotationSpeed = 1.0;
 
 
 onload = async function init() {
@@ -74,6 +77,7 @@ onload = async function init() {
     // arancione gl.clearColor(0.9, 0.5, 0.3, 1.0);
     gl.clearColor(0.7, 0.9,0.7, 1.0);
     gl.enable(gl.DEPTH_TEST);
+
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
@@ -127,6 +131,7 @@ onload = async function init() {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
+    // settings bottoni
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
@@ -136,6 +141,13 @@ onload = async function init() {
         console.log("Texture teapot :", useTexture_teapot);
         useTexture_table = !useTexture_table;
         console.log("Texture table :", useTexture_table);
+    };
+    var speedSlider = document.getElementById("RotationSpeed");
+    var speedValue = document.getElementById("RotationSpeedValue");
+
+    speedSlider.oninput = function () {
+        rotationSpeed = parseFloat(speedSlider.value);
+        speedValue.innerHTML = rotationSpeed.toFixed(1)+ "x";
     };
 
     render();
@@ -433,8 +445,9 @@ function render() {
 
     //controllo se è stato premuto il tasto A del gamepad per attivare/disattivare la rotazione
     readGamepad();
+    clampTeapotToTable();
 
-    if (flag) theta[axis] += 1.0;
+    if (flag) theta[axis] +=rotationSpeed;
 
 
     // parte per cambiare colore della luce dinamicamente
@@ -506,11 +519,17 @@ function render() {
         vec3(0.0, 1.0, 0.0)
     );
     lightProjectionMatrix = perspective(70.0, 1.0, 1.0, 30.0);
+
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
     gl.viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Nella shadow pass elimino le facce frontali.
+    // Questo può aiutare a ridurre la shadow acne.
+   // gl.cullFace(gl.FRONT);
+    //gl.disable(gl.CULL_FACE);
     gl.useProgram(shadowProgram);
 
     drawShadowObject(teapotBuffers, modelMatrix1);
@@ -524,6 +543,11 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.useProgram(program);
+
+    // Nella render pass normale torno al culling classico:
+    // elimino le facce posteriori.
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
     gl.uniform4fv(
         gl.getUniformLocation(program, "lightPosition"),
@@ -701,4 +725,14 @@ function drawShadowObject(obj, modelMatrix) {
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);
+}
+
+function clampTeapotToTable() {
+    // Altezza minima consentita per la teapot.
+    // Se scende sotto questo valore, la riportiamo sopra il tavolo.
+    var minY = -2.0+0.6; // altezza del tavolo + metà dell'altezza della teapot
+
+    if (objPos[1] < minY) {
+        objPos[1] = minY;
+    }
 }

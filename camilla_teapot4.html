@@ -8,6 +8,18 @@
 <button id = "ButtonZ">Rotate Z</button>
 <button id = "ButtonT">Toggle Rotation</button>
 <button id="ButtonTex">Toggle Texture</button>
+<br><br>
+
+        <label for="RotationSpeed">Rotation speed:</label>
+        <input 
+            id="RotationSpeed" 
+            type="range" 
+            min="0" 
+            max="5" 
+            step="0.1" 
+            value="1"
+        >
+        <span id="RotationSpeedValue">1.0x</span>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
@@ -126,7 +138,7 @@ main(){
 
         float closestDepth = texture2D(shadowMap, projCoords.xy).r;
         float currentDepth = projCoords.z;
-        float bias = 0.03;
+        float bias = 0.005;
 
         if (currentDepth > closestDepth + bias) {
             shadow = 0.5;
@@ -172,7 +184,7 @@ void main()
 
 <head>
     <!--<link rel="icon" type="image/png" href="./maghina.jpg">>-->
-    <title>Teapot</title>
+    <title>ProvaProjectCamilla</title>
     <style>
         #ButtonTex {
             background-color: #4CAF50;
@@ -183,6 +195,7 @@ void main()
             font-size: 16px;
             cursor: pointer;
         }
+       
 
         #ButtonTex:hover {
             background-color: #aeeab1;
@@ -212,10 +225,11 @@ void main()
         
     </style>
 
+
    
 </head>
 <body>
-    <canvas id="gl-canvas" width="512" height="512">
+    <canvas id="gl-canvas" width="400" height="400">
     Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
 </body>
