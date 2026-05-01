@@ -1,73 +1,110 @@
 <!DOCTYPE html>
 <html>
+<link rel="icon" type="image/png" href="./maghina.jpg">
+<body>
+    <div class="top-buttons">
+
+    <button id = "ButtonX">Rotate X</button>
+    <button id = "ButtonY">Rotate Y</button>
+    <button id = "ButtonZ">Rotate Z</button>
+    <button id = "ButtonT">Toggle Teapot Rotation</button>
+    <button id="ButtonTex">Toggle Texture</button>
+    <button id="ButtonTableRotation">Toggle Table Rotation</button>
+    </div>
+  
+    <div class="main-layout">
+        <div class="controls-panel">
+
+            <div class="control-group">
+                <h3>Light</h3> 
+
+
+                 <div class="control-row">
+                    <label for="LightX">Light X:</label>
+                    <input id="LightX" type="range" min="-10" max="10" step="0.1" value="3">
+                    <span id="LightXValue">3.0</span>
+                 </div>
+
+                  <div class="control-row">
+                    <label for="LightY">Light Y:</label>
+                    <input id="LightY" type="range" min="0.0" max="15" step="0.1" value="8">
+                    <span id="LightYValue">8.0</span>
+
+                  </div>
+                
+                  <div class="control-row">
+                    <label for="LightZ">Light Z:</label>
+                    <input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="5">
+                    <span id="LightZValue">5.0</span>
+                  </div>
+            </div>
+
+            <div class="control-group">
+                        <h3>Camera</h3>
+
+                         <div class="control-row">
+                            <label for="CameraAngle">Camera angle:</label>
+                            <input id="CameraAngle" type="range" min="0" max="360" step="1" value="35">
+                            <span id="CameraAngleValue">35°</span>
+                         </div>
+
+                          <div class="control-row">
+                            <label for="CameraHeight">Camera height:</label>
+                            <input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="4">
+                            <span id="CameraHeightValue">4.0</span>
+                          </div>
+
+                          <div class="control-row">
+                            <label for="CameraDistance">Zoom:</label>
+                            <input id="CameraDistance" type="range" min="3" max="25" step="0.1" value="10">
+                            <span id="CameraDistanceValue">10.0</span>
+                          </div>
+            </div>
+
+              
+             <div class="control-group">
+                          <h3>Rotation</h3>
+
+
+                             <div class="control-row">
+                            <label for="RotationSpeed_teapot">Rotation speed teapot:</label>
+                            <input 
+                                id="RotationSpeed_teapot" 
+                                type="range" 
+                                min="0" 
+                                max="5" 
+                                step="0.1" 
+                                value="1"
+                            >
+                            <span id="RotationSpeedValue_teapot">1.0x</span>
+                            </div>
+
+                            <div class="control-row">
+                                <label for="RotationSpeed_table">Rotation speed table:</label>
+                                <input 
+                                            id="RotationSpeed_table" 
+                                          type="range" 
+                                            min="0" 
+                                            max="5" 
+                                            step="0.1" 
+                                            value="1"
+                                        >
+                                <span id="RotationSpeedValue_table">1.0x</span>
+
+                            </div>
+             </div>
+
+        </div>        
+        <div class="canvas-container">
+
+            <canvas id="gl-canvas" width="900" height="900">
+                Oops ... your browser doesn't support the HTML5 canvas element
+            </canvas>
+        </div>
 
 
 
-<button id = "ButtonX">Rotate X</button>
-<button id = "ButtonY">Rotate Y</button>
-<button id = "ButtonZ">Rotate Z</button>
-<button id = "ButtonT">Toggle Teapot Rotation</button>
-<button id="ButtonTex">Toggle Texture</button>
-<button id="ButtonTableRotation">Toggle Table Rotation</button>
-<label for="LightX">Light X:</label>
-<input id="LightX" type="range" min="-10" max="10" step="0.1" value="3">
-<span id="LightXValue">3.0</span>
-
-<br>
-
-<label for="LightY">Light Y:</label>
-<input id="LightY" type="range" min="1" max="15" step="0.1" value="8">
-<span id="LightYValue">8.0</span>
-
-<br>
-
-<label for="LightZ">Light Z:</label>
-<input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="5">
-<span id="LightZValue">5.0</span>
-
-<br><br>
-
-<label for="CameraAngle">Camera angle:</label>
-<input id="CameraAngle" type="range" min="0" max="360" step="1" value="35">
-<span id="CameraAngleValue">35°</span>
-
-<br>
-
-<label for="CameraHeight">Camera height:</label>
-<input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="4">
-<span id="CameraHeightValue">4.0</span>
-
-<br>
-
-<label for="CameraDistance">Zoom:</label>
-<input id="CameraDistance" type="range" min="3" max="25" step="0.1" value="10">
-<span id="CameraDistanceValue">10.0</span>
-<br><br>
-
-        <label for="RotationSpeed_teapot">Rotation speed teapot:</label>
-        <input 
-            id="RotationSpeed_teapot" 
-            type="range" 
-            min="0" 
-            max="5" 
-            step="0.1" 
-            value="1"
-        >
-        <span id="RotationSpeedValue_teapot">1.0x</span>
-<br><br>
-
-        <label for="RotationSpeed_table">Rotation speed table:</label>
-        <input 
-            id="RotationSpeed_table" 
-            type="range" 
-            min="0" 
-            max="5" 
-            step="0.1" 
-            value="1"
-        >
-        <span id="RotationSpeedValue_table">1.0x</span>
-
-        <br><br>
+    </div> 
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -253,13 +290,21 @@ void main()
 <script type="text/javascript" src="../Angel_book_code/Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/initShaders.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/MV.js"></script>
-<script type="text/javascript" src="camilla_teapot4.js"></script>
 <script type="text/javascript" src="utils.js"></script>
-<head>
-    <!--<link rel="icon" type="image/png" href="./maghina.jpg">>-->
-    <title>ProvaProjectCamilla</title>
-    <style>
-        #ButtonTex {
+<script type="text/javascript" src="camilla_teapot4.js"></script>
+
+
+<link rel="icon" type="image/png" href="./maghina.jpg"> 
+<title>ProvaProjectCamilla</title>
+<style>
+       
+</style>
+
+
+
+<style>
+
+ #ButtonTex {
             background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
@@ -305,14 +350,88 @@ void main()
             cursor: pointer;
         }
         
-    </style>
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+}
+
+.top-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #ddd;
+}
+
+.main-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 16px;
+}
 
 
-   
-</head>
-<body>
-    <canvas id="gl-canvas" width="1000" height="1000">
-    Oops ... your browser doesn't support the HTML5 canvas element
-    </canvas>
-</body>
-</html>
+
+.control-group {
+    margin-bottom: 24px;
+}
+
+.control-group h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+}
+
+.controls-panel {
+    width: 340px;
+    min-width: 300px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.control-row {
+    display: grid;
+    grid-template-columns: 125px 120px 45px;
+    align-items: center;
+    column-gap: 10px;
+    margin-bottom: 12px;
+}
+
+.control-row label {
+    font-size: 13px;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.control-row input[type="range"] {
+    width: 120px;
+}
+
+.control-row span {
+    font-size: 13px;
+    text-align: right;
+}
+
+.canvas-container {
+    flex: 1;
+}
+
+#gl-canvas {
+    border: 1px solid #ccc;
+    background: #eaeaea;
+    display: block;
+}
+.canvas-container h2 {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    color: #222;
+}
+
+</style>
