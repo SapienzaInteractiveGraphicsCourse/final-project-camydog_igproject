@@ -6,20 +6,69 @@
 <button id = "ButtonX">Rotate X</button>
 <button id = "ButtonY">Rotate Y</button>
 <button id = "ButtonZ">Rotate Z</button>
-<button id = "ButtonT">Toggle Rotation</button>
+<button id = "ButtonT">Toggle Teapot Rotation</button>
 <button id="ButtonTex">Toggle Texture</button>
+<button id="ButtonTableRotation">Toggle Table Rotation</button>
+<label for="LightX">Light X:</label>
+<input id="LightX" type="range" min="-10" max="10" step="0.1" value="3">
+<span id="LightXValue">3.0</span>
+
+<br>
+
+<label for="LightY">Light Y:</label>
+<input id="LightY" type="range" min="1" max="15" step="0.1" value="8">
+<span id="LightYValue">8.0</span>
+
+<br>
+
+<label for="LightZ">Light Z:</label>
+<input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="5">
+<span id="LightZValue">5.0</span>
+
 <br><br>
 
-        <label for="RotationSpeed">Rotation speed:</label>
+<label for="CameraAngle">Camera angle:</label>
+<input id="CameraAngle" type="range" min="0" max="360" step="1" value="35">
+<span id="CameraAngleValue">35°</span>
+
+<br>
+
+<label for="CameraHeight">Camera height:</label>
+<input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="4">
+<span id="CameraHeightValue">4.0</span>
+
+<br>
+
+<label for="CameraDistance">Zoom:</label>
+<input id="CameraDistance" type="range" min="3" max="25" step="0.1" value="10">
+<span id="CameraDistanceValue">10.0</span>
+<br><br>
+
+        <label for="RotationSpeed_teapot">Rotation speed teapot:</label>
         <input 
-            id="RotationSpeed" 
+            id="RotationSpeed_teapot" 
             type="range" 
             min="0" 
             max="5" 
             step="0.1" 
             value="1"
         >
-        <span id="RotationSpeedValue">1.0x</span>
+        <span id="RotationSpeedValue_teapot">1.0x</span>
+<br><br>
+
+        <label for="RotationSpeed_table">Rotation speed table:</label>
+        <input 
+            id="RotationSpeed_table" 
+            type="range" 
+            min="0" 
+            max="5" 
+            step="0.1" 
+            value="1"
+        >
+        <span id="RotationSpeedValue_table">1.0x</span>
+
+        <br><br>
+
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
@@ -118,9 +167,15 @@ varying vec3 fWorldNormal;
 uniform bool useTexture;
 uniform sampler2D uTexture;
 uniform sampler2D shadowMap;
+uniform bool isLightMarker;
 
 void
 main(){
+
+    if (isLightMarker) {
+        gl_FragColor = vec4(1.0, 1.0, 0.25, 1.0);
+        return;
+    }
 
     //vec2 uv = fract(fTexCoord * 8.0);
     vec4 texColor = texture2D(uTexture, fTexCoord);
@@ -129,21 +184,39 @@ main(){
     projCoords = projCoords * 0.5 + 0.5;
 
     float facingLight = normalize(fWorldNormal).y;
+    
     float shadow = 1.0;
 
-    if (facingLight > 0.3 &&
-        projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
+    if (projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
         projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
         projCoords.z >= 0.0 && projCoords.z <= 1.0) {
 
-        float closestDepth = texture2D(shadowMap, projCoords.xy).r;
         float currentDepth = projCoords.z;
-        float bias = 0.005;
+        float bias = 0.003;
 
-        if (currentDepth > closestDepth + bias) {
-            shadow = 0.5;
+        float shadowSum = 0.0;
+
+        // Deve combaciare con SHADOW_SIZE nel JS.
+        float texelSize = 1.0 / 1024.0;
+
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                vec2 offset = vec2(float(x), float(y)) * texelSize;
+                float closestDepth = texture2D(shadowMap, projCoords.xy + offset).r;
+
+                if (currentDepth > closestDepth + bias) {
+                    shadowSum += 1.0;
+                }
+            }
         }
+
+        float shadowFactor = shadowSum / 9.0;
+
+        // 0.45 = intensità massima dell'ombra.
+        // Più alto => ombra più scura.
+        shadow = 1.0 - 0.45 * shadowFactor;
     }
+
     vec4 baseColor = useTexture ? texColor * fColor : fColor;
     gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
 
@@ -181,7 +254,7 @@ void main()
 <script type="text/javascript" src="../Angel_book_code/Common/initShaders.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/MV.js"></script>
 <script type="text/javascript" src="camilla_teapot4.js"></script>
-
+<script type="text/javascript" src="utils.js"></script>
 <head>
     <!--<link rel="icon" type="image/png" href="./maghina.jpg">>-->
     <title>ProvaProjectCamilla</title>
@@ -222,6 +295,15 @@ void main()
         #ButtonT:hover {
             background-color: #e6a1be;
         }
+        #ButtonTableRotation {
+            background-color: #ff8c00;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
         
     </style>
 
@@ -229,7 +311,7 @@ void main()
    
 </head>
 <body>
-    <canvas id="gl-canvas" width="400" height="400">
+    <canvas id="gl-canvas" width="1000" height="1000">
     Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
 </body>

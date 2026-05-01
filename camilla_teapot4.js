@@ -10,18 +10,21 @@ var texCoordsArray = [];
 
 var axis = 0;
 var theta = [0, 0, 0];
-var flag = true;
+var flag_rot_teapot = true;
+var flag_rot_table = false;
 
 var modelViewMatrixLoc;
 var modelPath_teapot = "teapot.obj";
 var modelPath_table = "table.obj";
+var modelPath_cat= "./Cat/cat.obj";
 
-var lightPosition = vec4(0.0, 0.0, 5.0, 1.0);
-var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
+var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
+var lightAmbient = vec4(0.15, 0.15, 0.15, 1.0);
 var lightDiffuse = vec4(0.0, 0.0, 1.0, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
+var lightSphereBuffers;
 
-var materialAmbient = vec4(1.0, 0.5, 0.5, 1.0);
+var materialAmbient = vec4(0.3, 0.3, 0.3, 1.0);
 var materialDiffuse = vec4(1.0, 0.8, 0.8, 1.0);
 var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
@@ -38,17 +41,29 @@ var camAngle = 0.0;
 var camPitch = 0.0;
 var camRadius = 8.0;
 
+
+var cameraAngle = 35.0;
+var cameraHeight = 4.0;
+var cameraDistance = 10.0;   // questo è lo zoom
+
+var at = vec3(0.0, -1.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
+var eye = vec3(0.0, 4.0, 10.0);
+
 //texture variables
 var useTexture_teapot = false;
 var useTexture_table = false;
 
 var teapotTexture;
-var tableTexture;
 var teapotBuffers;
+var tableTexture;
 var tableBuffers;
+var catBuffers; 
+var catTexture;
 
 var path_img_teapot="maghina.jpg";
 var path_img_table="table_tex_512.jpg";
+var path_img_cat="./Cat/cat_diffuse.jpg";
 
 
 //variabili per ombre dinamiche
@@ -64,7 +79,10 @@ var lightProjectionMatrix;
 
 
 // variabile per rotazione automatica
-var rotationSpeed = 1.0;
+var rotationSpeed_teapot = 1.0;
+var rotationSpeed_table = 1.0;
+var tableTheta = 0.0;
+
 
 
 onload = async function init() {
@@ -89,15 +107,25 @@ onload = async function init() {
     console.log("shadowProgram =", shadowProgram);
     initShadowMap();
 
-    //carico le texture per teapot e tavolo
+    //carico le texture per teapot e tavolo + cat
 
     teapotTexture = loadTexture(path_img_teapot);
     tableTexture = loadTexture(path_img_table);
+    catTexture = loadTexture(path_img_cat);
     
 
     
     gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
 
+    //Buffers per luce 
+    var lightSphere = createSphere(1.0, 16, 16);
+    lightSphereBuffers = createBuffers(
+        lightSphere.points,
+        lightSphere.normals,
+        lightSphere.texCoords
+    );
+
+    //carico teapot
     await loadOBJ(modelPath_teapot);
     console.log("OBJ  Teapot loaded");
         
@@ -107,7 +135,7 @@ onload = async function init() {
     teapotBuffers = createBuffers(teapotPoints, teapotNormals, teapotTex);
 
 
-    //parte del tavolo 
+    //carico parte del tavolo 
     await loadOBJ(modelPath_table);
     console.log("OBJ  Table loaded");
 
@@ -117,6 +145,13 @@ onload = async function init() {
     var tableTex = texCoordsArray.slice();
     tableBuffers = createBuffers(tablePoints, tableNormals, tableTex);
 
+    await loadOBJ(modelPath_cat);
+    console.log("OBJ Cat loaded");
+
+    var catPoints = pointsArray.slice();
+    var catNormals = normalsArray.slice();
+    var catTex = texCoordsArray.slice();
+    catBuffers = createBuffers(catPoints, catNormals, catTex);
 
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
@@ -131,24 +166,116 @@ onload = async function init() {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
-    // settings bottoni
+    // settings bottoni + sliders
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
-    document.getElementById("ButtonT").onclick = () => flag = !flag;
+    document.getElementById("ButtonT").onclick = () => flag_rot_teapot = !flag_rot_teapot;
+    document.getElementById("ButtonTableRotation").onclick = () => flag_rot_table = !flag_rot_table;
     document.getElementById("ButtonTex").onclick = function() {
         useTexture_teapot = !useTexture_teapot;
         console.log("Texture teapot :", useTexture_teapot);
         useTexture_table = !useTexture_table;
         console.log("Texture table :", useTexture_table);
     };
-    var speedSlider = document.getElementById("RotationSpeed");
-    var speedValue = document.getElementById("RotationSpeedValue");
+    var speedSlider_teapot = document.getElementById("RotationSpeed_teapot");
+    var speedValue_teapot = document.getElementById("RotationSpeedValue_teapot");
 
-    speedSlider.oninput = function () {
-        rotationSpeed = parseFloat(speedSlider.value);
-        speedValue.innerHTML = rotationSpeed.toFixed(1)+ "x";
+    speedSlider_teapot.oninput = function () {
+        rotationSpeed_teapot = parseFloat(speedSlider_teapot.value);
+        speedValue_teapot.innerHTML = rotationSpeed_teapot.toFixed(1)+ "x";
     };
+
+    var speedSlider_table = document.getElementById("RotationSpeed_table");
+    var speedValue_table = document.getElementById("RotationSpeedValue_table");
+
+    speedSlider_table.oninput = function () {
+        rotationSpeed_table = parseFloat(speedSlider_table.value);
+        speedValue_table.innerHTML = rotationSpeed_table.toFixed(1)+ "x";
+    };
+
+    var lightXSlider = document.getElementById("LightX");
+    var lightYSlider = document.getElementById("LightY");
+    var lightZSlider = document.getElementById("LightZ");
+
+    var lightXValue = document.getElementById("LightXValue");
+    var lightYValue = document.getElementById("LightYValue");
+    var lightZValue = document.getElementById("LightZValue");
+    
+    function updateLightPositionFromSliders() {
+        lightPosition[0] = parseFloat(lightXSlider.value);
+        lightPosition[1] = parseFloat(lightYSlider.value);
+        lightPosition[2] = parseFloat(lightZSlider.value);
+        lightPosition[3] = 1.0;
+
+        lightXValue.innerHTML = lightPosition[0].toFixed(1);
+        lightYValue.innerHTML = lightPosition[1].toFixed(1);
+        lightZValue.innerHTML = lightPosition[2].toFixed(1);
+    }
+
+    lightXSlider.oninput = updateLightPositionFromSliders;
+    lightYSlider.oninput = updateLightPositionFromSliders;
+    lightZSlider.oninput = updateLightPositionFromSliders;
+
+    updateLightPositionFromSliders();
+
+    var cameraAngleSlider = document.getElementById("CameraAngle");
+    var cameraHeightSlider = document.getElementById("CameraHeight");
+    var cameraDistanceSlider = document.getElementById("CameraDistance");
+
+    var cameraAngleValue = document.getElementById("CameraAngleValue");
+    var cameraHeightValue = document.getElementById("CameraHeightValue");
+    var cameraDistanceValue = document.getElementById("CameraDistanceValue");
+
+    function updateOrbitCameraFromSliders() {
+        cameraAngle = parseFloat(cameraAngleSlider.value);
+        cameraHeight = parseFloat(cameraHeightSlider.value);
+        cameraDistance = parseFloat(cameraDistanceSlider.value);
+
+        var rad = radians(cameraAngle);
+
+        eye = vec3(
+            cameraDistance * Math.sin(rad),
+            cameraHeight,
+            cameraDistance * Math.cos(rad)
+        );
+
+        cameraAngleValue.innerHTML = cameraAngle.toFixed(0) + "°";
+        cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
+        cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
+    }
+
+    cameraAngleSlider.oninput = updateOrbitCameraFromSliders;
+    cameraHeightSlider.oninput = updateOrbitCameraFromSliders;
+    cameraDistanceSlider.oninput = updateOrbitCameraFromSliders;
+
+    updateOrbitCameraFromSliders();
+
+    canvas.addEventListener("wheel", function(event) {
+    event.preventDefault();
+
+    cameraDistance += event.deltaY * 0.01;
+
+    if (cameraDistance < 3.0) {
+        cameraDistance = 3.0;
+    }
+
+    if (cameraDistance > 25.0) {
+        cameraDistance = 25.0;
+    }
+
+    document.getElementById("CameraDistance").value = cameraDistance;
+    document.getElementById("CameraDistanceValue").innerHTML = cameraDistance.toFixed(1);
+
+    var rad = radians(cameraAngle);
+
+    eye = vec3(
+        cameraDistance * Math.sin(rad),
+        cameraHeight,
+        cameraDistance * Math.cos(rad)
+    );
+});
+
 
     render();
 };
@@ -352,8 +479,8 @@ function readGamepad() {
     // -----------------------------
     var pressedA = gp.buttons[0].pressed;
     if (pressedA && !lastButtonA) {
-        flag = !flag;
-        console.log("Toggle rotation:", flag);
+        flag_rot_teapot = !flag_rot_teapot;
+        console.log("Toggle rotation:", flag_rot_teapot);
     }
     lastButtonA = pressedA;
 
@@ -447,7 +574,10 @@ function render() {
     readGamepad();
     clampTeapotToTable();
 
-    if (flag) theta[axis] +=rotationSpeed;
+    if (flag_rot_teapot) theta[axis] += rotationSpeed_teapot;
+    if(flag_rot_table){
+        tableTheta += rotationSpeed_table;
+    } 
 
 
     // parte per cambiare colore della luce dinamicamente
@@ -467,7 +597,7 @@ function render() {
         1.0
     ); */
 
-    var lightPosition = vec4(3.0, 6.0, 2.0, 1.0);
+   // var lightPosition = vec4(3.0, 6.0, 2.0, 1.0);
     var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 
 
@@ -484,19 +614,27 @@ function render() {
         flatten(diffuseProduct)
     );
 
-    var eye = vec3(
+    /* var eye = vec3(
         camRadius * Math.sin(camAngle) * Math.cos(camPitch),
         camRadius * Math.sin(camPitch),
         camRadius * Math.cos(camAngle) * Math.cos(camPitch)
-    );
+    ); */
 
-    var viewMatrix = lookAt(
+
+   /*  var viewMatrix = lookAt(
         eye,
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0)
     );
-
+ */
+    var viewMatrix = lookAt(eye, at, up);
     var projectionMatrix = perspective(45.0, 1.0, 1.0, 20.0);
+
+    //model Light
+    var modelMatrixLight = mat4();
+    modelMatrixLight = mult(modelMatrixLight,translate(lightPosition[0], lightPosition[1], lightPosition[2]));
+    //modelMatrixLight = mult(modelMatrixLight, translate(0.0, 1.5, 0.0));
+    modelMatrixLight = mult(modelMatrixLight, scalem(1, 1, 1));
 
     //matrici teapot -- sopra il tavolo, ruota in base a theta e scalato per essere più piccolo
     var modelMatrix1 = mat4();
@@ -509,8 +647,15 @@ function render() {
     //matrici tavolo -- lui non ruota, ma è scalato e traslato verso il basso per essere sotto il teapot
     var modelMatrix2 = mat4();
     modelMatrix2 = mult(modelMatrix2, translate(0.0, -2.0, 0.0));
-    modelMatrix2 = mult(modelMatrix2, scalem(3.0, 0.3, 3.0));
+    modelMatrix2 = mult(modelMatrix2, rotate(tableTheta, [0, 1, 0]));
+    modelMatrix2 = mult(modelMatrix2, scalem(3.0, 3.0, 3.0));
 
+
+    //matrici cat
+    var modelMatrix3 = mat4();
+    modelMatrix3 = mult(modelMatrix3, translate(1.2, -0.5, 0.8));
+    modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
+    modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5));
 
       // ===== SHADOW PASS =====
     lightViewMatrix = lookAt(
@@ -529,11 +674,13 @@ function render() {
     // Nella shadow pass elimino le facce frontali.
     // Questo può aiutare a ridurre la shadow acne.
    // gl.cullFace(gl.FRONT);
-    //gl.disable(gl.CULL_FACE);
+    gl.disable(gl.CULL_FACE);
     gl.useProgram(shadowProgram);
 
+    
     drawShadowObject(teapotBuffers, modelMatrix1);
     drawShadowObject(tableBuffers, modelMatrix2);
+    drawShadowObject(catBuffers, modelMatrix3);
 
 
 
@@ -548,7 +695,7 @@ function render() {
     // elimino le facce posteriori.
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
-
+   
     gl.uniform4fv(
         gl.getUniformLocation(program, "lightPosition"),
         flatten(lightPosition)
@@ -558,8 +705,19 @@ function render() {
         flatten(diffuseProduct)
     );
 
-    drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix);
-    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix);
+    drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix,useTexture_teapot, false);
+    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix, useTexture_table, false);
+    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix, projectionMatrix, true, false);
+
+    drawObject(
+        lightSphereBuffers,
+        null,
+        modelMatrixLight,
+        viewMatrix,
+        projectionMatrix,
+        false,
+        true
+    );
 
     requestAnimFrame(render);
 }
@@ -583,14 +741,19 @@ function createBuffers(points, normals, texCoords) {
     return obj;
 }
 
-function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix) {
+function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix,
+    useTexture = true, isLightMarker=false) {
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
 
-    var normalMatrix = [
-        vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
-        vec3(modelViewMatrix[1][0], modelViewMatrix[1][1], modelViewMatrix[1][2]),
-        vec3(modelViewMatrix[2][0], modelViewMatrix[2][1], modelViewMatrix[2][2])
-    ];
+    //var normalMatrix = [
+     //   vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
+     //   vec3(modelViewMatrix[1][0], modelViewMatrix[1][1], modelViewMatrix[1][2]),
+      //  vec3(modelViewMatrix[2][0], modelViewMatrix[2][1], modelViewMatrix[2][2])
+    //];
+    var nMatrix = normalMatrix(modelViewMatrix, true);
+    // Normal matrix in world space, used for shadow-related world normals
+    var modelNMatrix = normalMatrix(modelMatrix, true);
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
     var vPosition = gl.getAttribLocation(program, "vPosition");
@@ -620,6 +783,11 @@ function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix) {
         useTexture_teapot ? 1 : 0
     );
 
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isLightMarker"),
+        isLightMarker ? 1 : 0
+    );
+
     gl.uniformMatrix4fv(
         gl.getUniformLocation(program, "modelMatrix"),
         false,
@@ -629,7 +797,7 @@ function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix) {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "viewMatrix"), false, flatten(viewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
-    gl.uniformMatrix3fv(gl.getUniformLocation(program, "normalMatrix"), false, flatten(normalMatrix));
+    gl.uniformMatrix3fv(gl.getUniformLocation(program, "normalMatrix"), false, flatten(nMatrix));
 
     gl.uniformMatrix4fv(
         gl.getUniformLocation(program, "lightViewMatrix"),
@@ -652,7 +820,7 @@ function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix) {
     gl.uniformMatrix3fv(
         gl.getUniformLocation(program, "modelNormalMatrix"),
         false,
-        flatten(modelNormalMatrix)
+        flatten(modelNMatrix)
     ); 
 
     gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);
