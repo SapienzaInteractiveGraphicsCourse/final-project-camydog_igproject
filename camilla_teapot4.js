@@ -19,7 +19,7 @@ var modelPath_table = "table.obj";
 var modelPath_cat= "./Cat/cat.obj";
 
 var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
-var lightAmbient = vec4(0.15, 0.15, 0.15, 1.0);
+var lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
 var lightDiffuse = vec4(0.0, 0.0, 1.0, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 var lightSphereBuffers;
@@ -634,7 +634,7 @@ function render() {
     var modelMatrixLight = mat4();
     modelMatrixLight = mult(modelMatrixLight,translate(lightPosition[0], lightPosition[1], lightPosition[2]));
     //modelMatrixLight = mult(modelMatrixLight, translate(0.0, 1.5, 0.0));
-    modelMatrixLight = mult(modelMatrixLight, scalem(1, 1, 1));
+    modelMatrixLight = mult(modelMatrixLight, scalem(0.5, 0.5, 0.5));
 
     //matrici teapot -- sopra il tavolo, ruota in base a theta e scalato per essere più piccolo
     var modelMatrix1 = mat4();
