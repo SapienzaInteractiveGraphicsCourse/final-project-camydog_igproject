@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+
+
+<button id = "ButtonX">Rotate X</button>
+<button id = "ButtonY">Rotate Y</button>
+<button id = "ButtonZ">Rotate Z</button>
+<button id = "ButtonT">Toggle Rotation</button>
+<button id="ButtonTex">Toggle Texture</button>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute  vec4 vPosition;
+attribute  vec4 vNormal;
+
+varying vec4 fColor;
+attribute vec2 vTexCoord;
+varying vec2 fTexCoord;
+varying vec4 fShadowCoord;
+varying vec3 fNormal;
+varying vec3 fLightDir;
+
+varying vec3 fWorldNormal;
+
+
+uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec4 lightPosition;
+uniform float shininess;
+uniform mat3 normalMatrix;
+
+uniform mat3 modelNormalMatrix;
+
+
+
+uniform mat4 viewMatrix;
+
+uniform mat4 modelMatrix;
+uniform mat4 lightViewMatrix;
+uniform mat4 lightProjectionMatrix;
+
+void main() 
+{
+
+
+    vec3 pos = (modelViewMatrix * vPosition).xyz;
+    vec3 light = (viewMatrix * lightPosition).xyz;
+    vec3 L = normalize( light - pos );
+
+	
+    vec3 E = normalize( -pos );
+    vec3 H = normalize( L + E );
+
+    // Transform vertex normal into eye coordinates
+       
+    vec3 N = normalize( normalMatrix*vNormal.xyz);
+
+    fNormal = N;
+    fLightDir = L;
+
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct;
+
+    float Kd = max( dot(L, N), 0.0 );
+    vec4  diffuse = Kd*diffuseProduct;
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess );
+    vec4  specular = Ks * specularProduct;
+    
+    if( dot(L, N) < 0.0 ) {
+	    specular = vec4(0.0, 0.0, 0.0, 1.0);
+    } 
+
+    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+
+    fShadowCoord = lightProjectionMatrix * lightViewMatrix * modelMatrix * vPosition;
+
+    
+    fColor = ambient + diffuse +specular;
+    
+    fColor.a = 1.0;
+    // texture coords semplici derivate dalla normale
+    fTexCoord = vTexCoord;
+
+    fWorldNormal = normalize(modelNormalMatrix * vNormal.xyz);
+    
+
+} 
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+varying vec2 fTexCoord;
+varying vec4 fShadowCoord;
+
+varying vec3 fNormal;
+varying vec3 fLightDir;
+varying vec3 fWorldNormal;
+
+ 
+uniform bool useTexture;
+uniform sampler2D uTexture;
+uniform sampler2D shadowMap;
+
+void
+main(){
+
+    //vec2 uv = fract(fTexCoord * 8.0);
+    vec4 texColor = texture2D(uTexture, fTexCoord);
+    
+    vec3 projCoords = fShadowCoord.xyz / fShadowCoord.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float facingLight = normalize(fWorldNormal).y;
+    float shadow = 1.0;
+
+    if (facingLight > 0.3 &&
+        projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
+        projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
+        projCoords.z >= 0.0 && projCoords.z <= 1.0) {
+
+        float closestDepth = texture2D(shadowMap, projCoords.xy).r;
+        float currentDepth = projCoords.z;
+        float bias = 0.03;
+
+        if (currentDepth > closestDepth + bias) {
+            shadow = 0.5;
+        }
+    }
+    vec4 baseColor = useTexture ? texColor * fColor : fColor;
+    gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
+
+}
+</script>
+<!-- SHADOW SHADERS -->
+<!-- Per il teapot ombreggiato, con ombre dinamiche -->
+
+<script id="shadow-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+
+uniform mat4 lightModelViewMatrix;
+uniform mat4 lightProjectionMatrix;
+
+void
+main(){
+    gl_Position = lightProjectionMatrix * lightModelViewMatrix * vPosition;
+}
+  
+
+</script>
+<script id="shadow-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() 
+{
+
+    float d = gl_FragCoord.z;
+    gl_FragColor = vec4(d, d, d, 1.0);
+} 
+</script>
+
+<script type="text/javascript" src="../Angel_book_code/Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Angel_book_code/Common/initShaders.js"></script>
+<script type="text/javascript" src="../Angel_book_code/Common/MV.js"></script>
+<script type="text/javascript" src="camilla_teapot4.js"></script>
+
+<head>
+    <!--<link rel="icon" type="image/png" href="./maghina.jpg">>-->
+    <title>Teapot</title>
+    <style>
+        #ButtonTex {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #ButtonTex:hover {
+            background-color: #aeeab1;
+        }
+
+        #ButtonX, #ButtonY, #ButtonZ {
+            background-color: #4FC3F7;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonT {
+            background-color: #ff227e;
+            color: rgb(249, 249, 249);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonT:hover {
+            background-color: #e6a1be;
+        }
+        
+    </style>
+
+   
+</head>
+<body>
+    <canvas id="gl-canvas" width="512" height="512">
+    Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+</body>
+</html>
