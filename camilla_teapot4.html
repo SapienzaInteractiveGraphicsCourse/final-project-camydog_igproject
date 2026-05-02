@@ -57,7 +57,7 @@
 
                           <div class="control-row">
                             <label for="CameraDistance">Zoom:</label>
-                            <input id="CameraDistance" type="range" min="3" max="25" step="0.1" value="10">
+                            <input id="CameraDistance" type="range" min="1.0" max="25" step="0.1" value="10">
                             <span id="CameraDistanceValue">10.0</span>
                           </div>
             </div>
@@ -131,6 +131,7 @@ uniform float shininess;
 uniform mat3 normalMatrix;
 
 uniform mat3 modelNormalMatrix;
+uniform bool twoSided;
 
 
 
@@ -139,6 +140,8 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat4 lightViewMatrix;
 uniform mat4 lightProjectionMatrix;
+
+
 
 void main() 
 {
@@ -155,6 +158,9 @@ void main()
     // Transform vertex normal into eye coordinates
        
     vec3 N = normalize( normalMatrix*vNormal.xyz);
+    if (twoSided && dot(N, L) < 0.0) {
+        N = -N;
+    }
 
     fNormal = N;
     fLightDir = L;
@@ -206,6 +212,7 @@ uniform bool useTexture;
 uniform sampler2D uTexture;
 uniform sampler2D shadowMap;
 uniform bool isLightMarker;
+uniform bool receiveShadow;
 
 void
 main(){
@@ -225,7 +232,8 @@ main(){
     
     float shadow = 1.0;
 
-    if (projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
+    if (receiveShadow && 
+        projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
         projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
         projCoords.z >= 0.0 && projCoords.z <= 1.0) {
 

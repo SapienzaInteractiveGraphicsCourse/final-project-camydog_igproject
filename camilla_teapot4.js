@@ -87,6 +87,7 @@ var tableTheta = 0.0;
 
 // parte per stanza
 var roomPlaneBuffers;
+var roomBoxBuffers;
 
 
 
@@ -162,6 +163,7 @@ onload = async function init() {
 
     //room buffers
     roomPlaneBuffers = createPlaneBuffers();
+    roomBoxBuffers = createBoxBuffers();
 
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
@@ -656,18 +658,18 @@ function render() {
 
     //matrici tavolo -- lui non ruota, ma è scalato e traslato verso il basso per essere sotto il teapot
     var modelMatrix2 = mat4();
-    modelMatrix2 = mult(modelMatrix2, translate(0.0, -1.0, 0.0));
+    modelMatrix2 = mult(modelMatrix2, translate(0.0, -1.9, 0.0));
     modelMatrix2 = mult(modelMatrix2, rotate(tableTheta, [0, 1, 0]));
-    modelMatrix2 = mult(modelMatrix2, scalem(3.0, 1.5, 1.5));
+    modelMatrix2 = mult(modelMatrix2, scalem(3.0, 1.5, 2.0));
 
 
     //matrici cat
     var modelMatrix3 = mat4();
-    modelMatrix3 = mult(modelMatrix3, translate(1.2, -0.05, 0.8));
+    modelMatrix3 = mult(modelMatrix3, translate(1.2, -0.95, 0.8));
     modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
     modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5));
 
-    // ===== ROOM =====
+   /*  // ===== ROOM =====
 
     // pavimento: piano orizzontale
     var modelMatrixFloor = mat4();
@@ -682,7 +684,7 @@ function render() {
 
     // parete sinistra
     var modelMatrixLeftWall = mat4();
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-4.0, 1.0, 0.0));
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-3.0, 1.0, 0.0));
     modelMatrixLeftWall = mult(modelMatrixLeftWall, rotate(90, [0, 0, 1]));
     modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(6.0, 1.0, 6.0));
 
@@ -690,7 +692,31 @@ function render() {
     var modelMatrixRightWall = mat4();
     modelMatrixRightWall = mult(modelMatrixRightWall, translate(4.0, 1.0, 0.0));
     modelMatrixRightWall = mult(modelMatrixRightWall, rotate(-90, [0, 0, 1]));
-    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(6.0, 1.0, 6.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(6.0, 1.0, 6.0)); */
+
+
+    // ===== ROOM BOX =====
+
+    // pavimento
+    var modelMatrixFloor = mat4();
+    modelMatrixFloor = mult(modelMatrixFloor, translate(0.0, -2.5, 0.0));
+    modelMatrixFloor = mult(modelMatrixFloor, scalem(8.0, 0.1, 8.0));
+
+    // parete dietro
+    var modelMatrixBackWall = mat4();
+    modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, -0.5, -4.0));
+    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(8.0, 4.0, 0.1));
+
+    // parete sinistra
+    var modelMatrixLeftWall = mat4();
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-4.0, -0.5, 0.0));
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.1, 4.0, 8.0));
+
+    // parete destra
+    var modelMatrixRightWall = mat4();
+    modelMatrixRightWall = mult(modelMatrixRightWall, translate(4.0, -0.5, 0.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.1, 4.0, 8.0));
+
 
         
     // ===== SHADOW PASS =====
@@ -718,6 +744,10 @@ function render() {
     drawShadowObject(tableBuffers, modelMatrix2);
     drawShadowObject(catBuffers, modelMatrix3);
 
+   /*  drawShadowObject(roomPlaneBuffers, modelMatrixBackWall);
+    drawShadowObject(roomPlaneBuffers, modelMatrixLeftWall);
+    drawShadowObject(roomPlaneBuffers, modelMatrixRightWall);
+ */
 
 
      // ===== NORMAL PASS =====
@@ -741,9 +771,9 @@ function render() {
         flatten(diffuseProduct)
     );
 
-    drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix,useTexture_teapot, false);
-    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix, useTexture_table, false);
-    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix, projectionMatrix, true, false);
+    drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix,useTexture_teapot, false,false,false);
+    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix, useTexture_table, false,false,true);
+    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix, projectionMatrix, true, false,false,true);
 
     drawObject(
         lightSphereBuffers,
@@ -755,17 +785,45 @@ function render() {
         true
     );
 
+    /*
     // ROOM: disable culling because planes are single-sided
-    gl.disable(gl.CULL_FACE);
-
-    drawObject(roomPlaneBuffers, wallTexture, modelMatrixFloor, viewMatrix, projectionMatrix, true, false);
-    drawObject(roomPlaneBuffers, wallTexture, modelMatrixBackWall, viewMatrix, projectionMatrix, true, false);
-    drawObject(roomPlaneBuffers, wallTexture, modelMatrixLeftWall, viewMatrix, projectionMatrix, true, false);
-    drawObject(roomPlaneBuffers, wallTexture, modelMatrixRightWall, viewMatrix, projectionMatrix, true, false);
-    // restore normal culling for the other objects
+    // Floor: keep culling enabled, so we do not see its back side
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    drawObject(
+        roomPlaneBuffers,
+        wallTexture,
+        modelMatrixFloor,
+        viewMatrix,
+        projectionMatrix,
+        true,
+        false,
+        true,true
+    );
+
+    // Walls: disable culling because they are single-sided planes
+    gl.disable(gl.CULL_FACE);
+
+    drawObject(roomPlaneBuffers, wallTexture, modelMatrixBackWall, viewMatrix, projectionMatrix, true, false, true,true);
+    drawObject(roomPlaneBuffers, wallTexture, modelMatrixLeftWall, viewMatrix, projectionMatrix, true, false, true,false);
+    drawObject(roomPlaneBuffers, wallTexture, modelMatrixRightWall, viewMatrix, projectionMatrix, true, false, true,false);
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+ */
+
+    drawObject(roomBoxBuffers, wallTexture, modelMatrixFloor,
+    viewMatrix, projectionMatrix, true, false, false);
+
+    drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
+        viewMatrix, projectionMatrix, true, false, false);
+
+    drawObject(roomBoxBuffers, wallTexture, modelMatrixLeftWall,
+        viewMatrix, projectionMatrix, true, false, false);
+
+    drawObject(roomBoxBuffers, wallTexture, modelMatrixRightWall,
+        viewMatrix, projectionMatrix, true, false, false);
 
     requestAnimFrame(render);
 }
@@ -789,8 +847,15 @@ function createBuffers(points, normals, texCoords) {
     return obj;
 }
 
-function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix,
-    useTexture = true, isLightMarker=false) {
+function drawObject(obj,
+     texture,
+      modelMatrix,
+       viewMatrix,
+        projectionMatrix,
+    useTexture = true,
+     isLightMarker=false,
+     twoSided = false, 
+     receiveShadow = true) {
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
 
     //var normalMatrix = [
@@ -840,6 +905,15 @@ function drawObject(obj, texture, modelMatrix, viewMatrix, projectionMatrix,
         gl.getUniformLocation(program, "modelMatrix"),
         false,
         flatten(modelMatrix)
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "twoSided"),
+        twoSided ? 1 : 0
+    );
+    gl.uniform1i(
+        gl.getUniformLocation(program, "receiveShadow"),
+        receiveShadow ? 1 : 0
     );
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "viewMatrix"), false, flatten(viewMatrix));
