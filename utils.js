@@ -1,3 +1,5 @@
+// create sphere for light source
+
 function createSphere(radius, latBands, longBands) {
     var points = [];
     var normals = [];
@@ -65,4 +67,39 @@ function createSphere(radius, latBands, longBands) {
         normals: sphereNormals,
         texCoords: sphereTexCoords
     };
+}
+
+// create plane for floor and walls
+function createPlaneBuffers() {
+    var points = [
+        vec4(-0.5, 0.0, -0.5, 1.0),
+        vec4( 0.5, 0.0, -0.5, 1.0),
+        vec4( 0.5, 0.0,  0.5, 1.0),
+
+        vec4(-0.5, 0.0, -0.5, 1.0),
+        vec4( 0.5, 0.0,  0.5, 1.0),
+        vec4(-0.5, 0.0,  0.5, 1.0)
+    ];
+
+    var normals = [
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0),
+
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0)
+    ];
+
+    var texCoords = [
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        vec2(0.0, 0.0),
+        vec2(1.0, 1.0),
+        vec2(0.0, 1.0)
+    ];
+
+    return createBuffers(points, normals, texCoords);
 }
