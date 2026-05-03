@@ -17,6 +17,8 @@ var modelViewMatrixLoc;
 var modelPath_teapot = "teapot.obj";
 var modelPath_table = "table.obj";
 var modelPath_cat= "./Cat/cat.obj";
+var modelPath_dog = "./dog/dog.obj";
+
 
 var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
 var lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
@@ -55,17 +57,26 @@ var useTexture_teapot = false;
 var useTexture_table = false;
 
 var teapotTexture;
-var teapotBuffers;
+var teapotBuffers;  
 var tableTexture;
 var tableBuffers;
 var catBuffers; 
 var catTexture;
 var wallTexture;
+var floorTexture;
+var dogBuffers;
+var dogTexture;
+var skyboxTexture;
 
-var path_img_teapot="maghina.jpg";
+//img paths
+var path_img_teapot="./teapot_tex.jpg";
 var path_img_table="table_tex_512.jpg";
 var path_img_cat="./Cat/cat_diffuse.jpg";
 var path_img_wall="./wall_tex.jpg";
+var path_img_floor="./parquet_tex.jpg";
+var path_img_dog = "./dog/dog_diff.jpg";
+var path_img_skybox = "./skybox/skybox.jpg";
+
 
 
 //variabili per ombre dinamiche
@@ -85,9 +96,35 @@ var rotationSpeed_teapot = 1.0;
 var rotationSpeed_table = 1.0;
 var tableTheta = 0.0;
 
-// parte per stanza
+// cat walk
+var moveCat = false;
+var catBasePos = vec3(1.2,-0.95, 0.8);
+var catWalkTime = 0.0;
+var catWalkSpeed = 0.08;
+var catWalkRange = 1.0;
+
+//dog walk 
+var moveDog = false;
+var dogBasePos = vec3(-3.0, -1.8, 0.8);
+var dogWalkTime = 0.0;
+var dogWalkSpeed = 0.025;
+var dogWalkRange = 2.0;
+
+// room buffers
 var roomPlaneBuffers;
 var roomBoxBuffers;
+
+//skybox
+var skyboxProgram;
+var skyboxBuffer;
+
+var skyboxPosLoc;
+var skyboxMvpLoc;
+var skyboxSamplerLoc;
+
+//focus teapot button
+var teapotFocus = false;
+
 
 
 
@@ -105,6 +142,8 @@ onload = async function init() {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+    
+
 
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     console.log("Program =", program);
@@ -113,12 +152,15 @@ onload = async function init() {
     console.log("shadowProgram =", shadowProgram);
     initShadowMap();
 
+
     //carico le texture per teapot e tavolo + cat
 
     teapotTexture = loadTexture(path_img_teapot);
     tableTexture = loadTexture(path_img_table);
     catTexture = loadTexture(path_img_cat);
     wallTexture = loadTexture(path_img_wall);
+    floorTexture = loadTexture(path_img_floor);
+    dogTexture = loadTexture(path_img_dog);
     
 
     
@@ -160,10 +202,35 @@ onload = async function init() {
     var catTex = texCoordsArray.slice();
     catBuffers = createBuffers(catPoints, catNormals, catTex);
 
+    await loadOBJ(modelPath_dog);
+    console.log("OBJ Dog loaded");
+
+    var dogPoints = pointsArray.slice();
+    var dogNormals = normalsArray.slice();
+    var dogTex = texCoordsArray.slice();
+
+    dogBuffers = createBuffers(dogPoints, dogNormals, dogTex);
+
 
     //room buffers
     roomPlaneBuffers = createPlaneBuffers();
     roomBoxBuffers = createBoxBuffers();
+
+    //   SKYBOXX    //////////////////
+    // skybox buffers
+
+     //skybox shader program
+    skyboxProgram = initShaders(gl, "skybox-vertex-shader", "skybox-fragment-shader");
+    console.log("skyboxProgram =", skyboxProgram);
+    skyboxBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, skyboxVertices, gl.STATIC_DRAW);
+    skyboxTexture = LoadSkyboxTexture(gl);
+    skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
+    skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
+    skyboxSamplerLoc = gl.getUniformLocation(skyboxProgram, "skybox");
+    
+   
 
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
@@ -179,6 +246,19 @@ onload = async function init() {
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
     // settings bottoni + sliders
+    document.getElementById("ButtonTeapotFocus").onclick = function () {
+        teapotFocus = !teapotFocus;
+
+        this.textContent = teapotFocus ? "Exit Teapot Focus" : "Focus Teapot";
+    };
+    document.getElementById("ButtonCatMove").onclick = function () {
+        moveCat = !moveCat;
+        console.log("Cat walk:", moveCat);
+    };
+    document.getElementById("ButtonDogMove").onclick = function () {
+        moveDog = !moveDog;
+        console.log("Dog walk:", moveDog);
+    };
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
@@ -292,43 +372,6 @@ onload = async function init() {
     render();
 };
 
-
-function loadTexture(path) {
-    let tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-
-    gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        1,
-        1,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        new Uint8Array([255, 255, 255, 255])
-    );
-
-    let image = new Image();
-    image.onload = function() {
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-        gl.generateMipmap(gl.TEXTURE_2D);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    };
-
-    image.onerror = function() {
-        console.log("texture failed:", path);
-    };
-
-    image.src = path;
-    return tex;
-}
 
 
 
@@ -590,7 +633,38 @@ function render() {
     if(flag_rot_table){
         tableTheta += rotationSpeed_table;
     } 
+   
+    var catZ = catBasePos[2];
+    var catFacingAngle = 0.0;
 
+    if (moveCat) {
+        catWalkTime += catWalkSpeed;
+        catZ = catBasePos[2] + Math.sin(catWalkTime) * catWalkRange;
+
+        var direction = Math.cos(catWalkTime);
+
+        if (direction < 0.0) {
+            catFacingAngle = 180.0;
+        } else {
+            catFacingAngle = 0.0;
+        }
+    }
+
+    var dogZ = dogBasePos[2];
+    var dogFacingAngle = 0.0;
+
+    if (moveDog) {
+        dogWalkTime += dogWalkSpeed;
+        dogZ = dogBasePos[2] + Math.sin(dogWalkTime) * dogWalkRange;
+
+        var direction = Math.cos(dogWalkTime);
+
+        if (direction < 0.0) {
+            dogFacingAngle = 180.0;
+        } else {
+            dogFacingAngle = 0.0;
+        }
+    }
 
     // parte per cambiare colore della luce dinamicamente
     // 🔥 tempo aggiornato ad ogni frame
@@ -665,9 +739,17 @@ function render() {
 
     //matrici cat
     var modelMatrix3 = mat4();
-    modelMatrix3 = mult(modelMatrix3, translate(1.2, -0.95, 0.8));
+    modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
+    modelMatrix3 = mult(modelMatrix3, rotate(catFacingAngle, [0, 1, 0]));
     modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
-    modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5));
+    modelMatrix3 = mult(modelMatrix3, scalem(0.7, 0.7, 0.7));
+
+    //matrici dog
+    var modelMatrixDog = mat4();
+    modelMatrixDog = mult(modelMatrixDog, translate(dogBasePos[0], dogBasePos[1], dogZ));
+    modelMatrixDog = mult(modelMatrixDog, rotate(dogFacingAngle, [0, 1, 0]));
+    modelMatrixDog = mult(modelMatrixDog, rotate(-90, [1, 0, 0]));
+    modelMatrixDog = mult(modelMatrixDog, scalem(1.0, 1.0, 1.0));
 
    /*  // ===== ROOM =====
 
@@ -743,6 +825,11 @@ function render() {
     drawShadowObject(teapotBuffers, modelMatrix1);
     drawShadowObject(tableBuffers, modelMatrix2);
     drawShadowObject(catBuffers, modelMatrix3);
+    drawShadowObject(dogBuffers, modelMatrixDog);
+    drawShadowObject(roomBoxBuffers, modelMatrixFloor);
+    drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
+    drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
+    drawShadowObject(roomBoxBuffers, modelMatrixRightWall);
 
    /*  drawShadowObject(roomPlaneBuffers, modelMatrixBackWall);
     drawShadowObject(roomPlaneBuffers, modelMatrixLeftWall);
@@ -755,10 +842,16 @@ function render() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // disegno prima la skybox
+    DrawSkybox(gl, viewMatrix, projectionMatrix);
+
+    //torno al programma normale
     gl.useProgram(program);
 
     // Nella render pass normale torno al culling classico:
     // elimino le facce posteriori.
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthMask(true);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
    
@@ -774,7 +867,17 @@ function render() {
     drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix,useTexture_teapot, false,false,false);
     drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix, useTexture_table, false,false,true);
     drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix, projectionMatrix, true, false,false,true);
-
+    drawObject(
+        dogBuffers,
+        dogTexture,
+        modelMatrixDog,
+        viewMatrix,
+        projectionMatrix,
+        true,   // useTexture
+        false,  // isLightMarker
+        false,  // twoSided
+        true    // receiveShadow
+    );
     drawObject(
         lightSphereBuffers,
         null,
@@ -813,7 +916,7 @@ function render() {
     gl.cullFace(gl.BACK);
  */
 
-    drawObject(roomBoxBuffers, wallTexture, modelMatrixFloor,
+    drawObject(roomBoxBuffers, floorTexture, modelMatrixFloor,
     viewMatrix, projectionMatrix, true, false, false);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
@@ -1025,4 +1128,62 @@ function clampTeapotToTable() {
     if (objPos[1] < minY) {
         objPos[1] = minY;
     }
+}
+
+
+function DrawSkybox(gl, viewMatrix, projectionMatrix)
+{
+    // La skybox deve fare solo da sfondo:
+    // la disegno senza depth test e senza scrivere nel depth buffer
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+
+    gl.useProgram(skyboxProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
+
+    gl.enableVertexAttribArray(skyboxPosLoc);
+    gl.vertexAttribPointer(
+        skyboxPosLoc,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+
+    // Copio la view matrix togliendo la traslazione
+    let viewNoTranslation = mat4();
+
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            viewNoTranslation[i][j] = viewMatrix[i][j];
+        }
+    }
+
+    viewNoTranslation[0][3] = 0.0;
+    viewNoTranslation[1][3] = 0.0;
+    viewNoTranslation[2][3] = 0.0;
+
+    let mvp = mult(projectionMatrix, viewNoTranslation);
+
+    gl.uniformMatrix4fv(
+        skyboxMvpLoc,
+        false,
+        flatten(mvp)
+    );
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxTexture);
+    gl.uniform1i(skyboxSamplerLoc, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+    // Ripristino lo stato per la scena normale
+    gl.depthMask(true);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.depthFunc(gl.LESS);
 }

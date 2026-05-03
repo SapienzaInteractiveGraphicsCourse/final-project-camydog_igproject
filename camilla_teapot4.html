@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="icon" type="image/png" href="./maghina.jpg">
+<title>ProvaProjectCamilla</title>
+<link rel="icon" type="image/png" href="./nintendogs_logo.jpg">
+</head>
 <body>
     <div class="top-buttons">
 
@@ -11,6 +13,9 @@
     <button id = "ButtonT">Toggle Teapot Rotation</button>
     <button id="ButtonTex">Toggle Texture</button>
     <button id="ButtonTableRotation">Toggle Table Rotation</button>
+    <button id="ButtonCatMove">Toggle Cat Walk</button>
+    <button id="ButtonDogMove">Toggle Dog Walk</button>
+    
     </div>
   
     <div class="main-layout">
@@ -22,21 +27,21 @@
 
                  <div class="control-row">
                     <label for="LightX">Light X:</label>
-                    <input id="LightX" type="range" min="-10" max="10" step="0.1" value="3">
-                    <span id="LightXValue">3.0</span>
+                    <input id="LightX" type="range" min="-10" max="10" step="0.1" value="-0.6">
+                    <span id="LightXValue">-0.6</span>
                  </div>
 
                   <div class="control-row">
                     <label for="LightY">Light Y:</label>
-                    <input id="LightY" type="range" min="0.0" max="15" step="0.1" value="8">
-                    <span id="LightYValue">8.0</span>
+                    <input id="LightY" type="range" min="0.0" max="15" step="0.1" value="0.0">
+                    <span id="LightYValue">0.0</span>
 
                   </div>
                 
                   <div class="control-row">
                     <label for="LightZ">Light Z:</label>
-                    <input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="5">
-                    <span id="LightZValue">5.0</span>
+                    <input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="8.3">
+                    <span id="LightZValue">8.3</span>
                   </div>
             </div>
 
@@ -45,14 +50,14 @@
 
                          <div class="control-row">
                             <label for="CameraAngle">Camera angle:</label>
-                            <input id="CameraAngle" type="range" min="0" max="360" step="1" value="35">
-                            <span id="CameraAngleValue">35°</span>
+                            <input id="CameraAngle" type="range" min="0" max="360" step="1" value="0">
+                            <span id="CameraAngleValue">0°</span>
                          </div>
 
                           <div class="control-row">
                             <label for="CameraHeight">Camera height:</label>
-                            <input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="4">
-                            <span id="CameraHeightValue">4.0</span>
+                            <input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="0.5">
+                            <span id="CameraHeightValue">0.5</span>
                           </div>
 
                           <div class="control-row">
@@ -94,6 +99,13 @@
 
                             </div>
              </div>
+                        <div class="control-group">
+                                <h3>Camera views</h3>
+
+                                <button id="ButtonTeapotFocus" class="side-button">
+                                    Focus Teapot
+                                </button>
+                         </div>
 
         </div>        
         <div class="canvas-container">
@@ -107,7 +119,7 @@
 
     </div> 
 
-</head>
+
 <script id="vertex-shader" type="x-shader/x-vertex">
 
 attribute  vec4 vPosition;
@@ -243,7 +255,7 @@ main(){
         float shadowSum = 0.0;
 
         // Deve combaciare con SHADOW_SIZE nel JS.
-        float texelSize = 1.0 / 1024.0;
+        float texelSize = 1.0 / 2048.0;
 
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
@@ -296,15 +308,42 @@ void main()
 } 
 </script>
 
+<script id="skybox-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 pos;
+
+varying vec3 v_texCoord;
+
+uniform mat4 mvp;
+
+void main()
+{
+    v_texCoord = pos;
+    gl_Position = mvp * vec4(pos, 1.0);
+}
+</script>
+<script id="skybox-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec3 v_texCoord;
+
+uniform samplerCube skybox;
+
+void main()
+{
+    gl_FragColor = textureCube(skybox, v_texCoord);
+}
+</script>
+
 <script type="text/javascript" src="../Angel_book_code/Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/initShaders.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/MV.js"></script>
 <script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="shaders.js"></script>
 <script type="text/javascript" src="camilla_teapot4.js"></script>
 
 
-<link rel="icon" type="image/png" href="./maghina.jpg"> 
-<title>ProvaProjectCamilla</title>
+
+
 <style>
        
 </style>
@@ -357,6 +396,48 @@ void main()
             border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
+        }
+        #ButtonTableRotation:hover {
+            background-color: #ffb347;
+        }   
+        #ButtonCatMove {
+            background-color: #8E44AD;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #ButtonCatMove:hover {
+            background-color: #C39BD3;
+        }
+        #ButtonDogMove {
+            background-color: #6D4C41;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #ButtonDogMove:hover {
+            background-color: #A1887F;
+        }
+        #ButtonTeapotFocus {
+            background-color: #3F51B5;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #ButtonTeapotFocus:hover {
+            background-color: #7986CB;
         }
         
 

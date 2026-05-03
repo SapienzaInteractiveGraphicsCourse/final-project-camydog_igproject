@@ -1,4 +1,41 @@
 // create sphere for light source
+function loadTexture(path) {
+    let tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        1,
+        1,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        new Uint8Array([255, 255, 255, 255])
+    );
+
+    let image = new Image();
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    };
+
+    image.onerror = function() {
+        console.log("texture failed:", path);
+    };
+
+    image.src = path;
+    return tex;
+}
+
 
 function createSphere(radius, latBands, longBands) {
     var points = [];
@@ -103,6 +140,185 @@ function createPlaneBuffers() {
 
     return createBuffers(points, normals, texCoords);
 }
+
+const skyboxVertices = new Float32Array([
+    -1, -1, -1,
+     1, -1, -1,
+    -1,  1, -1,
+    -1,  1, -1,
+     1, -1, -1,
+     1,  1, -1,
+
+    -1, -1,  1,
+    -1,  1,  1,
+     1, -1,  1,
+     1, -1,  1,
+    -1,  1,  1,
+     1,  1,  1,
+
+    -1,  1, -1,
+     1,  1, -1,
+    -1,  1,  1,
+    -1,  1,  1,
+     1,  1, -1,
+     1,  1,  1,
+
+    -1, -1, -1,
+    -1, -1,  1,
+     1, -1, -1,
+     1, -1, -1,
+    -1, -1,  1,
+     1, -1,  1,
+
+    -1, -1, -1,
+    -1,  1, -1,
+    -1, -1,  1,
+    -1, -1,  1,
+    -1,  1, -1,
+    -1,  1,  1,
+
+     1, -1, -1,
+     1, -1,  1,
+     1,  1, -1,
+     1,  1, -1,
+     1, -1,  1,
+     1,  1,  1,
+]);
+
+function createSkyboxBuffer() {
+    var vertices = [
+        // front
+        vec4(-1, -1,  1, 1),
+        vec4( 1, -1,  1, 1),
+        vec4( 1,  1,  1, 1),
+        vec4(-1, -1,  1, 1),
+        vec4( 1,  1,  1, 1),
+        vec4(-1,  1,  1, 1),
+
+        // back
+        vec4( 1, -1, -1, 1),
+        vec4(-1, -1, -1, 1),
+        vec4(-1,  1, -1, 1),
+        vec4( 1, -1, -1, 1),
+        vec4(-1,  1, -1, 1),
+        vec4( 1,  1, -1, 1),
+
+        // left
+        vec4(-1, -1, -1, 1),
+        vec4(-1, -1,  1, 1),
+        vec4(-1,  1,  1, 1),
+        vec4(-1, -1, -1, 1),
+        vec4(-1,  1,  1, 1),
+        vec4(-1,  1, -1, 1),
+
+        // right
+        vec4(1, -1,  1, 1),
+        vec4(1, -1, -1, 1),
+        vec4(1,  1, -1, 1),
+        vec4(1, -1,  1, 1),
+        vec4(1,  1, -1, 1),
+        vec4(1,  1,  1, 1),
+
+        // top
+        vec4(-1, 1,  1, 1),
+        vec4( 1, 1,  1, 1),
+        vec4( 1, 1, -1, 1),
+        vec4(-1, 1,  1, 1),
+        vec4( 1, 1, -1, 1),
+        vec4(-1, 1, -1, 1),
+
+        // bottom
+        vec4(-1, -1, -1, 1),
+        vec4( 1, -1, -1, 1),
+        vec4( 1, -1,  1, 1),
+        vec4(-1, -1, -1, 1),
+        vec4( 1, -1,  1, 1),
+        vec4(-1, -1,  1, 1)
+    ];
+
+    var buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    return {
+        buffer: buffer,
+        numVertices: vertices.length
+    };
+}
+
+
+function LoadSkyboxTexture(gl)
+{
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceInfos = [
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+            url: "skybox/bluecloud_rt.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+            url: "skybox/bluecloud_lf.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+            url: "skybox/bluecloud_dn.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            url: "skybox/bluecloud_up.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+            url: "skybox/bluecloud_bk.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+            url: "skybox/bluecloud_ft.jpg",
+        },
+    ];
+
+    faceInfos.forEach((faceInfo) => {
+        const { target, url } = faceInfo;
+
+        gl.texImage2D(
+            target,
+            0,
+            gl.RGBA,
+            512,
+            512,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+
+        const image = new Image();
+        image.onload = function () {
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.texImage2D(
+                target,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                image
+            );
+        };
+
+        image.src = url;
+    });
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
+}
+
+
 
 function createBoxBuffers() {
     var points = [];
