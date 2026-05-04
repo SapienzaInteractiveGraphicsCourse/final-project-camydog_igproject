@@ -76,6 +76,7 @@ var path_img_wall="./wall_tex.jpg";
 var path_img_floor="./parquet_tex.jpg";
 var path_img_dog = "./dog/dog_diff.jpg";
 var path_img_skybox = "./skybox/skybox.jpg";
+var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
 
 
 
@@ -121,6 +122,12 @@ var skyboxBuffer;
 var skyboxPosLoc;
 var skyboxMvpLoc;
 var skyboxSamplerLoc;
+
+
+var isNight = false;
+var daySkyboxTexture;
+var nightSkyboxTexture;
+
 
 //focus teapot button
 var teapotFocus = false;
@@ -225,7 +232,12 @@ onload = async function init() {
     skyboxBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, skyboxVertices, gl.STATIC_DRAW);
+
     skyboxTexture = LoadSkyboxTexture(gl);
+    
+    nightSkyboxTexture = LoadSkyboxTextureFromCross(gl,
+       path_img_skybox_night);
+
     skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
     skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
     skyboxSamplerLoc = gl.getUniformLocation(skyboxProgram, "skybox");
@@ -246,6 +258,15 @@ onload = async function init() {
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
     // settings bottoni + sliders
+    document.getElementById("ButtonNightDay").onclick = function () {
+        isNight = !isNight;
+
+        if (isNight) {
+            this.textContent = "Day Mode";
+        } else {
+            this.textContent = "Night Mode";
+        }
+    };
     document.getElementById("ButtonTeapotFocus").onclick = function () {
         teapotFocus = !teapotFocus;
 
@@ -1131,59 +1152,3 @@ function clampTeapotToTable() {
 }
 
 
-function DrawSkybox(gl, viewMatrix, projectionMatrix)
-{
-    // La skybox deve fare solo da sfondo:
-    // la disegno senza depth test e senza scrivere nel depth buffer
-    gl.disable(gl.DEPTH_TEST);
-    gl.depthMask(false);
-    gl.disable(gl.CULL_FACE);
-
-    gl.useProgram(skyboxProgram);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
-
-    gl.enableVertexAttribArray(skyboxPosLoc);
-    gl.vertexAttribPointer(
-        skyboxPosLoc,
-        3,
-        gl.FLOAT,
-        false,
-        0,
-        0
-    );
-
-    // Copio la view matrix togliendo la traslazione
-    let viewNoTranslation = mat4();
-
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            viewNoTranslation[i][j] = viewMatrix[i][j];
-        }
-    }
-
-    viewNoTranslation[0][3] = 0.0;
-    viewNoTranslation[1][3] = 0.0;
-    viewNoTranslation[2][3] = 0.0;
-
-    let mvp = mult(projectionMatrix, viewNoTranslation);
-
-    gl.uniformMatrix4fv(
-        skyboxMvpLoc,
-        false,
-        flatten(mvp)
-    );
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxTexture);
-    gl.uniform1i(skyboxSamplerLoc, 0);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-    // Ripristino lo stato per la scena normale
-    gl.depthMask(true);
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-    gl.depthFunc(gl.LESS);
-}

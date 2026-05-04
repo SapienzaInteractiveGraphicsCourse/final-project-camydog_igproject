@@ -320,6 +320,72 @@ function LoadSkyboxTexture(gl)
 
 
 
+function DrawSkybox(gl, viewMatrix, projectionMatrix)
+{
+    // La skybox deve fare solo da sfondo:
+    // la disegno senza depth test e senza scrivere nel depth buffer
+    gl.disable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+
+    gl.useProgram(skyboxProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
+
+    gl.enableVertexAttribArray(skyboxPosLoc);
+    gl.vertexAttribPointer(
+        skyboxPosLoc,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+
+    // Copio la view matrix togliendo la traslazione
+    let viewNoTranslation = mat4();
+
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            viewNoTranslation[i][j] = viewMatrix[i][j];
+        }
+    }
+
+    viewNoTranslation[0][3] = 0.0;
+    viewNoTranslation[1][3] = 0.0;
+    viewNoTranslation[2][3] = 0.0;
+
+    let mvp = mult(projectionMatrix, viewNoTranslation);
+
+    gl.uniformMatrix4fv(
+        skyboxMvpLoc,
+        false,
+        flatten(mvp)
+    );
+
+    gl.activeTexture(gl.TEXTURE0);
+
+    //check if it's night or day and bind the correct texture
+    if (isNight) {
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, nightSkyboxTexture);
+    } 
+    else {
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxTexture);
+    }
+    gl.uniform1i(skyboxSamplerLoc, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+    // Ripristino lo stato per la scena normale
+    gl.depthMask(true);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.depthFunc(gl.LESS);
+}
+
+
+
 function createBoxBuffers() {
     var points = [];
     var normals = [];
@@ -380,4 +446,97 @@ function createBoxBuffers() {
     addFace(v[4], v[5], v[1], v[0], vec4(0.0, -1.0, 0.0, 0.0));
 
     return createBuffers(points, normals, texCoords);
+}
+
+function LoadSkyboxTextureFromCross(gl, url)
+{
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceSize = 512;
+
+    const faceInfos = [
+        // target WebGL                         x                 y
+        { target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, x: 2 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // right
+        { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, x: 0 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // left
+
+        { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, x: 1 * faceSize, y: 2 * faceSize,rot:0, flipX: false, flipY: false }, // up
+        { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, x: 1 * faceSize, y: 0 * faceSize,rot:0, flipX: false, flipY: false }, // down
+
+        { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, x: 1 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // front
+        { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, x: 3 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // back
+    ];
+
+    // Placeholder iniziale per ogni faccia
+    faceInfos.forEach(function(faceInfo) {
+        gl.texImage2D(
+            faceInfo.target,
+            0,
+            gl.RGBA,
+            faceSize,
+            faceSize,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+    });
+
+    const image = new Image();
+
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+        faceInfos.forEach(function(faceInfo) {
+            const canvas = document.createElement("canvas");
+            canvas.width = faceSize;
+            canvas.height = faceSize;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.save();
+
+            ctx.translate(faceSize / 2, faceSize / 2);
+
+            ctx.rotate(faceInfo.rot * Math.PI / 180.0);
+
+            ctx.scale(
+                faceInfo.flipX ? -1 : 1,
+                faceInfo.flipY ? -1 : 1
+            );
+
+            ctx.drawImage(
+                image,
+                faceInfo.x,
+                faceInfo.y,
+                faceSize,
+                faceSize,
+                -faceSize / 2,
+                -faceSize / 2,
+                faceSize,
+                faceSize
+            );
+
+            ctx.restore();
+
+
+            gl.texImage2D(
+                faceInfo.target,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                canvas
+            );
+        });
+    };
+
+    image.src = url;
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
 }
