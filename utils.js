@@ -540,3 +540,53 @@ function LoadSkyboxTextureFromCross(gl, url)
 
     return texture;
 }
+
+function DrawLightDirectionArrow(gl, lightPosition, targetPosition, viewMatrix, projectionMatrix)
+{
+    if (!showLightDirection) {
+        return;
+    }
+
+    var lightPos = vec3(
+        lightPosition[0],
+        lightPosition[1],
+        lightPosition[2]
+    );
+
+    var target = vec3(
+        targetPosition[0],
+        targetPosition[1],
+        targetPosition[2]
+    );
+
+    // direzione fisica/debug: dalla luce verso il punto osservato
+    var dir = normalize(subtract(target, lightPos));
+
+    var arrowLength = 1.8;
+    var endPos = add(lightPos, scale(arrowLength, dir));
+
+    var vertices = new Float32Array([
+        lightPos[0], lightPos[1], lightPos[2],
+        endPos[0],   endPos[1],   endPos[2]
+    ]);
+
+    gl.useProgram(debugLineProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, debugLineBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
+
+    gl.enableVertexAttribArray(debugLinePositionLoc);
+    gl.vertexAttribPointer(debugLinePositionLoc, 3, gl.FLOAT, false, 0, 0);
+
+    gl.uniformMatrix4fv(debugLineViewMatrixLoc, false, flatten(viewMatrix));
+    gl.uniformMatrix4fv(debugLineProjectionMatrixLoc, false, flatten(projectionMatrix));
+
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+
+    gl.drawArrays(gl.LINES, 0, 2);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+}

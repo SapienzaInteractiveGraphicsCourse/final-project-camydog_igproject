@@ -11,10 +11,11 @@
     <button id = "ButtonY">Rotate Y</button>
     <button id = "ButtonZ">Rotate Z</button>
     <button id = "ButtonT">Toggle Teapot Rotation</button>
-    <button id="ButtonTex">Toggle Texture</button>
+    <button id="ButtonTex">Enable Textures</button>
     <button id="ButtonTableRotation">Toggle Table Rotation</button>
     <button id="ButtonCatMove">Toggle Cat Walk</button>
     <button id="ButtonDogMove">Toggle Dog Walk</button>
+    <button id="ButtonLightDir">Show Light Direction</button>
     
     </div>
   
@@ -62,7 +63,7 @@
 
                           <div class="control-row">
                             <label for="CameraDistance">Zoom:</label>
-                            <input id="CameraDistance" type="range" min="1.0" max="25" step="0.1" value="10">
+                            <input id="CameraDistance" type="range" min="0.0" max="25" step="0.1" value="10">
                             <span id="CameraDistanceValue">10.0</span>
                           </div>
             </div>
@@ -115,7 +116,7 @@
         </div>        
         <div class="canvas-container">
 
-            <canvas id="gl-canvas" width="900" height="900">
+            <canvas id="gl-canvas" width="1500" height="900">
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
         </div>
@@ -249,6 +250,7 @@ main(){
     
     float shadow = 1.0;
 
+    
     if (receiveShadow && 
         projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
         projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
@@ -277,7 +279,7 @@ main(){
 
         // 0.45 = intensità massima dell'ombra.
         // Più alto => ombra più scura.
-        shadow = 1.0 - 0.45 * shadowFactor;
+        shadow = 1.0 - 0.35 * shadowFactor;
     }
 
     vec4 baseColor = useTexture ? texColor * fColor : fColor;
@@ -336,6 +338,27 @@ uniform samplerCube skybox;
 void main()
 {
     gl_FragColor = textureCube(skybox, v_texCoord);
+}
+</script>
+
+<script id="debug-line-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 vPosition;
+
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main()
+{
+    gl_Position = projectionMatrix * viewMatrix * vec4(vPosition, 1.0);
+}
+</script>
+
+<script id="debug-line-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main()
+{
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
 </script>
 
@@ -456,6 +479,18 @@ void main()
 
         #ButtonNightDay:hover {
             background-color: #455A64;
+        }
+        #ButtonLightDir {
+            background-color: #009688;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonLightDir:hover {
+            background-color: #4DB6AC;
         }
         
 

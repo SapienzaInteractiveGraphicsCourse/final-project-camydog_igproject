@@ -48,9 +48,11 @@ var cameraAngle = 35.0;
 var cameraHeight = 4.0;
 var cameraDistance = 10.0;   // questo è lo zoom
 
-var at = vec3(0.0, -1.0, 0.0);
+var at = vec3(0.0, 0.5, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 var eye = vec3(0.0, 4.0, 10.0);
+var aspect;
+
 
 //texture variables
 var useTexture_teapot = false;
@@ -67,6 +69,8 @@ var floorTexture;
 var dogBuffers;
 var dogTexture;
 var skyboxTexture;
+var paintingTexture;
+var corniceTexture;
 
 //img paths
 var path_img_teapot="./teapot_tex.jpg";
@@ -77,6 +81,8 @@ var path_img_floor="./parquet_tex.jpg";
 var path_img_dog = "./dog/dog_diff.jpg";
 var path_img_skybox = "./skybox/skybox.jpg";
 var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
+var path_img_painting = "./london.jpg";
+var path_img_cornice = "./blue_navy.jpg";
 
 
 
@@ -132,6 +138,14 @@ var nightSkyboxTexture;
 //focus teapot button
 var teapotFocus = false;
 
+//light direction visualization
+var showLightDirection = false;
+var debugLineProgram;
+var debugLineBuffer;
+var debugLinePositionLoc;
+var debugLineViewMatrixLoc;
+var debugLineProjectionMatrixLoc;
+
 
 
 
@@ -141,6 +155,8 @@ onload = async function init() {
     gl = WebGLUtils.setupWebGL(canvas);
 
     gl.viewport(0, 0, canvas.width, canvas.height);
+    aspect = canvas.width / canvas.height;
+
     // bianco clear color gl.clearColor(1.0, 1.0, 1.0, 1.0);
     // arancione gl.clearColor(0.9, 0.5, 0.3, 1.0);
     gl.clearColor(0.7, 0.9,0.7, 1.0);
@@ -168,6 +184,8 @@ onload = async function init() {
     wallTexture = loadTexture(path_img_wall);
     floorTexture = loadTexture(path_img_floor);
     dogTexture = loadTexture(path_img_dog);
+    paintingTexture = loadTexture(path_img_painting);
+    corniceTexture = loadTexture(path_img_cornice);
     
 
     
@@ -241,6 +259,20 @@ onload = async function init() {
     skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
     skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
     skyboxSamplerLoc = gl.getUniformLocation(skyboxProgram, "skybox");
+
+
+    //parte program per visualizzazione direzione luce (debug)
+    debugLineProgram = initShaders(
+        gl,
+        "debug-line-vertex-shader",
+        "debug-line-fragment-shader"
+    );
+
+    debugLinePositionLoc = gl.getAttribLocation(debugLineProgram, "vPosition");
+    debugLineViewMatrixLoc = gl.getUniformLocation(debugLineProgram, "viewMatrix");
+    debugLineProjectionMatrixLoc = gl.getUniformLocation(debugLineProgram, "projectionMatrix");
+
+    debugLineBuffer = gl.createBuffer();
     
    
 
@@ -258,6 +290,10 @@ onload = async function init() {
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
     // settings bottoni + sliders
+    document.getElementById("ButtonLightDir").onclick = function () {
+        showLightDirection = !showLightDirection;
+        this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
+    };
     document.getElementById("ButtonNightDay").onclick = function () {
         isNight = !isNight;
 
@@ -290,6 +326,10 @@ onload = async function init() {
         console.log("Texture teapot :", useTexture_teapot);
         useTexture_table = !useTexture_table;
         console.log("Texture table :", useTexture_table);
+
+         this.textContent = useTexture_teapot ? "Disable Textures" : "Enable Textures";
+        
+        
     };
     var speedSlider_teapot = document.getElementById("RotationSpeed_teapot");
     var speedValue_teapot = document.getElementById("RotationSpeedValue_teapot");
@@ -735,7 +775,7 @@ function render() {
     );
  */
     var viewMatrix = lookAt(eye, at, up);
-    var projectionMatrix = perspective(80.0, 1.0, 0.1, 120.0);
+    var projectionMatrix = perspective(80.0, aspect, 0.1, 120.0);
 
     //model Light
     var modelMatrixLight = mat4();
@@ -763,7 +803,7 @@ function render() {
     modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
     modelMatrix3 = mult(modelMatrix3, rotate(catFacingAngle, [0, 1, 0]));
     modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
-    modelMatrix3 = mult(modelMatrix3, scalem(0.7, 0.7, 0.7));
+    modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5));
 
     //matrici dog
     var modelMatrixDog = mat4();
@@ -772,55 +812,57 @@ function render() {
     modelMatrixDog = mult(modelMatrixDog, rotate(-90, [1, 0, 0]));
     modelMatrixDog = mult(modelMatrixDog, scalem(1.0, 1.0, 1.0));
 
-   /*  // ===== ROOM =====
-
-    // pavimento: piano orizzontale
-    var modelMatrixFloor = mat4();
-    modelMatrixFloor = mult(modelMatrixFloor, translate(0.0, -1.65, 0.0));
-    modelMatrixFloor = mult(modelMatrixFloor, scalem(6.0, 1.0, 6.0));
-
-    // parete dietro: ruoto il piano da orizzontale a verticale
-    var modelMatrixBackWall = mat4();
-    modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, 1.0, -4.0));
-    modelMatrixBackWall = mult(modelMatrixBackWall, rotate(90, [1, 0, 0]));
-    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(6.0, 1.0, 4.0));
-
-    // parete sinistra
-    var modelMatrixLeftWall = mat4();
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-3.0, 1.0, 0.0));
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, rotate(90, [0, 0, 1]));
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(6.0, 1.0, 6.0));
-
-    // parete destra
-    var modelMatrixRightWall = mat4();
-    modelMatrixRightWall = mult(modelMatrixRightWall, translate(4.0, 1.0, 0.0));
-    modelMatrixRightWall = mult(modelMatrixRightWall, rotate(-90, [0, 0, 1]));
-    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(6.0, 1.0, 6.0)); */
-
 
     // ===== ROOM BOX =====
 
     // pavimento
     var modelMatrixFloor = mat4();
     modelMatrixFloor = mult(modelMatrixFloor, translate(0.0, -2.5, 0.0));
-    modelMatrixFloor = mult(modelMatrixFloor, scalem(8.0, 0.1, 8.0));
+    modelMatrixFloor = mult(modelMatrixFloor, scalem(14.0, 0.1, 14.0));
 
     // parete dietro
     var modelMatrixBackWall = mat4();
-    modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, -0.5, -4.0));
-    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(8.0, 4.0, 0.1));
+    modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, -0.5, -7.0));
+    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(14.0, 4.0, 0.1));
 
     // parete sinistra
     var modelMatrixLeftWall = mat4();
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-4.0, -0.5, 0.0));
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.1, 4.0, 8.0));
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-7.0, -0.5, 0.0));
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.1, 4.0, 14.0));
 
     // parete destra
     var modelMatrixRightWall = mat4();
-    modelMatrixRightWall = mult(modelMatrixRightWall, translate(4.0, -0.5, 0.0));
-    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.1, 4.0, 8.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, translate(7.0, -0.5, 0.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.1, 4.0, 14.0));
 
+    // ===== PAINTING =====
 
+    // pannello del quadro sulla parete dietro
+    var modelMatrixPainting = mat4();
+    modelMatrixPainting = mult(modelMatrixPainting, translate(0.0, 0.7, -6.93));
+    modelMatrixPainting = mult(modelMatrixPainting, scalem(2.2, 1.3, 0.04));
+
+    // cornice sopra
+    var modelMatrixFrameTop = mat4();
+    modelMatrixFrameTop = mult(modelMatrixFrameTop, translate(0.0, 1.4, -6.88));
+    modelMatrixFrameTop = mult(modelMatrixFrameTop, scalem(2.45, 0.10, 0.10));
+
+    // cornice sotto
+    var modelMatrixFrameBottom = mat4();
+    modelMatrixFrameBottom = mult(modelMatrixFrameBottom, translate(0.0, 0.0, -6.88));
+    modelMatrixFrameBottom = mult(modelMatrixFrameBottom, scalem(2.45, 0.10, 0.10));
+
+    // cornice sinistra
+    var modelMatrixFrameLeft = mat4();
+    modelMatrixFrameLeft = mult(modelMatrixFrameLeft, translate(-1.22, 0.7, -6.88));
+    modelMatrixFrameLeft = mult(modelMatrixFrameLeft, scalem(0.10, 1.45, 0.10));
+
+    // cornice destra
+    var modelMatrixFrameRight = mat4();
+    modelMatrixFrameRight = mult(modelMatrixFrameRight, translate(1.22, 0.7, -6.88));
+    modelMatrixFrameRight = mult(modelMatrixFrameRight, scalem(0.10, 1.45, 0.10));
+
+    /////////////////////
         
     // ===== SHADOW PASS =====
     lightViewMatrix = lookAt(
@@ -828,7 +870,7 @@ function render() {
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 1.0, 0.0)
     );
-    lightProjectionMatrix = perspective(70.0, 1.0, 1.0, 30.0);
+    lightProjectionMatrix = perspective(100.0, 1.0, 0.05, 40.0);
 
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
@@ -852,10 +894,6 @@ function render() {
     drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
     drawShadowObject(roomBoxBuffers, modelMatrixRightWall);
 
-   /*  drawShadowObject(roomPlaneBuffers, modelMatrixBackWall);
-    drawShadowObject(roomPlaneBuffers, modelMatrixLeftWall);
-    drawShadowObject(roomPlaneBuffers, modelMatrixRightWall);
- */
 
 
      // ===== NORMAL PASS =====
@@ -909,6 +947,17 @@ function render() {
         true
     );
 
+    //parte per disegnaare direzione luce (debug)
+    DrawLightDirectionArrow(
+        gl,
+        lightPosition,
+        vec3(0.0, 0.0, 0.0),
+        viewMatrix,
+        projectionMatrix
+    );
+
+gl.useProgram(program);
+
     /*
     // ROOM: disable culling because planes are single-sided
     // Floor: keep culling enabled, so we do not see its back side
@@ -938,16 +987,33 @@ function render() {
  */
 
     drawObject(roomBoxBuffers, floorTexture, modelMatrixFloor,
-    viewMatrix, projectionMatrix, true, false, false);
+    viewMatrix, projectionMatrix, true, false, false,  true);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
-        viewMatrix, projectionMatrix, true, false, false);
+        viewMatrix, projectionMatrix, true, false, false,  true);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixLeftWall,
-        viewMatrix, projectionMatrix, true, false, false);
+        viewMatrix, projectionMatrix, true, false, false,  true);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixRightWall,
-        viewMatrix, projectionMatrix, true, false, false);
+        viewMatrix, projectionMatrix, true, false, false,  true);
+
+    //painting part
+
+    drawObject(roomBoxBuffers, paintingTexture, modelMatrixPainting,
+    viewMatrix, projectionMatrix, true, false, false, true);
+
+    drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameTop,
+        viewMatrix, projectionMatrix, true, false, false, true);
+
+    drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameBottom,
+        viewMatrix, projectionMatrix, true, false, false, true);
+
+    drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameLeft,
+        viewMatrix, projectionMatrix, true, false, false, true);
+
+    drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameRight,
+        viewMatrix, projectionMatrix, true, false, false, true);
 
     requestAnimFrame(render);
 }
