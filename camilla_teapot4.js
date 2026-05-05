@@ -14,8 +14,8 @@ var flag_rot_teapot = true;
 var flag_rot_table = false;
 
 var modelViewMatrixLoc;
-var modelPath_teapot = "teapot.obj";
-var modelPath_table = "table.obj";
+var modelPath_teapot = "./Objects/teapot.obj";
+var modelPath_table = "./Objects/table.obj";
 var modelPath_cat= "./Cat/cat.obj";
 var modelPath_dog = "./dog/dog.obj";
 
@@ -73,16 +73,16 @@ var paintingTexture;
 var corniceTexture;
 
 //img paths
-var path_img_teapot="./teapot_tex.jpg";
-var path_img_table="table_tex_512.jpg";
+var path_img_teapot="./Textures/teapot_tex_1.png";
+var path_img_table="./table_tex_512.jpg";
 var path_img_cat="./Cat/cat_diffuse.jpg";
-var path_img_wall="./wall_tex.jpg";
-var path_img_floor="./parquet_tex.jpg";
+var path_img_wall="./Textures/wall_tex.jpg";
+var path_img_floor="./Textures/parquet_tex.jpg";
 var path_img_dog = "./dog/dog_diff.jpg";
 var path_img_skybox = "./skybox/skybox.jpg";
 var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
-var path_img_painting = "./london.jpg";
-var path_img_cornice = "./blue_navy.jpg";
+var path_img_painting = "./Textures/london.jpg";
+var path_img_cornice = "./Textures/blue_navy.jpg";
 
 
 
@@ -107,7 +107,7 @@ var tableTheta = 0.0;
 var moveCat = false;
 var catBasePos = vec3(1.2,-0.95, 0.8);
 var catWalkTime = 0.0;
-var catWalkSpeed = 0.08;
+var catWalkSpeed = 0.01;
 var catWalkRange = 1.0;
 
 //dog walk 
@@ -149,6 +149,102 @@ var debugLineProjectionMatrixLoc;
 
 
 
+//new shadow variables
+
+var isPointShadowPass = false;
+
+var POINT_SHADOW_FAR = 40.0;
+
+var usePointShadowMap = true;
+
+var POINT_SHADOW_SIZE = 1024;
+
+var pointShadowFramebuffers = [];
+var pointShadowTextures = [];
+
+var pointLightViewMatrices = [];
+var pointLightProjectionMatrix;
+var pointShadowDirections = [
+    vec3( 1.0,  0.0,  0.0), // +X
+    vec3(-1.0,  0.0,  0.0), // -X
+    vec3( 0.0,  1.0,  0.0), // +Y
+    vec3( 0.0, -1.0,  0.0), // -Y
+    vec3( 0.0,  0.0,  1.0), // +Z
+    vec3( 0.0,  0.0, -1.0)  // -Z
+];
+
+var pointShadowUps = [
+    vec3(0.0, -1.0,  0.0), // +X
+    vec3(0.0, -1.0,  0.0), // -X
+    vec3(0.0,  0.0,  1.0), // +Y
+    vec3(0.0,  0.0, -1.0), // -Y
+    vec3(0.0, -1.0,  0.0), // +Z
+    vec3(0.0, -1.0,  0.0)  // -Z
+];
+
+function initPointShadowMaps()
+{
+    pointShadowFramebuffers = [];
+    pointShadowTextures = [];
+
+    for (var i = 0; i < 6; i++) {
+        var framebuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            POINT_SHADOW_SIZE,
+            POINT_SHADOW_SIZE,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        var depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+        gl.renderbufferStorage(
+            gl.RENDERBUFFER,
+            gl.DEPTH_COMPONENT16,
+            POINT_SHADOW_SIZE,
+            POINT_SHADOW_SIZE
+        );
+
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            texture,
+            0
+        );
+
+        gl.framebufferRenderbuffer(
+            gl.FRAMEBUFFER,
+            gl.DEPTH_ATTACHMENT,
+            gl.RENDERBUFFER,
+            depthBuffer
+        );
+
+        pointShadowFramebuffers.push(framebuffer);
+        pointShadowTextures.push(texture);
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+
+
+
 onload = async function init() {
 
     canvas = document.getElementById("gl-canvas");
@@ -174,6 +270,10 @@ onload = async function init() {
     shadowProgram = initShaders(gl, "shadow-vertex-shader", "shadow-fragment-shader");
     console.log("shadowProgram =", shadowProgram);
     initShadowMap();
+
+
+    //new shadow map for point light
+    initPointShadowMaps();
 
 
     //carico le texture per teapot e tavolo + cat
@@ -797,7 +897,6 @@ function render() {
     modelMatrix2 = mult(modelMatrix2, rotate(tableTheta, [0, 1, 0]));
     modelMatrix2 = mult(modelMatrix2, scalem(3.0, 1.5, 2.0));
 
-
     //matrici cat
     var modelMatrix3 = mat4();
     modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
@@ -823,17 +922,31 @@ function render() {
     // parete dietro
     var modelMatrixBackWall = mat4();
     modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, -0.5, -7.0));
-    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(14.0, 4.0, 0.1));
+    modelMatrixBackWall = mult(modelMatrixBackWall, scalem(14.0, 4.0, 0.15));
+
+    // blocker per la parete dietro
+    var modelMatrixBackWallBlocker = mat4();
+    modelMatrixBackWallBlocker = mult(modelMatrixBackWallBlocker, translate(0.0, -0.5, -7.08));
+    modelMatrixBackWallBlocker = mult(modelMatrixBackWallBlocker, scalem(14.6, 4.2, 0.15));
 
     // parete sinistra
     var modelMatrixLeftWall = mat4();
     modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-7.0, -0.5, 0.0));
-    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.1, 4.0, 14.0));
+    modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.15, 4.0, 14.4));
+
+    //blocker per la parete sinistra
+    var modelMatrixLeftWallBlocker = mat4();
+    modelMatrixLeftWallBlocker = mult(modelMatrixLeftWallBlocker, translate(-7.08, -0.5, 0.0));
+    modelMatrixLeftWallBlocker = mult(modelMatrixLeftWallBlocker, scalem(0.15, 4.2, 14.6));
 
     // parete destra
     var modelMatrixRightWall = mat4();
     modelMatrixRightWall = mult(modelMatrixRightWall, translate(7.0, -0.5, 0.0));
-    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.1, 4.0, 14.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.15, 4.0, 14.4));
+    // blocker per la parete destra
+    var modelMatrixRightWallBlocker = mat4();
+    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(7.08, -0.5, 0.0));
+    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.15, 4.2, 14.6));
 
     // ===== PAINTING =====
 
@@ -862,6 +975,18 @@ function render() {
     modelMatrixFrameRight = mult(modelMatrixFrameRight, translate(1.22, 0.7, -6.88));
     modelMatrixFrameRight = mult(modelMatrixFrameRight, scalem(0.10, 1.45, 0.10));
 
+    // prima dello shadow pass
+    var classicLightViewMatrix = lookAt(
+        vec3(lightPosition[0], lightPosition[1], lightPosition[2]),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0)
+    );
+
+    var classicLightProjectionMatrix = perspective(100.0, 1.0, 0.05, 40.0);
+
+    lightViewMatrix = classicLightViewMatrix;
+    lightProjectionMatrix = classicLightProjectionMatrix;
+
     /////////////////////
         
     // ===== SHADOW PASS =====
@@ -885,7 +1010,7 @@ function render() {
     gl.useProgram(shadowProgram);
 
     
-    drawShadowObject(teapotBuffers, modelMatrix1);
+   /*  drawShadowObject(teapotBuffers, modelMatrix1);
     drawShadowObject(tableBuffers, modelMatrix2);
     drawShadowObject(catBuffers, modelMatrix3);
     drawShadowObject(dogBuffers, modelMatrixDog);
@@ -893,8 +1018,72 @@ function render() {
     drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
     drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
     drawShadowObject(roomBoxBuffers, modelMatrixRightWall);
+ */
 
+    gl.disable(gl.CULL_FACE);
 
+    //altra parte per shadow map point light
+    isPointShadowPass = true;
+    pointLightProjectionMatrix = perspective(90.0, 1.0, 0.1, POINT_SHADOW_FAR);
+  
+    var lightPos = vec3(
+        lightPosition[0],
+        lightPosition[1],
+        lightPosition[2]
+    );
+
+    for (var i = 0; i < 6; i++) {
+        var target = add(lightPos, pointShadowDirections[i]);
+
+        pointLightViewMatrices[i] = lookAt(
+            lightPos,
+            target,
+            pointShadowUps[i]
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, pointShadowFramebuffers[i]);
+        gl.viewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+
+        gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.useProgram(shadowProgram);
+
+        // qui usiamo temporaneamente le matrici globali già usate da drawShadowObject
+        lightViewMatrix = pointLightViewMatrices[i];
+        lightProjectionMatrix = pointLightProjectionMatrix;
+
+        drawShadowObject(teapotBuffers, modelMatrix1);
+        drawShadowObject(tableBuffers, modelMatrix2);
+        drawShadowObject(catBuffers, modelMatrix3);
+        drawShadowObject(dogBuffers, modelMatrixDog);
+
+         drawShadowObject(roomBoxBuffers, modelMatrixFloor);
+
+        /*drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
+        drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
+        drawShadowObject(roomBoxBuffers, modelMatrixRightWall); */
+
+        // uso i blockers
+        drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
+        drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
+        drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
+    }
+    
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // Ripristino per il render normale
+    //gl.enable(gl.CULL_FACE);
+    //gl.cullFace(gl.BACK);
+
+    // Ripristino le matrici della shadow map classica,
+    // perché per ora il fragment shader usa ancora shadowMap 2D.
+    lightViewMatrix = classicLightViewMatrix;
+    lightProjectionMatrix = classicLightProjectionMatrix;
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
 
      // ===== NORMAL PASS =====
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -923,9 +1112,16 @@ function render() {
         flatten(diffuseProduct)
     );
 
-    drawObject(teapotBuffers, teapotTexture, modelMatrix1, viewMatrix, projectionMatrix,useTexture_teapot, false,false,false);
-    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix, projectionMatrix, useTexture_table, false,false,true);
-    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix, projectionMatrix, true, false,false,true);
+    drawObject(teapotBuffers,
+         teapotTexture,
+          modelMatrix1,
+           viewMatrix,
+            projectionMatrix,useTexture_teapot, 
+            false,false,true);
+    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
+         projectionMatrix, useTexture_table, false,false,true);
+    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
+         projectionMatrix, true, false,false,true);
     drawObject(
         dogBuffers,
         dogTexture,
@@ -1048,11 +1244,7 @@ function drawObject(obj,
      receiveShadow = true) {
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
 
-    //var normalMatrix = [
-     //   vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
-     //   vec3(modelViewMatrix[1][0], modelViewMatrix[1][1], modelViewMatrix[1][2]),
-      //  vec3(modelViewMatrix[2][0], modelViewMatrix[2][1], modelViewMatrix[2][2])
-    //];
+    
     var nMatrix = normalMatrix(modelViewMatrix, true);
     // Normal matrix in world space, used for shadow-related world normals
     var modelNMatrix = normalMatrix(modelMatrix, true);
@@ -1081,6 +1273,74 @@ function drawObject(obj,
     gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
     gl.uniform1i(gl.getUniformLocation(program, "shadowMap"), 1);
 
+    // Point shadow maps: 6 textures, one for each direction
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap0"), 2);
+
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap1"), 3);
+
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap2"), 4);
+
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap3"), 5);
+
+    gl.activeTexture(gl.TEXTURE6);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap4"), 6);
+
+    gl.activeTexture(gl.TEXTURE7);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
+    gl.uniform1i(gl.getUniformLocation(program, "pointShadowMap5"), 7);
+
+    gl.uniformMatrix4fv(
+    gl.getUniformLocation(program, "pointLightViewMatrix0"),
+        false,
+        flatten(pointLightViewMatrices[0])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightViewMatrix1"),
+        false,
+        flatten(pointLightViewMatrices[1])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightViewMatrix2"),
+        false,
+        flatten(pointLightViewMatrices[2])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightViewMatrix3"),
+        false,
+        flatten(pointLightViewMatrices[3])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightViewMatrix4"),
+        false,
+        flatten(pointLightViewMatrices[4])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightViewMatrix5"),
+        false,
+        flatten(pointLightViewMatrices[5])
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "pointLightProjectionMatrix"),
+        false,
+        flatten(pointLightProjectionMatrix)
+    );
+
+    // parte che già c'era 
     gl.uniform1i(
     gl.getUniformLocation(program, "useTexture"),
         useTexture_teapot ? 1 : 0
@@ -1134,6 +1394,12 @@ function drawObject(obj,
         false,
         flatten(modelNMatrix)
     ); 
+
+    //shadow map point light
+    gl.uniform1i(
+        gl.getUniformLocation(program, "usePointShadowMap"),
+        usePointShadowMap ? 1 : 0
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);
 }
@@ -1202,6 +1468,32 @@ function drawShadowObject(obj, modelMatrix) {
         gl.getUniformLocation(shadowProgram, "lightProjectionMatrix"),
         false,
         flatten(lightProjectionMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(shadowProgram, "modelMatrix"),
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniform4fv(
+        gl.getUniformLocation(shadowProgram, "lightPosition"),
+        flatten(lightPosition)
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(shadowProgram, "pointShadowPass"),
+        isPointShadowPass ? 1 : 0
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(shadowProgram, "pointShadowPass"),
+        isPointShadowPass ? 1 : 0
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(shadowProgram, "pointShadowFar"),
+        POINT_SHADOW_FAR
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);

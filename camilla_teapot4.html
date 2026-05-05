@@ -2,25 +2,36 @@
 <html>
 <head>
 <title>ProvaProjectCamilla</title>
-<link rel="icon" type="image/png" href="./nintendogs_logo.jpg">
+<link rel="icon" type="image/png" href="./Textures/nintendogs_logo.jpg">
 </head>
 <body>
-    <div class="top-buttons">
-
-    <button id = "ButtonX">Rotate X</button>
-    <button id = "ButtonY">Rotate Y</button>
-    <button id = "ButtonZ">Rotate Z</button>
-    <button id = "ButtonT">Toggle Teapot Rotation</button>
-    <button id="ButtonTex">Enable Textures</button>
-    <button id="ButtonTableRotation">Toggle Table Rotation</button>
-    <button id="ButtonCatMove">Toggle Cat Walk</button>
-    <button id="ButtonDogMove">Toggle Dog Walk</button>
-    <button id="ButtonLightDir">Show Light Direction</button>
+   
     
     </div>
+
+    <div class="control-group">
+                <h3>Some settings</h3>
+                 <div class="top-buttons">
+
+                    <button id = "ButtonX">Rotate X</button>
+                    <button id = "ButtonY">Rotate Y</button>
+                    <button id = "ButtonZ">Rotate Z</button>
+                    <button id = "ButtonT">Toggle Teapot Rotation</button>
+                    <button id="ButtonTex">Enable Textures</button>
+                    <button id="ButtonTableRotation">Toggle Table Rotation</button>
+                    <button id="ButtonCatMove">Toggle Cat Walk</button>
+                    <button id="ButtonDogMove">Toggle Dog Walk</button>
+                    <button id="ButtonLightDir">Show Light Direction</button>
+
+            </div>
   
     <div class="main-layout">
+
+        
+
         <div class="controls-panel">
+
+            
 
             <div class="control-group">
                 <h3>Light</h3> 
@@ -79,7 +90,7 @@
                                 id="RotationSpeed_teapot" 
                                 type="range" 
                                 min="0" 
-                                max="5" 
+                                max="9" 
                                 step="0.1" 
                                 value="1"
                             >
@@ -144,7 +155,7 @@ varying vec3 fWorldNormal;
 uniform vec4 ambientProduct, diffuseProduct, specularProduct;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
-uniform vec4 lightPosition;
+uniform mediump vec4 lightPosition;
 uniform float shininess;
 uniform mat3 normalMatrix;
 
@@ -158,6 +169,9 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat4 lightViewMatrix;
 uniform mat4 lightProjectionMatrix;
+
+
+varying vec3 fWorldPos;
 
 
 
@@ -208,6 +222,8 @@ void main()
     fTexCoord = vTexCoord;
 
     fWorldNormal = normalize(modelNormalMatrix * vNormal.xyz);
+    vec4 worldPos = modelMatrix * vPosition;
+    fWorldPos = worldPos.xyz;
     
 
 } 
@@ -215,7 +231,7 @@ void main()
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 
-precision mediump float;
+precision highp float;
 
 varying vec4 fColor;
 varying vec2 fTexCoord;
@@ -232,8 +248,187 @@ uniform sampler2D shadowMap;
 uniform bool isLightMarker;
 uniform bool receiveShadow;
 
-void
-main(){
+// Point light shadow maps: one texture for each cubemap face
+uniform sampler2D pointShadowMap0; // +X
+uniform sampler2D pointShadowMap1; // -X
+uniform sampler2D pointShadowMap2; // +Y
+uniform sampler2D pointShadowMap3; // -Y
+uniform sampler2D pointShadowMap4; // +Z
+uniform sampler2D pointShadowMap5; // -Z
+
+uniform mat4 pointLightViewMatrix0;
+uniform mat4 pointLightViewMatrix1;
+uniform mat4 pointLightViewMatrix2;
+uniform mat4 pointLightViewMatrix3;
+uniform mat4 pointLightViewMatrix4;
+uniform mat4 pointLightViewMatrix5;
+
+uniform mat4 pointLightProjectionMatrix;
+
+uniform bool usePointShadowMap;
+
+varying vec3 fWorldPos;
+
+uniform mediump vec4 lightPosition;
+
+
+int choosePointShadowFace(vec3 dir)
+{
+    vec3 absDir = abs(dir);
+
+    if (absDir.x >= absDir.y && absDir.x >= absDir.z) {
+        if (dir.x > 0.0) {
+            return 0; // +X
+        } else {
+            return 1; // -X
+        }
+    }
+
+    if (absDir.y >= absDir.x && absDir.y >= absDir.z) {
+        if (dir.y > 0.0) {
+            return 2; // +Y
+        } else {
+            return 3; // -Y
+        }
+    }
+
+    if (dir.z > 0.0) {
+        return 4; // +Z
+    } else {
+        return 5; // -Z
+    }
+}
+
+float unpackDepth(vec4 rgbaDepth)
+{
+    const vec4 bitShift = vec4(
+        1.0 / (256.0 * 256.0 * 256.0),
+        1.0 / (256.0 * 256.0),
+        1.0 / 256.0,
+        1.0
+    );
+
+    return dot(rgbaDepth, bitShift);
+}
+
+float computePointShadow(vec3 worldPos, vec3 worldNormal)
+{
+    float farPlane = 40.0;
+    vec3 lightWorldPos = lightPosition.xyz;
+    vec3 dir = worldPos - lightWorldPos;
+
+    int face = choosePointShadowFace(dir);
+
+    vec4 shadowCoord;
+    float closestDepth;
+
+    //modifica per bias custom (gpt)
+    // direzione dal frammento verso la luce
+    vec3 fragToLight = normalize(lightWorldPos - worldPos);
+
+    float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
+
+    // bias piccolo sulle superfici frontali, più alto sugli angoli radenti
+    float bias = max(0.003 * (1.0 - ndotl), 0.0002);
+
+    float currentDistance = length(worldPos - lightWorldPos);
+    float currentDepth = currentDistance / farPlane;
+
+    //attenzione su gpt
+    float quantita_luce=0.0;
+
+    if (face == 0) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix0 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap0, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+
+    else if (face == 1) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix1 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap1, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+
+    else if (face == 2) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix2 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap2, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+
+    else if (face == 3) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix3 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap3, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+
+    else if (face == 4) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix4 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap4, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+
+    else {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix5 * vec4(worldPos, 1.0);
+        vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+        projCoords = projCoords * 0.5 + 0.5;
+
+        if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0) {
+            return 1.0;
+        }
+
+        closestDepth = unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
+        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+}
+
+void main(){
 
     if (isLightMarker) {
         gl_FragColor = vec4(1.0, 1.0, 0.25, 1.0);
@@ -242,55 +437,63 @@ main(){
 
     //vec2 uv = fract(fTexCoord * 8.0);
     vec4 texColor = texture2D(uTexture, fTexCoord);
+
+    
     
     vec3 projCoords = fShadowCoord.xyz / fShadowCoord.w;
     projCoords = projCoords * 0.5 + 0.5;
 
     float facingLight = normalize(fWorldNormal).y;
     
+    
+
     float shadow = 1.0;
 
-    
-    if (receiveShadow && 
-        projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
-        projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
-        projCoords.z >= 0.0 && projCoords.z <= 1.0) {
+    if (usePointShadowMap && receiveShadow) {
+        shadow = computePointShadow(fWorldPos,fWorldNormal);
+    }
+    else {
+        // QUI lasci la tua shadow map vecchia pari pari
+        if (receiveShadow && 
+            projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
+            projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
+            projCoords.z >= 0.0 && projCoords.z <= 1.0) {
 
-        float currentDepth = projCoords.z;
-        float bias = 0.003;
+            float currentDepth = projCoords.z;
+            float bias = 0.0005;
 
-        float shadowSum = 0.0;
+            float shadowSum = 0.0;
+            float texelSize = 1.0 / 2048.0;
 
-        // Deve combaciare con SHADOW_SIZE nel JS.
-        float texelSize = 1.0 / 2048.0;
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    vec2 offset = vec2(float(x), float(y)) * texelSize;
+                    float closestDepth = texture2D(shadowMap, projCoords.xy + offset).r;
 
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                vec2 offset = vec2(float(x), float(y)) * texelSize;
-                float closestDepth = texture2D(shadowMap, projCoords.xy + offset).r;
-
-                if (currentDepth > closestDepth + bias) {
-                    shadowSum += 1.0;
+                    if (currentDepth > closestDepth + bias) {
+                        shadowSum += 1.0;
+                    }
                 }
             }
+
+            float shadowFactor = shadowSum / 9.0;
+            shadow = 1.0 - 0.45 * shadowFactor;
         }
-
-        float shadowFactor = shadowSum / 9.0;
-
-        // 0.45 = intensità massima dell'ombra.
-        // Più alto => ombra più scura.
-        shadow = 1.0 - 0.35 * shadowFactor;
     }
 
     vec4 baseColor = useTexture ? texColor * fColor : fColor;
     gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
 
+    
+
 }
 </script>
+
+
 <!-- SHADOW SHADERS -->
 <!-- Per il teapot ombreggiato, con ombre dinamiche -->
 
-<script id="shadow-vertex-shader" type="x-shader/x-vertex">
+<!-- <script id="shadow-vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 
 
@@ -301,9 +504,9 @@ void
 main(){
     gl_Position = lightProjectionMatrix * lightModelViewMatrix * vPosition;
 }
-  
 
 </script>
+
 <script id="shadow-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
@@ -313,7 +516,73 @@ void main()
     float d = gl_FragCoord.z;
     gl_FragColor = vec4(d, d, d, 1.0);
 } 
+</script> -->
+<script id="shadow-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+uniform mat4 lightModelViewMatrix;
+uniform mat4 lightProjectionMatrix;
+uniform mat4 modelMatrix;
+uniform vec4 lightPosition;
+uniform bool pointShadowPass;
+
+varying vec3 vWorldPos;
+
+void main()
+{
+    vec4 worldPos = modelMatrix * vPosition;
+    vWorldPos = worldPos.xyz;
+
+    gl_Position = lightProjectionMatrix * lightModelViewMatrix * vPosition;
+}
 </script>
+
+<script id="shadow-fragment-shader" type="x-shader/x-fragment">
+precision highp float;
+
+uniform vec4 lightPosition;
+uniform float pointShadowFar;
+uniform bool pointShadowPass;
+
+varying vec3 vWorldPos;
+
+vec4 packDepth(float depth)
+{
+    const vec4 bitShift = vec4(
+        256.0 * 256.0 * 256.0,
+        256.0 * 256.0,
+        256.0,
+        1.0
+    );
+
+    const vec4 bitMask = vec4(
+        0.0,
+        1.0 / 256.0,
+        1.0 / 256.0,
+        1.0 / 256.0
+    );
+
+    vec4 res = fract(depth * bitShift);
+    res -= res.xxyz * bitMask;
+    return res;
+}
+
+void main() 
+{
+    if (pointShadowPass) {
+        float dist = length(vWorldPos - lightPosition.xyz);
+        dist = dist / pointShadowFar;
+
+        gl_FragColor = packDepth(dist);
+    } else {
+        float d = gl_FragCoord.z;
+        gl_FragColor = vec4(d, d, d, 1.0);
+    }
+}
+</script>
+
+
+<!-- SKYBOX SHADERS -->
 
 <script id="skybox-vertex-shader" type="x-shader/x-vertex">
 attribute vec3 pos;
