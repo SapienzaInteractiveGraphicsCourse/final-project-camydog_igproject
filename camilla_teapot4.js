@@ -243,6 +243,13 @@ function initPointShadowMaps()
 }
 
 
+// comandi col cursore
+var isDraggingCamera = false;
+var lastMouseX = 0;
+var lastMouseY = 0;
+var mouseSensitivityX = 0.2;
+var mouseSensitivityY = 0.02;
+
 
 
 onload = async function init() {
@@ -261,6 +268,7 @@ onload = async function init() {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
+   
     
 
 
@@ -503,6 +511,55 @@ onload = async function init() {
     cameraDistanceSlider.oninput = updateOrbitCameraFromSliders;
 
     updateOrbitCameraFromSliders();
+
+   canvas.addEventListener("mousedown", function(event) {
+        isDraggingCamera = true;
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+    });
+
+    window.addEventListener("mouseup", function() {
+        isDraggingCamera = false;
+    });
+
+    window.addEventListener("mousemove", function(event) {
+        if (!isDraggingCamera) {
+            return;
+        }
+
+        var dx = event.clientX - lastMouseX;
+        var dy = event.clientY - lastMouseY;
+
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+        // horizontal drag -> camera angle
+        var currentAngle = parseFloat(cameraAngleSlider.value);
+        currentAngle += dx * mouseSensitivityX;
+
+        currentAngle = currentAngle % 360.0;
+        if (currentAngle < 0.0) {
+            currentAngle += 360.0;
+        }
+
+        cameraAngleSlider.value = currentAngle;
+
+        // vertical drag -> camera height
+        var currentHeight = parseFloat(cameraHeightSlider.value);
+
+        // se trascini verso l'alto, dy è negativo.
+        // Con il meno, verso l'alto aumenta l'altezza.
+        currentHeight -= dy * mouseSensitivityY;
+
+        var minHeight = parseFloat(cameraHeightSlider.min);
+        var maxHeight = parseFloat(cameraHeightSlider.max);
+
+        currentHeight = Math.max(minHeight, Math.min(maxHeight, currentHeight));
+
+        cameraHeightSlider.value = currentHeight;
+
+        updateOrbitCameraFromSliders();
+    });
 
     canvas.addEventListener("wheel", function(event) {
     event.preventDefault();
