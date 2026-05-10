@@ -15,7 +15,9 @@ function drawObject(obj,
     useTexture = true,
      isLightMarker=false,
      twoSided = false, 
-     receiveShadow = true) 
+     receiveShadow = true,
+     wallShadowMode
+)
 
 
 # La luce
