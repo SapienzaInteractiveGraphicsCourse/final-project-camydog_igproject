@@ -28,3 +28,11 @@ Non è una luce “a freccia” che va solo lungo una linea.
         \  |  /
       --- luce ---
         /  |  \
+
+# Ball Animation -- Cannon
+Comandi nell'HTML
+velocitaà - vel angolare ecc
+shaodw mapping 
+-table collision detection
+
+# FPS indicazione sopra canvas
