@@ -18,6 +18,7 @@ var modelPath_teapot = "./Objects/teapot.obj";
 var modelPath_table = "./Objects/table.obj";
 var modelPath_cat= "./Cat/cat.obj";
 var modelPath_dog = "./dog/dog.obj";
+var modelPath_ball = "./ball_color/ball.obj";
 
 
 var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
@@ -71,6 +72,7 @@ var dogTexture;
 var skyboxTexture;
 var paintingTexture;
 var corniceTexture;
+var ballTexture;
 
 //img paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
@@ -83,8 +85,27 @@ var path_img_skybox = "./skybox/skybox.jpg";
 var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
+var path_img_ball= "./ball_color/ball_diff.jpg";
 
 
+// ===== BALL MINI-GAME / CANNON PHYSICS =====
+
+var ROOM_MIN_X = -7.0;
+var ROOM_MAX_X =  7.0;
+var ROOM_MIN_Z = -7.0;
+var ROOM_MAX_Z =  7.0;
+
+var WALL_HEIGHT = 4.0;
+var WALL_THICKNESS = 0.25;
+var PHYSICS_FLOOR_Y = -2.0;
+var miniGameActive = false;
+var ballVisible = false;
+
+var physicsWorld = null;
+var ballBody = null;
+
+
+var fixedTimeStep = 1.0 / 60.0;
 
 //variabili per ombre dinamiche
 
@@ -120,6 +141,10 @@ var dogWalkRange = 2.0;
 // room buffers
 var roomPlaneBuffers;
 var roomBoxBuffers;
+
+//ball buffers
+var ballBuffers = null;
+var ballTexture = null;
 
 //skybox
 var skyboxProgram;
@@ -157,7 +182,7 @@ var POINT_SHADOW_FAR = 40.0;
 
 var usePointShadowMap = true;
 
-var POINT_SHADOW_SIZE = 1024;
+var POINT_SHADOW_SIZE = 2048;
 
 var pointShadowFramebuffers = [];
 var pointShadowTextures = [];
@@ -181,6 +206,19 @@ var pointShadowUps = [
     vec3(0.0, -1.0,  0.0), // +Z
     vec3(0.0, -1.0,  0.0)  // -Z
 ];
+
+
+
+//var per collisioni
+var tableColliderX = 0.0;
+var tableColliderY = -1.3;
+var tableColliderZ = 0.0;
+
+var tableColliderSX = 3.4;
+var tableColliderSY = 0.3;
+var tableColliderSZ = 4.0;
+
+var tableColliderBody = null;
 
 function initPointShadowMaps()
 {
@@ -294,6 +332,7 @@ onload = async function init() {
     dogTexture = loadTexture(path_img_dog);
     paintingTexture = loadTexture(path_img_painting);
     corniceTexture = loadTexture(path_img_cornice);
+    ballTexture = loadTexture(path_img_ball);
     
 
     
@@ -349,6 +388,17 @@ onload = async function init() {
     roomPlaneBuffers = createPlaneBuffers();
     roomBoxBuffers = createBoxBuffers();
 
+    //ball buffers
+    await loadOBJ(modelPath_ball);
+    console.log("OBJ Ball loaded");
+    
+    var ballPoints = pointsArray.slice();
+    var ballNormals = normalsArray.slice();
+    var ballTex = texCoordsArray.slice();
+
+    ballBuffers = createBuffers(ballPoints, ballNormals, ballTex);
+
+
     //   SKYBOXX    //////////////////
     // skybox buffers
 
@@ -382,6 +432,8 @@ onload = async function init() {
 
     debugLineBuffer = gl.createBuffer();
     
+    //inizializzazione fisica per mini-game
+    initPhysics();
    
 
 
@@ -396,6 +448,19 @@ onload = async function init() {
     gl.uniform1f(gl.getUniformLocation(program, "shininess"), 100.0);
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
+
+    //minigame settings buttons
+    document.getElementById("ButtonMiniGame").onclick = function () {
+    miniGameActive = !miniGameActive;
+
+    if (miniGameActive) {
+            this.textContent = "Stop Ball ";
+            startBallMiniGame();
+        } else {
+            this.textContent = "Start Ball ";
+            stopBallMiniGame();
+        }
+    };
 
     // settings bottoni + sliders
     document.getElementById("ButtonLightDir").onclick = function () {
@@ -479,6 +544,81 @@ onload = async function init() {
     lightZSlider.oninput = updateLightPositionFromSliders;
 
     updateLightPositionFromSliders();
+
+    //listener per ball mini-game
+    function connectSlider(id, valueId, callback) {
+        var slider = document.getElementById(id);
+        var value = document.getElementById(valueId);
+
+        if (!slider || !value) return;
+
+        function update() {
+            var v = parseFloat(slider.value);
+            value.innerHTML = v.toFixed(2);
+            if (callback) callback(v);
+        }
+
+        slider.oninput = update;
+        update();
+    }
+
+    connectSlider("BallVelX", "BallVelXValue", function(v) {
+        ballVelX = v;
+    });
+
+    connectSlider("BallVelY", "BallVelYValue", function(v) {
+        ballVelY = v;
+    });
+
+    connectSlider("BallVelZ", "BallVelZValue", function(v) {
+        ballVelZ = v;
+    });
+
+    connectSlider("BallBounce", "BallBounceValue", function(v) {
+        ballBounce = v;
+
+        if (ballFloorContact) {
+            ballFloorContact.restitution = ballBounce;
+        }
+    });
+
+    connectSlider("BallFriction", "BallFrictionValue", function(v) {
+        ballFriction = v;
+
+        if (ballFloorContact) {
+            ballFloorContact.friction = ballFriction;
+        }
+    });
+
+    connectSlider("BallAngVelX", "BallAngVelXValue", function(v) {
+        ballAngVelX = v;
+    });
+
+    connectSlider("BallAngVelY", "BallAngVelYValue", function(v) {
+        ballAngVelY = v;
+    });
+
+    connectSlider("BallAngVelZ", "BallAngVelZValue", function(v) {
+        ballAngVelZ = v;
+    });
+
+    connectSlider("BallLinearDamping", "BallLinearDampingValue", function(v) {
+        ballLinearDamping = v;
+
+        if (ballBody) {
+            ballBody.linearDamping = ballLinearDamping;
+        }
+    });
+
+    connectSlider("BallAngularDamping", "BallAngularDampingValue", function(v) {
+        ballAngularDamping = v;
+
+        if (ballBody) {
+            ballBody.angularDamping = ballAngularDamping;
+        }
+    });
+
+
 
     var cameraAngleSlider = document.getElementById("CameraAngle");
     var cameraHeightSlider = document.getElementById("CameraHeight");
@@ -847,6 +987,12 @@ function render() {
     readGamepad();
     clampTeapotToTable();
 
+    //ball mini-game update
+    if (miniGameActive && physicsWorld) {
+        physicsWorld.step(fixedTimeStep);
+    }
+
+    
     if (flag_rot_teapot) theta[axis] += rotationSpeed_teapot;
     if(flag_rot_table){
         tableTheta += rotationSpeed_table;
@@ -954,6 +1100,20 @@ function render() {
     modelMatrix2 = mult(modelMatrix2, rotate(tableTheta, [0, 1, 0]));
     modelMatrix2 = mult(modelMatrix2, scalem(3.0, 1.5, 2.0));
 
+    //matrici collider del tavolo (invisibili, usati solo per collisioni)
+    var modelMatrixTableCollider = mat4();
+
+    modelMatrixTableCollider = mult(
+        modelMatrixTableCollider,
+        translate(tableColliderX, tableColliderY, tableColliderZ)
+    );
+
+    modelMatrixTableCollider = mult(
+        modelMatrixTableCollider,
+        scalem(tableColliderSX, tableColliderSY, tableColliderSZ)
+    );
+
+  
     //matrici cat
     var modelMatrix3 = mat4();
     modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
@@ -1066,16 +1226,6 @@ function render() {
     gl.disable(gl.CULL_FACE);
     gl.useProgram(shadowProgram);
 
-    
-   /*  drawShadowObject(teapotBuffers, modelMatrix1);
-    drawShadowObject(tableBuffers, modelMatrix2);
-    drawShadowObject(catBuffers, modelMatrix3);
-    drawShadowObject(dogBuffers, modelMatrixDog);
-    drawShadowObject(roomBoxBuffers, modelMatrixFloor);
-    drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
-    drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
-    drawShadowObject(roomBoxBuffers, modelMatrixRightWall);
- */
 
     gl.disable(gl.CULL_FACE);
 
@@ -1125,6 +1275,27 @@ function render() {
         drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
+
+        //ball mini-game shadow
+        if (ballVisible && ballBody) {
+            var modelMatrixBallShadow = mat4();
+
+            modelMatrixBallShadow = mult(
+                modelMatrixBallShadow,
+                translate(
+                    ballBody.position.x,
+                    ballBody.position.y - BALL_RENDER_Y_OFFSET,
+                    ballBody.position.z
+                )
+            );
+
+            modelMatrixBallShadow = mult(
+                modelMatrixBallShadow,
+                scalem(ballRadius, ballRadius, ballRadius)
+            );
+
+            drawShadowObject(ballBuffers, modelMatrixBallShadow);
+        }
     }
     
 
@@ -1175,10 +1346,13 @@ function render() {
            viewMatrix,
             projectionMatrix,useTexture_teapot, 
             false,false,true);
+
     drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
          projectionMatrix, useTexture_table, false,false,true);
+
     drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
          projectionMatrix, true, false,false,true);
+
     drawObject(
         dogBuffers,
         dogTexture,
@@ -1200,6 +1374,37 @@ function render() {
         true
     );
 
+     //ball mini-game render
+   if (ballVisible && ballBody) {
+        var modelMatrixBall = mat4();
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            translate(
+                ballBody.position.x,
+                ballBody.position.y - BALL_RENDER_Y_OFFSET,
+                ballBody.position.z
+            )
+        );
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            scalem(ballRadius, ballRadius, ballRadius)
+        );
+
+        drawObject(
+            ballBuffers,   // usa il buffer della sfera che già hai
+            ballTexture,
+            modelMatrixBall,
+            viewMatrix,
+            projectionMatrix,
+            true,  
+            false,  
+            false,   
+            true, 
+            0       // wallShadowMode
+        );
+    }
     //parte per disegnaare direzione luce (debug)
     DrawLightDirectionArrow(
         gl,
@@ -1209,7 +1414,7 @@ function render() {
         projectionMatrix
     );
 
-gl.useProgram(program);
+    gl.useProgram(program);
 
     /*
     // ROOM: disable culling because planes are single-sided
@@ -1240,16 +1445,31 @@ gl.useProgram(program);
  */
 
     drawObject(roomBoxBuffers, floorTexture, modelMatrixFloor,
-    viewMatrix, projectionMatrix, true, false, false,  true);
+    viewMatrix, projectionMatrix, true, false, false,  true,0);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
-        viewMatrix, projectionMatrix, true, false, false,  true);
+        viewMatrix, projectionMatrix, true, false, false,  true,1);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixLeftWall,
-        viewMatrix, projectionMatrix, true, false, false,  true);
+        viewMatrix, projectionMatrix, true, false, false,  true,2);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixRightWall,
-        viewMatrix, projectionMatrix, true, false, false,  true);
+        viewMatrix, projectionMatrix, true, false, false,  true,3);
+
+    
+   /*  //parte per collisione tavolo
+     drawObject(
+        roomBoxBuffers,
+        null,
+        modelMatrixTableCollider,
+        viewMatrix,
+        projectionMatrix,
+        false,  // useTexture
+        false,  // isLightMarker
+        false,  // twoSided
+        false   // receiveShadow
+    );  */
+
 
     //painting part
 
@@ -1267,6 +1487,9 @@ gl.useProgram(program);
 
     drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameRight,
         viewMatrix, projectionMatrix, true, false, false, true);
+
+
+   
 
     requestAnimFrame(render);
 }
@@ -1298,7 +1521,13 @@ function drawObject(obj,
     useTexture = true,
      isLightMarker=false,
      twoSided = false, 
-     receiveShadow = true) {
+     receiveShadow = true,
+     wallShadowMode) {
+
+    if (wallShadowMode === undefined) {
+        wallShadowMode = 0;
+    }
+
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
 
     
@@ -1421,6 +1650,11 @@ function drawObject(obj,
     gl.uniform1i(
         gl.getUniformLocation(program, "receiveShadow"),
         receiveShadow ? 1 : 0
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "wallShadowMode"),
+        wallShadowMode
     );
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "viewMatrix"), false, flatten(viewMatrix));

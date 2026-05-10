@@ -2,7 +2,9 @@
 <html>
 <head>
 <title>ProvaProjectCamilla</title>
-<link rel="icon" type="image/png" href="./Textures/nintendogs_logo.jpg">
+    <link rel="icon" type="image/png" href="./Textures/nintendogs_logo.jpg">
+    <link rel="stylesheet" href="./liquid-glass-js/glass.css">
+    <link rel="stylesheet" href="./liquid-glass-js/styles.css">
 </head>
 <body>
    
@@ -29,7 +31,7 @@
 
         
 
-        <div class="controls-panel">
+        <div class="controls-panel glass-panel">
 
             
 
@@ -45,7 +47,7 @@
 
                   <div class="control-row">
                     <label for="LightY">Light Y:</label>
-                    <input id="LightY" type="range" min="0.0" max="15" step="0.1" value="0.0">
+                    <input id="LightY" type="range" min="-2.0" max="15" step="0.1" value="0.0">
                     <span id="LightYValue">0.0</span>
 
                   </div>
@@ -121,13 +123,85 @@
                          <div class="control-group">
                                 <h3>Night&Day</h3>
 
-                                <button id="ButtonNightDay">Night Mode</button>
+                                <button id="ButtonNightDay" class="glass-button">Night Mode</button>
                          </div>
+                         <div class="control-group">
+                                <h3>Minigames</h3>
+
+                                <button id="ButtonMiniGame">Start Ball</button>
+
+                                <details class="control-group debug-panel">
+                                        <summary>Ball debug settings</summary>
+
+                                        <div class="control-row">
+                                            <label for="BallVelX">Velocity X:</label>
+                                            <input id="BallVelX" type="range" min="-8" max="8" step="0.1" value="1.0">
+                                            <span id="BallVelXValue">1.0</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallVelY">Velocity Y:</label>
+                                            <input id="BallVelY" type="range" min="0" max="10" step="0.1" value="4.0">
+                                            <span id="BallVelYValue">4.0</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallVelZ">Velocity Z:</label>
+                                            <input id="BallVelZ" type="range" min="-10" max="5" step="0.1" value="-4.0">
+                                            <span id="BallVelZValue">-4.0</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallBounce">Bounce:</label>
+                                            <input id="BallBounce" type="range" min="0" max="1" step="0.05" value="0.55">
+                                            <span id="BallBounceValue">0.55</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallFriction">Friction:</label>
+                                            <input id="BallFriction" type="range" min="0" max="1" step="0.05" value="0.35">
+                                            <span id="BallFrictionValue">0.35</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelX">Ang Vel X:</label>
+                                            <input id="BallAngVelX" type="range" min="-10" max="10" step="0.1" value="4.0">
+                                            <span id="BallAngVelXValue">4.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelY">Ang Vel Y:</label>
+                                            <input id="BallAngVelY" type="range" min="-10" max="10" step="0.1" value="0.0">
+                                            <span id="BallAngVelYValue">0.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelZ">Ang Vel Z:</label>
+                                            <input id="BallAngVelZ" type="range" min="-10" max="10" step="0.1" value="2.0">
+                                            <span id="BallAngVelZValue">2.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallLinearDamping">Lin Damp:</label>
+                                            <input id="BallLinearDamping" type="range" min="0" max="1" step="0.01" value="0.12">
+                                            <span id="BallLinearDampingValue">0.12</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngularDamping">Ang Damp:</label>
+                                            <input id="BallAngularDamping" type="range" min="0" max="1" step="0.01" value="0.25">
+                                            <span id="BallAngularDampingValue">0.25</span>
+                                        </div>
+
+                                        
+                                    </details>
+                         </div>
+
 
         </div>        
         <div class="canvas-container">
 
-            <canvas id="gl-canvas" width="1500" height="900">
+            <canvas id="gl-canvas" width="1700" height="900">
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
         </div>
@@ -270,6 +344,8 @@ uniform bool usePointShadowMap;
 varying vec3 fWorldPos;
 
 uniform mediump vec4 lightPosition;
+
+uniform int wallShadowMode;
 
 
 int choosePointShadowFace(vec3 dir)
@@ -444,12 +520,37 @@ void main(){
     projCoords = projCoords * 0.5 + 0.5;
 
     float facingLight = normalize(fWorldNormal).y;
+
+    bool applyShadowOnThisFace = true;
+
+    vec3 n = normalize(fWorldNormal);
+
+    // wallShadowMode:
+    // 0 = oggetto normale, applica shadow sempre
+    // 1 = back wall, applica shadow solo alla faccia interna
+    // 2 = left wall, applica shadow solo alla faccia interna
+    // 3 = right wall, applica shadow solo alla faccia interna
+
+    if (wallShadowMode == 1) {
+        // parete dietro: faccia interna orientata verso +Z
+        applyShadowOnThisFace = dot(n, vec3(0.0, 0.0, 1.0)) > 0.5;
+    }
+    else if (wallShadowMode == 2) {
+        // parete sinistra: faccia interna orientata verso +X
+        applyShadowOnThisFace = dot(n, vec3(1.0, 0.0, 0.0)) > 0.5;
+    }
+    else if (wallShadowMode == 3) {
+        // parete destra: faccia interna orientata verso -X
+        applyShadowOnThisFace = dot(n, vec3(-1.0, 0.0, 0.0)) > 0.5;
+    }
+
+
     
     
 
     float shadow = 1.0;
 
-    if (usePointShadowMap && receiveShadow) {
+    if (usePointShadowMap && receiveShadow && applyShadowOnThisFace) {
         shadow = computePointShadow(fWorldPos,fWorldNormal);
     }
     else {
@@ -631,13 +732,20 @@ void main()
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="./liquid-glass-js/container.js"></script>
+<script src="./liquid-glass-js/button.js"></script>
+
 <script type="text/javascript" src="../Angel_book_code/Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/initShaders.js"></script>
 <script type="text/javascript" src="../Angel_book_code/Common/MV.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+
+<script type="text/javascript" src="physics.js"></script>
 <script type="text/javascript" src="utils.js"></script>
 <script type="text/javascript" src="shaders.js"></script>
 <script type="text/javascript" src="camilla_teapot4.js"></script>
-
 
 
 
@@ -736,19 +844,26 @@ void main()
         #ButtonTeapotFocus:hover {
             background-color: #7986CB;
         }
+
         #ButtonNightDay {
-            background-color: #263238;
+            background: rgba(38, 50, 56, 0.55);
             color: white;
             padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 14px;
             font-size: 16px;
             cursor: pointer;
+            min-width: 120px;
+            height: 44px;
+            backdrop-filter: blur(14px) saturate(160%);
+            -webkit-backdrop-filter: blur(14px) saturate(160%);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
         }
 
         #ButtonNightDay:hover {
-            background-color: #455A64;
+            background: rgba(69, 90, 100, 0.65);
         }
+        
         #ButtonLightDir {
             background-color: #009688;
             color: white;
@@ -760,6 +875,19 @@ void main()
         }
         #ButtonLightDir:hover {
             background-color: #4DB6AC;
+        }
+
+        #ButtonMiniGame {
+            background-color: #E91E63;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonMiniGame:hover {
+            background-color: #F06292;
         }
         
 
@@ -785,6 +913,26 @@ body {
     padding: 16px;
 }
 
+
+
+
+.debug-panel {
+    padding-top: 8px;
+}
+
+.debug-panel summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 15px;
+    color: rgba(30, 30, 30, 0.9);
+    margin-bottom: 12px;
+}
+
+.debug-panel h4 {
+    margin: 14px 0 10px 0;
+    font-size: 14px;
+    color: rgba(30, 30, 30, 0.75);
+}
 
 
 .control-group {
@@ -853,5 +1001,7 @@ body {
 #gl-canvas:active {
     cursor: grabbing;
 }
+
+
 
 </style>
