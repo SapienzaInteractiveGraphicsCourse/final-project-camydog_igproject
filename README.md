@@ -18,7 +18,10 @@ function drawObject(obj,
      receiveShadow = true,
      wallShadowMode
 )
-
+# Main functions
+init()
+render()
+initShadowMap(?)()
 
 # La luce
 La mia luce ora è una point light, quindi illumina in tutte le direzioni partendo dalla sfera gialla.
@@ -29,10 +32,27 @@ Non è una luce “a freccia” che va solo lungo una linea.
       --- luce ---
         /  |  \
 
-# Ball Animation -- Cannon
+# Shadow Mapping
+6 direzioni
+ciclo in Shadow Pass in render()
+
+# Animations -- Cannon used
+
+## Ball Animation -- (Cannon)
 Comandi nell'HTML
 velocitaà - vel angolare ecc
 shaodw mapping 
 -table collision detection
 
+
+## Cloth finestra (?)
+
 # FPS indicazione sopra canvas
+FPS shown on the canvas
+
+# Night/Day mode
+
+
+# Walk Mode?
+
+Prima di walk mode e di cambiar eil render()
