@@ -1,4 +1,96 @@
- #ButtonTex {
+#startScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background:
+        radial-gradient(circle at top, rgba(255,255,255,0.45), transparent 35%),
+        linear-gradient(135deg, rgba(90, 120, 150, 0.88), rgba(240, 210, 225, 0.92));
+
+    backdrop-filter: blur(26px) saturate(160%);
+    -webkit-backdrop-filter: blur(26px) saturate(160%);
+}
+
+.start-card {
+    width: 420px;
+    max-width: 90vw;
+
+    padding: 34px 36px;
+    border-radius: 26px;
+
+    background: rgba(255, 255, 255, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+
+    text-align: center;
+    color: #1f1f1f;
+}
+
+.start-logo {
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border-radius: 22px;
+    margin-bottom: 18px;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+}
+
+.start-card h1 {
+    margin: 0 0 12px 0;
+    font-size: 34px;
+    letter-spacing: -0.5px;
+}
+
+.start-card p {
+    margin: 0 0 24px 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(30, 30, 30, 0.78);
+}
+
+#ButtonStartGame {
+    min-width: 170px;
+    height: 48px;
+
+    background: rgba(255, 34, 126, 0.68);
+    color: white;
+
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 16px;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+
+    box-shadow: 0 12px 30px rgba(255, 34, 126, 0.25);
+}
+
+#ButtonStartGame:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 34, 126, 0.82);
+}
+
+#startScreen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+}        
+        
+        
+        
+        
+        
+        #ButtonTex {
             background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
@@ -130,6 +222,42 @@
         #ButtonMiniGame:hover {
             background-color: #F06292;
         }
+        #ButtonBounceBall {
+            background-color: #9C27B0;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonBounceBall:hover {
+            background-color: #BA68C8;
+        }
+        #ButtonGoOut {
+            background-color: #FF5722;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonGoOut:hover {
+            background-color: #FF8A65;
+        }
+        #ButtonGoHome {
+            background-color: #607D8B;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonGoHome:hover {
+            background-color: #90A4AE;
+        }
         
 
 body {
@@ -137,6 +265,11 @@ body {
     font-family: Arial, sans-serif;
     background: #f2f2f2;
 }
+body.game-not-started .top-buttons,
+body.game-not-started .main-layout {
+    filter: blur(7px);
+}
+
 
 .top-buttons {
     display: flex;
@@ -266,4 +399,22 @@ body {
 
 #gl-canvas:active {
     cursor: grabbing;
+}
+
+.collapsible-panel {
+    margin-bottom: 24px;
+}
+
+.collapsible-panel summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 18px;
+    color: rgba(30, 30, 30, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+}
+
+.collapsible-panel[open] summary {
+    margin-bottom: 12px;
 }
