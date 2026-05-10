@@ -1,6 +1,9 @@
 // variable to enable start screen
 var ENABLE_START_SCREEN = false; 
 
+//object array
+var currentScene = "home"; // "home" or "walk"
+
 // Object paths
 var modelPath_teapot = "./Objects/teapot.obj";
 var modelPath_table = "./Objects/table.obj";
@@ -23,8 +26,8 @@ var path_img_ball= "./ball_color/ball_diff.jpg";
 
 
 //texture variables
-var useTexture_teapot = false;
-var useTexture_table = false;
+var useTexture_teapot = true;
+var useTexture_table = true;
 
 var teapotTexture;
 var teapotBuffers;  

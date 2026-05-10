@@ -36,6 +36,26 @@ function loadTexture(path) {
     return tex;
 }
 
+function createBuffers(points, normals, texCoords) {
+    let obj = {};
+
+    obj.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW);
+
+    obj.nBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.nBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
+
+    obj.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
+
+    obj.numVertices = points.length;
+
+    return obj;
+}
+
 
 function createSphere(radius, latBands, longBands) {
     var points = [];
@@ -318,9 +338,85 @@ function LoadSkyboxTexture(gl)
     return texture;
 }
 
+function LoadSkyboxTexturePark(gl)
+{
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceInfos = [
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+            url: "skybox/Park2/negx.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+            url: "skybox/Park2/posx.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+            url: "skybox/Park2/posy.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            url: "skybox/Park2/negy.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+            url: "skybox/Park2/posz.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+            url: "skybox/Park2/negz.jpg",
+        },
+    ];
+
+    faceInfos.forEach((faceInfo) => {
+        const { target, url } = faceInfo;
+
+        gl.texImage2D(
+            target,
+            0,
+            gl.RGBA,
+            512,
+            512,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+
+        const image = new Image();
+
+        image.onload = function () {
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+           
+
+            gl.texImage2D(
+                target,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                image
+            );
+
+           
+        };
+
+        image.src = url;
+    });
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
+}
 
 
-function DrawSkybox(gl, viewMatrix, projectionMatrix)
+function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
 {
     // La skybox deve fare solo da sfondo:
     // la disegno senza depth test e senza scrivere nel depth buffer
@@ -329,6 +425,11 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix)
     gl.disable(gl.CULL_FACE);
 
     gl.useProgram(skyboxProgram);
+
+    gl.uniform1i(
+        gl.getUniformLocation(skyboxProgram, "flipSkyboxY"),
+        flipY ? 1 : 0
+    );
 
     gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
 
@@ -369,6 +470,9 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix)
     if (isNight) {
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, nightSkyboxTexture);
     } 
+    else if (currentScene === "park") {
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, parkSkyboxTexture);
+    }
     else {
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxTexture);
     }
@@ -589,4 +693,69 @@ function DrawLightDirectionArrow(gl, lightPosition, targetPosition, viewMatrix, 
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
+}
+
+// function to update the FPS counter in the HTML page
+function updateFPSCounter() {
+    fpsFrameCount++;
+
+    var now = performance.now();
+    var elapsed = now - fpsLastTime;
+
+    if (elapsed >= 500.0) {
+        currentFPS = fpsFrameCount * 1000.0 / elapsed;
+
+        if (fpsValueElement) {
+            fpsValueElement.innerHTML = currentFPS.toFixed(1);
+        }
+
+        fpsFrameCount = 0;
+        fpsLastTime = now;
+    }
+}
+
+//// function to initialize the framebuffer and texture for shadow mapping
+function initShadowMap() {
+    shadowFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
+
+    shadowTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        SHADOW_SIZE,
+        SHADOW_SIZE,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null
+    );
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    var depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, SHADOW_SIZE, SHADOW_SIZE);
+
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        shadowTexture,
+        0
+    );
+
+    gl.framebufferRenderbuffer(
+        gl.FRAMEBUFFER,
+        gl.DEPTH_ATTACHMENT,
+        gl.RENDERBUFFER,
+        depthBuffer
+    );
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
