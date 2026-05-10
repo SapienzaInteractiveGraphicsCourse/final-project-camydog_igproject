@@ -14,7 +14,13 @@ var ballAngVelZ = 2.0;
 var ballLinearDamping = 0.12;
 var ballAngularDamping = 0.25;
 
+var ballIdleBounceActive = false;
+var ballIdleBounceCount = 0;
+var ballIdleBounceMax = 4;
+var ballIdleBounceCooldown = 0;
 
+
+var lastPhysicsTime = performance.now();
 
 
 function initPhysics() {
@@ -136,6 +142,11 @@ function startBallMiniGame() {
 
     ballVisible = true;
 
+    
+    ballIdleBounceActive = false;
+    ballIdleBounceCount = 0;
+    ballIdleBounceCooldown = 0;
+
     // Reset posizione pallina
     ballBody.position.set(0.0, PHYSICS_FLOOR_Y + 3.0, 7.0);
 
@@ -181,4 +192,76 @@ function addStaticBoxCollider(x, y, z, sx, sy, sz, material) {
     physicsWorld.addBody(body);
 
     return body;
+}
+
+function isBallOnGround() {
+    if (!ballBody) return false;
+
+    var groundY = PHYSICS_FLOOR_Y + ballRadius + 0.12;
+
+    return (
+        ballBody.position.y <= groundY &&
+        Math.abs(ballBody.velocity.y) < 0.45
+    );
+}
+
+//function to check if the ball is almost stopped (used to trigger idle bounce)
+function isBallAlmostStopped() {
+    if (!ballBody) return false;
+
+    var v = ballBody.velocity;
+    var speed = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+
+    // soglia: se è quasi ferma
+    return speed < 0.15 && ballBody.position.y < PHYSICS_FLOOR_Y + ballRadius + 0.15;
+}
+
+
+
+
+function startBallBounceAnimation() {
+    if (!ballBody || !ballVisible) {
+        console.warn("Ball is not visible yet");
+        return;
+    }
+
+    ballIdleBounceActive = true;
+    ballIdleBounceCount = 0;
+    ballIdleBounceCooldown = 0;
+
+    ballBody.velocity.x = 0.0;
+    ballBody.velocity.z = 0.0;
+    ballBody.velocity.y = 0.0;
+
+    ballBody.angularVelocity.set(0.0, 0.0, 0.0);
+}
+
+function updateBallBounceAnimation() {
+    if (!ballIdleBounceActive || !ballBody || !ballVisible) {
+        return;
+    }
+
+    // Dopo il primo salto, aspetta che la palla torni a terra
+    if (ballIdleBounceCount > 0 && !isBallOnGround()) {
+        return;
+    }
+
+    if (ballIdleBounceCount < ballIdleBounceMax) {
+        var bounceStrength = 3.2 - ballIdleBounceCount * 0.40;
+
+        ballBody.velocity.x = 0.0;
+        ballBody.velocity.z = 0.0;
+        ballBody.velocity.y = bounceStrength;
+
+        ballBody.angularVelocity.set(
+            2.0,
+            0.8,
+            1.5
+        );
+
+        ballIdleBounceCount++;
+    } else {
+        ballIdleBounceActive = false;
+        ballBody.angularVelocity.set(0.0, 0.0, 0.0);
+    }
 }
