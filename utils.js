@@ -205,6 +205,168 @@ const skyboxVertices = new Float32Array([
      1,  1,  1,
 ]);
 
+function createRightWallWithWindowBuffers() {
+    var points = [];
+    var normals = [];
+    var texCoords = [];
+
+    function addFace(a, b, c, d, normal) {
+        points.push(a);
+        points.push(b);
+        points.push(c);
+
+        points.push(a);
+        points.push(c);
+        points.push(d);
+
+        for (var i = 0; i < 6; i++) {
+            normals.push(normal);
+        }
+
+        texCoords.push(vec2(0.0, 0.0));
+        texCoords.push(vec2(1.0, 0.0));
+        texCoords.push(vec2(1.0, 1.0));
+
+        texCoords.push(vec2(0.0, 0.0));
+        texCoords.push(vec2(1.0, 1.0));
+        texCoords.push(vec2(0.0, 1.0));
+    }
+
+    /*
+        Questa parete è costruita come una box standard:
+        coordinate locali da -0.5 a +0.5.
+
+        La parete destra è a x = +0.5.
+        Il buco della finestra è nel piano x = +0.5.
+        Su questa parete:
+        - y = verticale
+        - z = orizzontale lungo la parete
+    */
+
+    var x = 0.5;
+
+    var yMin = -0.5;
+    var yMax =  0.5;
+
+    var zMin = -0.5;
+    var zMax =  0.5;
+
+    // Finestra in coordinate locali della box
+    var winZCenter = -0.10;
+    var winYCenter =  0.10;
+
+    var winWidth  = 0.15;
+    var winHeight = 0.50;
+
+    var winZ0 = winZCenter - winWidth / 2.0;
+    var winZ1 = winZCenter + winWidth / 2.0;
+
+    var winY0 = winYCenter - winHeight / 2.0;
+    var winY1 = winYCenter + winHeight / 2.0;
+
+    // normale della parete destra della box
+    //var n = vec4(1.0, 0.0, 0.0, 0.0);
+    var n = vec4(-1.0, 0.0, 0.0, 0.0);
+
+    // pezzo sotto la finestra
+    addFace(
+        vec4(x, yMin, zMin, 1.0),
+        vec4(x, yMin, zMax, 1.0),
+        vec4(x, winY0, zMax, 1.0),
+        vec4(x, winY0, zMin, 1.0),
+        n
+    );
+
+    // pezzo sopra la finestra
+    addFace(
+        vec4(x, winY1, zMin, 1.0),
+        vec4(x, winY1, zMax, 1.0),
+        vec4(x, yMax, zMax, 1.0),
+        vec4(x, yMax, zMin, 1.0),
+        n
+    );
+
+    // pezzo sinistro del buco, lungo z
+    addFace(
+        vec4(x, winY0, zMin, 1.0),
+        vec4(x, winY0, winZ0, 1.0),
+        vec4(x, winY1, winZ0, 1.0),
+        vec4(x, winY1, zMin, 1.0),
+        n
+    );
+
+    // pezzo destro del buco, lungo z
+    addFace(
+        vec4(x, winY0, winZ1, 1.0),
+        vec4(x, winY0, zMax, 1.0),
+        vec4(x, winY1, zMax, 1.0),
+        vec4(x, winY1, winZ1, 1.0),
+        n
+    );
+
+    return createBuffers(points, normals, texCoords);
+}
+
+function createRoomBoxWithoutRightWallBuffers() {
+    var points = [];
+    var normals = [];
+    var texCoords = [];
+
+    function addFace(a, b, c, d, normal) {
+        points.push(a);
+        points.push(b);
+        points.push(c);
+
+        points.push(a);
+        points.push(c);
+        points.push(d);
+
+        for (var i = 0; i < 6; i++) {
+            normals.push(normal);
+        }
+
+        texCoords.push(vec2(0.0, 0.0));
+        texCoords.push(vec2(1.0, 0.0));
+        texCoords.push(vec2(1.0, 1.0));
+
+        texCoords.push(vec2(0.0, 0.0));
+        texCoords.push(vec2(1.0, 1.0));
+        texCoords.push(vec2(0.0, 1.0));
+    }
+
+    var v = [
+        vec4(-0.5, -0.5,  0.5, 1.0),
+        vec4( 0.5, -0.5,  0.5, 1.0),
+        vec4( 0.5,  0.5,  0.5, 1.0),
+        vec4(-0.5,  0.5,  0.5, 1.0),
+
+        vec4(-0.5, -0.5, -0.5, 1.0),
+        vec4( 0.5, -0.5, -0.5, 1.0),
+        vec4( 0.5,  0.5, -0.5, 1.0),
+        vec4(-0.5,  0.5, -0.5, 1.0)
+    ];
+
+    // front face
+    addFace(v[0], v[1], v[2], v[3], vec4(0.0, 0.0, 1.0, 0.0));
+
+    // back face
+    addFace(v[5], v[4], v[7], v[6], vec4(0.0, 0.0, -1.0, 0.0));
+
+    // left face
+    addFace(v[4], v[0], v[3], v[7], vec4(1.0, 0.0, 0.0, 0.0));
+
+    // right face RIMOSSA perché la sostituiamo con la parete bucata
+    // addFace(v[1], v[5], v[6], v[2], vec4(1.0, 0.0, 0.0, 0.0));
+
+    // top face
+    addFace(v[3], v[2], v[6], v[7], vec4(0.0, 1.0, 0.0, 0.0));
+
+    // bottom face
+    addFace(v[4], v[5], v[1], v[0], vec4(0.0, -1.0, 0.0, 0.0));
+
+    return createBuffers(points, normals, texCoords);
+}
+
 function createSkyboxBuffer() {
     var vertices = [
         // front

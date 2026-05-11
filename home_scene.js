@@ -1,23 +1,48 @@
-function drawHomeScene(gl,viewMatrix, projectionMatrix) {
+function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     console.log("[function drawHomeScene]");
- //ball mini-game update
-    if (miniGameActive && physicsWorld) {
-       var now = performance.now();
-        var deltaTime = (now - lastPhysicsTime) / 1000.0;
-        lastPhysicsTime = now;
-
-        // evita salti enormi se la tab/browser lagga
-        deltaTime = Math.min(deltaTime, 0.05);
-
-        physicsWorld.step(fixedTimeStep, deltaTime, 5);
-        updateBallBounceAnimation();
-    }
     
-    if (flag_rot_teapot) theta[axis] += rotationSpeed_teapot;
+
+    //curtain always present in the scene
+    // & also update physics for mini-game if active
+
+    if (flag_rot_teapot) {
+        theta[axis] += rotationSpeed_teapot;
+    }
     if(flag_rot_table){
         tableTheta += rotationSpeed_table;
     } 
+
+    //collision cannon table
+    if (tableBody) {
+        tableBody.quaternion.setFromAxisAngle(
+            new CANNON.Vec3(0, 1, 0),
+            tableTheta * Math.PI / 180.0
+        );
+    }
    
+    if (physicsWorld) {
+        var now = performance.now();
+        var deltaTime = (now - lastPhysicsTime) / 1000.0;
+        lastPhysicsTime = now;
+
+        deltaTime = Math.min(deltaTime, 0.05);
+
+        if (curtain) {
+            curtain.applyWind(now);
+        }
+
+        physicsWorld.step(fixedTimeStep, deltaTime, 5);
+
+        if (miniGameActive) {
+            updateBallBounceAnimation();
+        }
+
+        if (curtain) {
+            curtain.updateMesh();
+        }
+    }
+    
+    
     var catZ = catBasePos[2];
     var catFacingAngle = 0.0;
 
@@ -93,12 +118,25 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
 
     modelMatrixTableCollider = mult(
         modelMatrixTableCollider,
-        translate(tableColliderX, tableColliderY, tableColliderZ)
+        translate(
+            TABLE_X,
+            TABLE_Y + TABLE_TOP_OFFSET_Y,
+            TABLE_Z
+        )
     );
 
     modelMatrixTableCollider = mult(
         modelMatrixTableCollider,
-        scalem(tableColliderSX, tableColliderSY, tableColliderSZ)
+        rotate(tableTheta, [0, 1, 0])
+    );
+
+    modelMatrixTableCollider = mult(
+        modelMatrixTableCollider,
+        scalem(
+            TABLE_TOP_WIDTH,
+            TABLE_TOP_HEIGHT,
+            TABLE_TOP_DEPTH
+        )
     );
 
   
@@ -261,9 +299,21 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
         drawShadowObject(roomBoxBuffers, modelMatrixRightWall); */
 
         // uso i blockers
+
+       
         drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
-        drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
+
+        //perparete destra con finestra bucata
+        //drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
+        gl.disable(gl.CULL_FACE);
+        //drawShadowObject(rightWallWindowBuffers, modelMatrixRightWallBlocker);
+        drawShadowObject(rightWallWindowBuffers, modelMatrixRightWall);
+
+                
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
+
 
         //ball mini-game shadow
         if (ballVisible && ballBody) {
@@ -273,7 +323,7 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
                 modelMatrixBallShadow,
                 translate(
                     ballBody.position.x,
-                    ballBody.position.y - BALL_RENDER_Y_OFFSET,
+                    ballBody.position.y ,
                     ballBody.position.z
                 )
             );
@@ -284,6 +334,14 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
             );
 
             drawShadowObject(ballBuffers, modelMatrixBallShadow);
+        }
+
+
+        if (curtain) {
+            gl.disable(gl.CULL_FACE);
+            drawShadowObject(curtain, mat4());
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
         }
     }
     
@@ -371,7 +429,7 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
             modelMatrixBall,
             translate(
                 ballBody.position.x,
-                ballBody.position.y - BALL_RENDER_Y_OFFSET,
+                ballBody.position.y ,
                 ballBody.position.z
             )
         );
@@ -412,26 +470,78 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
         viewMatrix, projectionMatrix, true, false, false,  true,1);
 
+    gl.disable(gl.CULL_FACE);
     drawObject(roomBoxBuffers, wallTexture, modelMatrixLeftWall,
         viewMatrix, projectionMatrix, true, false, false,  true,2);
 
-    drawObject(roomBoxBuffers, wallTexture, modelMatrixRightWall,
-        viewMatrix, projectionMatrix, true, false, false,  true,3);
+    //draw parete destra (bucata da finestra)
+    drawObject(rightWallWindowBuffers, wallTexture, modelMatrixRightWall,
+    viewMatrix, projectionMatrix, true, false, false, true, 3);
 
     
-   /*  //parte per collisione tavolo
-     drawObject(
-        roomBoxBuffers,
-        null,
-        modelMatrixTableCollider,
-        viewMatrix,
-        projectionMatrix,
-        false,  // useTexture
-        false,  // isLightMarker
-        false,  // twoSided
-        false   // receiveShadow
-    );  */
 
+
+    //curtain part
+    if (curtain) {
+        drawObject(
+            curtain,
+            curtainTexture,
+            mat4(),
+            viewMatrix,
+            projectionMatrix,
+            true,   // useTexture
+            false,  // isLightMarker
+            true,   // twoSided: importante per vedere entrambi i lati della stoffa
+            true,   // receiveShadow
+            0
+        );
+    }
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+
+    if (showTableColliderDebug) {
+        
+        //parte per collisione tavolo
+        drawObject(
+            roomBoxBuffers,
+            null,
+            modelMatrixTableCollider,
+            viewMatrix,
+            projectionMatrix,
+            false,  // useTexture
+            false,  // isLightMarker
+            false,  // twoSided
+            false   // receiveShadow
+        );  
+
+        //debug collider gambe del tavolo
+        var legOffsetX = TABLE_TOP_WIDTH / 2.0 - TABLE_LEG_MARGIN_X;
+        var legOffsetZ = TABLE_TOP_DEPTH / 2.0 - TABLE_LEG_MARGIN_Z;
+
+        drawObject(roomBoxBuffers, null,
+            getTableLegDebugMatrix(-legOffsetX, -legOffsetZ),
+            viewMatrix, projectionMatrix,
+            false, false, false, false, 0
+        );
+
+        drawObject(roomBoxBuffers, null,
+            getTableLegDebugMatrix(legOffsetX, -legOffsetZ),
+            viewMatrix, projectionMatrix,
+            false, false, false, false, 0
+        );
+
+        drawObject(roomBoxBuffers, null,
+            getTableLegDebugMatrix(-legOffsetX, legOffsetZ),
+            viewMatrix, projectionMatrix,
+            false, false, false, false, 0
+        );
+
+        drawObject(roomBoxBuffers, null,
+            getTableLegDebugMatrix(legOffsetX, legOffsetZ),
+            viewMatrix, projectionMatrix,
+            false, false, false, false, 0
+        );
+    }
 
     //painting part
 
@@ -451,4 +561,38 @@ function drawHomeScene(gl,viewMatrix, projectionMatrix) {
         viewMatrix, projectionMatrix, true, false, false, true);
 
 
+}
+
+
+function rotateOffsetY(x, z, angleDeg) {
+    var a = angleDeg * Math.PI / 180.0;
+    var c = Math.cos(a);
+    var s = Math.sin(a);
+
+    return {
+        x: x * c - z * s,
+        z: x * s + z * c
+    };
+}
+
+function getTableLegDebugMatrix(offsetX, offsetZ) {
+    var r = rotateOffsetY(offsetX, offsetZ, tableTheta);
+
+    var m = mat4();
+
+    m = mult(m, translate(
+        TABLE_X + r.x,
+        TABLE_Y + TABLE_LEG_OFFSET_Y,
+        TABLE_Z + r.z
+    ));
+
+    m = mult(m, rotate(tableTheta, [0, 1, 0]));
+
+    m = mult(m, scalem(
+        TABLE_LEG_WIDTH,
+        TABLE_LEG_HEIGHT,
+        TABLE_LEG_DEPTH
+    ));
+
+    return m;
 }

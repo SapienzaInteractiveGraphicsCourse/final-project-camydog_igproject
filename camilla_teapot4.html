@@ -95,6 +95,19 @@
                             <span id="CameraDistanceValue">10.0</span>
                           </div>
             </div>
+            <div class="control-group">
+                <h3>Curtain </h3>
+                <label for="windSlider">Curtain wind:</label>
+                        <input
+                            id="windSlider"
+                            type="range"
+                            min="0"
+                            max="0.50"
+                            step="0.005"
+                            value="0.07"
+                        >
+                        <span id="windValue">0.07</span>
+            </div>
 
             <div class="control-group">
                     <h3>Game Mode</h3>
@@ -232,7 +245,7 @@
             </div>
 
 
-            <canvas id="gl-canvas" width="1700" height="900">
+            <canvas id="gl-canvas" width="1700" height="1000">
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
         </div>

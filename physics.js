@@ -1,5 +1,5 @@
 var ballRadius = 0.20;
-var BALL_RENDER_Y_OFFSET = 0.4;
+var BALL_RENDER_Y_OFFSET = 0.0;
 
 var ballVelX = 1.0;
 var ballVelY = 4.0;
@@ -22,13 +22,95 @@ var ballIdleBounceCooldown = 0;
 
 var lastPhysicsTime = performance.now();
 
+//curtain physics parameters
+var curtainWindStrength = 0.07;
+
+//collider table
+var tableBody = null;
+
+var TABLE_X = 0.0;
+var TABLE_Y = -1.9;
+var TABLE_Z = 0.0;
+
+var TABLE_TOP_WIDTH  = 3.6;
+var TABLE_TOP_HEIGHT = 0.18;
+var TABLE_TOP_DEPTH  = 4.5;
+
+var TABLE_TOP_OFFSET_Y = 0.70;
+
+var TABLE_LEG_WIDTH  = 0.18;
+var TABLE_LEG_HEIGHT = 1.20;
+var TABLE_LEG_DEPTH  = 0.18;
+
+var TABLE_LEG_OFFSET_Y = -0.15;
+
+var TABLE_LEG_MARGIN_X = 0.50;
+var TABLE_LEG_MARGIN_Z = 0.50;
+
+
+
+function createTableCompoundCollider() {
+    tableBody = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(TABLE_X, TABLE_Y, TABLE_Z)
+    });
+
+    var topShape = new CANNON.Box(new CANNON.Vec3(
+        TABLE_TOP_WIDTH / 2.0,
+        TABLE_TOP_HEIGHT / 2.0,
+        TABLE_TOP_DEPTH / 2.0
+    ));
+
+    var legShape = new CANNON.Box(new CANNON.Vec3(
+        TABLE_LEG_WIDTH / 2.0,
+        TABLE_LEG_HEIGHT / 2.0,
+        TABLE_LEG_DEPTH / 2.0
+    ));
+
+    var legOffsetX = TABLE_TOP_WIDTH / 2.0 - TABLE_LEG_MARGIN_X;
+    var legOffsetZ = TABLE_TOP_DEPTH / 2.0 - TABLE_LEG_MARGIN_Z;
+
+    tableBody.addShape(
+        topShape,
+        new CANNON.Vec3(0.0, TABLE_TOP_OFFSET_Y, 0.0)
+    );
+
+    tableBody.addShape(
+        legShape,
+        new CANNON.Vec3(-legOffsetX, TABLE_LEG_OFFSET_Y, -legOffsetZ)
+    );
+
+    tableBody.addShape(
+        legShape,
+        new CANNON.Vec3(legOffsetX, TABLE_LEG_OFFSET_Y, -legOffsetZ)
+    );
+
+    tableBody.addShape(
+        legShape,
+        new CANNON.Vec3(-legOffsetX, TABLE_LEG_OFFSET_Y, legOffsetZ)
+    );
+
+    tableBody.addShape(
+        legShape,
+        new CANNON.Vec3(legOffsetX, TABLE_LEG_OFFSET_Y, legOffsetZ)
+    );
+
+    tableBody.quaternion.setFromAxisAngle(
+        new CANNON.Vec3(0, 1, 0),
+        tableTheta * Math.PI / 180.0
+    );
+
+    physicsWorld.addBody(tableBody);
+}
 
 function initPhysics() {
     physicsWorld = new CANNON.World();
 
     physicsWorld.gravity.set(0, -9.82, 0);
     physicsWorld.broadphase = new CANNON.NaiveBroadphase();
-    physicsWorld.solver.iterations = 10;
+    physicsWorld.solver.iterations = 30;
+    physicsWorld.solver.iterations = 30;
+    physicsWorld.solver.tolerance = 0.0001;
 
     // Materiali
     var ballMaterial = new CANNON.Material("ballMaterial");
@@ -103,16 +185,19 @@ function initPhysics() {
     // ===== Collider fisico invisibile del tavolo =====
     // ATTENZIONE: questi valori vanno regolati in base al tuo tavolo visibile
 
-    // collider invisibile del tavolo
-    tableColliderBody = addStaticBoxCollider(
-        tableColliderX,
-        tableColliderY,
-        tableColliderZ,
-        tableColliderSX,
-        tableColliderSY,
-        tableColliderSZ,
-        floorMaterial
-    );
+    /* // collider invisibile del tavolo
+        tableColliderBody = addStaticBoxCollider(
+            tableColliderX,
+            tableColliderY,
+            tableColliderZ,
+            tableColliderSX,
+            tableColliderSY,
+            tableColliderSZ,
+            floorMaterial
+        );
+    */
+    // collider table
+    createTableCompoundCollider();
     // Pallina fisica
     var ballShape = new CANNON.Sphere(ballRadius);
 
@@ -263,5 +348,263 @@ function updateBallBounceAnimation() {
     } else {
         ballIdleBounceActive = false;
         ballBody.angularVelocity.set(0.0, 0.0, 0.0);
+    }
+}
+
+/*///////////////////////////////////////////////////
+*
+*  CLOTH PART
+*
+*////////////////////////////////////////////////////*/
+
+class CannonCurtain {
+    constructor(gl, world, rows, cols, width, height, originX, originY, originZ) {
+        this.gl = gl;
+        this.world = world;
+
+        this.rows = rows;
+        this.cols = cols;
+        this.width = width;
+        this.height = height;
+
+        // Punto alto-centro della tenda
+        this.originX = originX;
+        this.originY = originY;
+        this.originZ = originZ;
+
+        this.bodies = [];
+
+        // Mesh triangolata senza indici, compatibile con il tuo drawObject()
+        this.numVertices = (rows - 1) * (cols - 1) * 6;
+
+        this.positions = new Float32Array(this.numVertices * 4);
+        this.normals = new Float32Array(this.numVertices * 4);
+        this.texCoords = new Float32Array(this.numVertices * 2);
+
+        this.initPhysics();
+        this.initBuffers();
+        this.updateMesh();
+    }
+
+    index(x, y) {
+        return y * this.cols + x;
+    }
+
+    getBody(x, y) {
+        return this.bodies[this.index(x, y)];
+    }
+
+    initPhysics() {
+        var mass = 0.04;
+
+        // la tenda sta nel piano Y-Z, vicino alla parete destra
+        for (var y = 0; y < this.rows; y++) {
+            for (var x = 0; x < this.cols; x++) {
+                var u = x / (this.cols - 1);
+                var v = y / (this.rows - 1);
+
+                var px = this.originX;
+                var py = this.originY - v * this.height;
+                var pz = this.originZ + (u - 0.5) * this.width;
+
+                var pinned = (y === 0 && x % 3 === 0);
+                var body = new CANNON.Body({
+                    mass: pinned ? 0.0 : mass,
+                    position: new CANNON.Vec3(px, py, pz),
+                    shape: new CANNON.Particle()
+                });
+
+                body.linearDamping = 0.55;
+
+                this.world.addBody(body);
+                this.bodies.push(body);
+            }
+        }
+
+        this.addConstraints();
+    }
+
+    addConstraints() {
+        var restX = this.width / (this.cols - 1);
+        var restY = this.height / (this.rows - 1);
+
+        var maxForce = 5e4;
+        var structuralForce = 5e4;
+        var diagonalForce = 8e3;
+
+        for (var y = 0; y < this.rows; y++) {
+            for (var x = 0; x < this.cols; x++) {
+                if (x < this.cols - 1) {
+                    this.world.addConstraint(
+                        new CANNON.DistanceConstraint(
+                            this.getBody(x, y),
+                            this.getBody(x + 1, y),
+                            restX,
+                            structuralForce
+                        )
+                    );
+                }
+
+                if (y < this.rows - 1) {
+                    this.world.addConstraint(
+                        new CANNON.DistanceConstraint(
+                            this.getBody(x, y),
+                            this.getBody(x, y + 1),
+                            restY,
+                            structuralForce
+                        )
+                    );
+                }
+
+                // diagonali: rendono la stoffa meno "gommosissima"
+                if (x < this.cols - 1 && y < this.rows - 1) {
+                    var diag = Math.sqrt(restX * restX + restY * restY);
+
+                    this.world.addConstraint(
+                        new CANNON.DistanceConstraint(
+                            this.getBody(x, y),
+                            this.getBody(x + 1, y + 1),
+                            diag,
+                            diagonalForce
+                        )
+                    );
+
+                    this.world.addConstraint(
+                        new CANNON.DistanceConstraint(
+                            this.getBody(x + 1, y),
+                            this.getBody(x, y + 1),
+                            diag,
+                            diagonalForce
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    initBuffers() {
+        var gl = this.gl;
+
+        this.vBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.DYNAMIC_DRAW);
+
+        this.nBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.nBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.normals, gl.DYNAMIC_DRAW);
+
+        this.tBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.tBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.texCoords, gl.DYNAMIC_DRAW);
+    }
+
+    applyWind(time) {
+        // vento leggero verso l'interno della stanza
+        for (var y = 1; y < this.rows; y++) {
+            for (var x = 0; x < this.cols; x++) {
+                var body = this.getBody(x, y);
+
+                var u = x / (this.cols - 1);
+                var v = y / (this.rows - 1);
+
+                var strength =
+                    Math.sin(time * 0.002 + u * 5.0 + v * 2.0) * curtainWindStrength;
+
+                // La parete destra è a x=7, interno stanza verso -X
+                body.applyForce(
+                    new CANNON.Vec3(-strength, 0.0, 0.005),
+                    body.position
+                );
+            }
+        }
+    }
+
+    updateMesh() {
+        var k = 0;
+
+        for (var y = 0; y < this.rows - 1; y++) {
+            for (var x = 0; x < this.cols - 1; x++) {
+                var b00 = this.getBody(x, y);
+                var b10 = this.getBody(x + 1, y);
+                var b01 = this.getBody(x, y + 1);
+                var b11 = this.getBody(x + 1, y + 1);
+
+                var u0 = x / (this.cols - 1);
+                var u1 = (x + 1) / (this.cols - 1);
+                var v0 = y / (this.rows - 1);
+                var v1 = (y + 1) / (this.rows - 1);
+
+                // due triangoli
+                k = this.writeTriangle(k, b00, b01, b10, u0, v0, u0, v1, u1, v0);
+                k = this.writeTriangle(k, b10, b01, b11, u1, v0, u0, v1, u1, v1);
+            }
+        }
+
+        var gl = this.gl;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.positions);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.nBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.normals);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.tBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.texCoords);
+    }
+
+    writeTriangle(k, b0, b1, b2, u0, v0, u1, v1, u2, v2) {
+        var p0 = b0.position;
+        var p1 = b1.position;
+        var p2 = b2.position;
+
+        var ux = p1.x - p0.x;
+        var uy = p1.y - p0.y;
+        var uz = p1.z - p0.z;
+
+        var vx = p2.x - p0.x;
+        var vy = p2.y - p0.y;
+        var vz = p2.z - p0.z;
+
+        // cross product
+        var nx = uy * vz - uz * vy;
+        var ny = uz * vx - ux * vz;
+        var nz = ux * vy - uy * vx;
+
+        var len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len < 0.00001) {
+            nx = -1.0;
+            ny = 0.0;
+            nz = 0.0;
+        } else {
+            nx /= len;
+            ny /= len;
+            nz /= len;
+        }
+
+        k = this.writeVertex(k, p0, nx, ny, nz, u0, v0);
+        k = this.writeVertex(k, p1, nx, ny, nz, u1, v1);
+        k = this.writeVertex(k, p2, nx, ny, nz, u2, v2);
+
+        return k;
+    }
+
+    writeVertex(k, p, nx, ny, nz, u, v) {
+        var pi = k * 4;
+        var ti = k * 2;
+
+        this.positions[pi + 0] = p.x;
+        this.positions[pi + 1] = p.y;
+        this.positions[pi + 2] = p.z;
+        this.positions[pi + 3] = 1.0;
+
+        this.normals[pi + 0] = nx;
+        this.normals[pi + 1] = ny;
+        this.normals[pi + 2] = nz;
+        this.normals[pi + 3] = 0.0;
+
+        this.texCoords[ti + 0] = u;
+        this.texCoords[ti + 1] = v;
+
+        return k + 1;
     }
 }

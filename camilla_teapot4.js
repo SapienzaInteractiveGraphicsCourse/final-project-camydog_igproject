@@ -22,7 +22,7 @@ var modelViewMatrixLoc;
 
 
 var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
-var lightAmbient = vec4(0.3, 0.3, 0.3, 1.0);
+var lightAmbient = vec4(0.5, 0.5, 0.5, 1.0);
 var lightDiffuse = vec4(0.0, 0.0, 1.0, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 var lightSphereBuffers;
@@ -44,7 +44,7 @@ var camAngle = 0.0;
 var camPitch = 0.0;
 var camRadius = 8.0;
 
-
+var cameraFov = 80.0;
 var cameraAngle = 35.0;
 var cameraHeight = 4.0;
 var cameraDistance = 10.0;   // questo è lo zoom
@@ -55,6 +55,10 @@ var eye = vec3(0.0, 4.0, 10.0);
 var aspect;
 
 
+// ===============Cloth variables================
+
+var curtain = null;
+var curtainTexture = null;
 
 
 // ===== BALL MINI-GAME / CANNON PHYSICS =====
@@ -110,6 +114,9 @@ var dogWalkRange = 2.0;
 // room buffers
 var roomPlaneBuffers;
 var roomBoxBuffers;
+
+//right wall buffers
+var rightWallWindowBuffers;
 
 //ball buffers
 var ballBuffers = null;
@@ -326,6 +333,7 @@ onload = async function init() {
     paintingTexture = loadTexture(path_img_painting);
     corniceTexture = loadTexture(path_img_cornice);
     ballTexture = loadTexture(path_img_ball);
+    curtainTexture = loadTexture(path_img_curtain);
     
 
     
@@ -380,6 +388,10 @@ onload = async function init() {
     //room buffers
     roomPlaneBuffers = createPlaneBuffers();
     roomBoxBuffers = createBoxBuffers();
+    //roomBoxBuffers = createRoomBoxWithoutRightWallBuffers();
+
+    //right wall buffers
+    rightWallWindowBuffers = createRightWallWithWindowBuffers();
 
     //ball buffers
     await loadOBJ(modelPath_ball);
@@ -429,6 +441,27 @@ onload = async function init() {
     //inizializzazione fisica per mini-game
     initPhysics();
    
+    //creation curtain
+    curtain = new CannonCurtain(
+        gl,
+        physicsWorld,
+        28,     // rows
+        24,     // cols
+        2.7,    // width lungo Z
+        2.2,    // height lungo Y
+        6.92,   // originX, poco dentro la parete destra
+        1.25,   // originY, bordo alto della tenda
+        -1.28    // originZ, centro finestra circa
+    );
+    var windSlider = document.getElementById("windSlider");
+    var windValue = document.getElementById("windValue");
+
+    if (windSlider && windValue) {
+        windSlider.addEventListener("input", function () {
+            curtainWindStrength = parseFloat(this.value);
+            windValue.textContent = curtainWindStrength.toFixed(3);
+        });
+    }
 
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
@@ -708,7 +741,7 @@ onload = async function init() {
         updateOrbitCameraFromSliders();
     });
 
-    canvas.addEventListener("wheel", function(event) {
+    /* canvas.addEventListener("wheel", function(event) {
     event.preventDefault();
 
     cameraDistance += event.deltaY * 0.01;
@@ -731,8 +764,23 @@ onload = async function init() {
         cameraHeight,
         cameraDistance * Math.cos(rad)
     );
-});
+    });
+ */
 
+    canvas.addEventListener("wheel", function(event) {
+        event.preventDefault();
+
+        cameraFov += event.deltaY * 0.015;
+
+        // Limiti per evitare crash: FOV troppo piccolo = proiezione instabile
+        if (cameraFov < 20.0) {
+            cameraFov = 20.0;
+        }
+
+        if (cameraFov > 120.0) {
+            cameraFov = 120.0;
+        }
+    });
 
     render();
 };
@@ -998,7 +1046,7 @@ function render() {
    
 
     var viewMatrix = lookAt(eye, at, up);
-    var projectionMatrix = perspective(80.0, aspect, 0.1, 120.0)
+    var projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 
 
     if (currentScene === "home") {
