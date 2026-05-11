@@ -1,6 +1,9 @@
 // variable to enable start screen
 var ENABLE_START_SCREEN = false; 
 
+// variable to enable debug mode
+var showTableColliderDebug = false;
+
 //object array
 var currentScene = "home"; // "home" or "walk"
 
@@ -23,6 +26,7 @@ var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
+var path_img_curtain = "./Textures/curtain_tex.png";
 
 
 //texture variables
