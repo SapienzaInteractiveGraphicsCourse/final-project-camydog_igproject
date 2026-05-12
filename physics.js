@@ -1,5 +1,5 @@
 var ballRadius = 0.20;
-var BALL_RENDER_Y_OFFSET = 0.0;
+
 
 var ballVelX = 1.0;
 var ballVelY = 4.0;
@@ -47,6 +47,238 @@ var TABLE_LEG_OFFSET_Y = -0.15;
 var TABLE_LEG_MARGIN_X = 0.50;
 var TABLE_LEG_MARGIN_Z = 0.50;
 
+///////////
+var ballStoppedTimer = 0.0;
+var ballAlreadyTargeted = false;
+
+//area to avoid when dog goes to ball
+var DOG_TABLE_AVOID_MARGIN = 0.7;
+var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+var dogPath = [];
+var dogPathIndex = 0;
+var dogCurrentWaypointIndex = 0;
+
+
+var candidates = [
+    { x: TABLE_X - halfW - 0.4, z: TABLE_Z }, // sinistra
+    { x: TABLE_X + halfW + 0.4, z: TABLE_Z }, // destra
+    { x: TABLE_X, z: TABLE_Z - halfD - 0.4 }, // dietro
+    { x: TABLE_X, z: TABLE_Z + halfD + 0.4 }  // davanti
+];
+
+
+function getTableAvoidRect() {
+    var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+
+    return {
+        minX: TABLE_X - halfW,
+        maxX: TABLE_X + halfW,
+        minZ: TABLE_Z - halfD,
+        maxZ: TABLE_Z + halfD
+    };
+}
+
+function isInsideTableAvoidZone(x, z) {
+    var r = getTableAvoidRect();
+
+    return (
+        x > r.minX &&
+        x < r.maxX &&
+        z > r.minZ &&
+        z < r.maxZ
+    );
+}
+
+function getReachableBallTarget(ballX, ballZ) {
+    var r = getTableAvoidRect();
+
+    // Se la palla è già fuori dalla zona vietata, il cane può andarci direttamente
+    if (!isInsideTableAvoidZone(ballX, ballZ)) {
+        return {
+            x: ballX,
+            z: ballZ
+        };
+    }
+
+    // Se invece la palla è dentro/vicino al tavolo,
+    // scegliamo il punto più vicino sul bordo esterno della zona vietata.
+    var distLeft   = Math.abs(ballX - r.minX);
+    var distRight  = Math.abs(r.maxX - ballX);
+    var distBack   = Math.abs(ballZ - r.minZ);
+    var distFront  = Math.abs(r.maxZ - ballZ);
+
+    var minDist = Math.min(distLeft, distRight, distBack, distFront);
+
+    var safeX = ballX;
+    var safeZ = ballZ;
+
+    var extra = 0.25; // distanza di sicurezza dal bordo del tavolo
+
+    if (minDist === distLeft) {
+        safeX = r.minX - extra;
+    } else if (minDist === distRight) {
+        safeX = r.maxX + extra;
+    } else if (minDist === distBack) {
+        safeZ = r.minZ - extra;
+    } else {
+        safeZ = r.maxZ + extra;
+    }
+
+    return {
+        x: safeX,
+        z: safeZ
+    };
+}
+
+function dist2D(x1, z1, x2, z2) {
+    var dx = x2 - x1;
+    var dz = z2 - z1;
+    return Math.sqrt(dx * dx + dz * dz);
+}
+
+
+function segmentIntersectsTableAvoidZone(x1, z1, x2, z2) {
+    var steps = 40;
+
+    for (var i = 0; i <= steps; i++) {
+        var t = i / steps;
+
+        var x = x1 + (x2 - x1) * t;
+        var z = z1 + (z2 - z1) * t;
+
+        if (isInsideTableAvoidZone(x, z)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/* function isInsideTableAvoidZone(x, z) {
+    var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+
+    return (
+        x > TABLE_X - halfW &&
+        x < TABLE_X + halfW &&
+        z > TABLE_Z - halfD &&
+        z < TABLE_Z + halfD
+    );
+} */
+
+/* function computeDogPathToBall(startX, startZ, targetX, targetZ) {
+    if (!segmentIntersectsTableAvoidZone(startX, startZ, targetX, targetZ)) {
+        return [
+            { x: targetX, z: targetZ }
+        ];
+    }
+
+    var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+
+    var extra = 0.8;
+
+    var leftX  = TABLE_X - halfW - extra;
+    var rightX = TABLE_X + halfW + extra;
+
+    var backZ  = TABLE_Z - halfD - extra;
+    var frontZ = TABLE_Z + halfD + extra;
+
+    // Due percorsi possibili: gira a sinistra o gira a destra
+    var leftPath = [
+        { x: leftX, z: startZ },
+        { x: leftX, z: targetZ },
+        { x: targetX, z: targetZ }
+    ];
+
+    var rightPath = [
+        { x: rightX, z: startZ },
+        { x: rightX, z: targetZ },
+        { x: targetX, z: targetZ }
+    ];
+
+    var leftCost =
+        dist2D(startX, startZ, leftPath[0].x, leftPath[0].z) +
+        dist2D(leftPath[0].x, leftPath[0].z, leftPath[1].x, leftPath[1].z) +
+        dist2D(leftPath[1].x, leftPath[1].z, targetX, targetZ);
+
+    var rightCost =
+        dist2D(startX, startZ, rightPath[0].x, rightPath[0].z) +
+        dist2D(rightPath[0].x, rightPath[0].z, rightPath[1].x, rightPath[1].z) +
+        dist2D(rightPath[1].x, rightPath[1].z, targetX, targetZ);
+
+    if (leftCost < rightCost) {
+        return leftPath;
+    } else {
+        return rightPath;
+    }
+} */
+
+    function computeDogPathToBall(startX, startZ, targetX, targetZ) {
+    // Se il cane può andare dritto, nessun waypoint
+    if (!segmentIntersectsTableAvoidZone(startX, startZ, targetX, targetZ)) {
+        return [
+            { x: targetX, z: targetZ }
+        ];
+    }
+
+    var r = getTableAvoidRect();
+
+    var extra = 0.6;
+
+    var corners = [
+        { x: r.minX - extra, z: r.minZ - extra }, // back-left
+        { x: r.maxX + extra, z: r.minZ - extra }, // back-right
+        { x: r.minX - extra, z: r.maxZ + extra }, // front-left
+        { x: r.maxX + extra, z: r.maxZ + extra }  // front-right
+    ];
+
+    var bestPath = null;
+    var bestCost = Infinity;
+
+    for (var i = 0; i < corners.length; i++) {
+        for (var j = 0; j < corners.length; j++) {
+            if (i === j) continue;
+
+            var c1 = corners[i];
+            var c2 = corners[j];
+
+            var bad1 = segmentIntersectsTableAvoidZone(startX, startZ, c1.x, c1.z);
+            var bad2 = segmentIntersectsTableAvoidZone(c1.x, c1.z, c2.x, c2.z);
+            var bad3 = segmentIntersectsTableAvoidZone(c2.x, c2.z, targetX, targetZ);
+
+            if (bad1 || bad2 || bad3) {
+                continue;
+            }
+
+            var cost =
+                dist2D(startX, startZ, c1.x, c1.z) +
+                dist2D(c1.x, c1.z, c2.x, c2.z) +
+                dist2D(c2.x, c2.z, targetX, targetZ);
+
+            if (cost < bestCost) {
+                bestCost = cost;
+                bestPath = [
+                    c1,
+                    c2,
+                    { x: targetX, z: targetZ }
+                ];
+            }
+        }
+    }
+
+    // Fallback: se qualcosa va storto, almeno prova ad andare al target
+    if (!bestPath) {
+        return [
+            { x: targetX, z: targetZ }
+        ];
+    }
+
+    return bestPath;
+}
 
 
 function createTableCompoundCollider() {
@@ -108,8 +340,8 @@ function initPhysics() {
 
     physicsWorld.gravity.set(0, -9.82, 0);
     physicsWorld.broadphase = new CANNON.NaiveBroadphase();
-    physicsWorld.solver.iterations = 30;
-    physicsWorld.solver.iterations = 30;
+    physicsWorld.solver.iterations = 20;
+    
     physicsWorld.solver.tolerance = 0.0001;
 
     // Materiali
@@ -348,6 +580,223 @@ function updateBallBounceAnimation() {
     } else {
         ballIdleBounceActive = false;
         ballBody.angularVelocity.set(0.0, 0.0, 0.0);
+    }
+}
+
+
+ function updateDogMovement(deltaTime) {
+    if (!dogMovingToBall) return;
+
+    var dx = dogTargetX - dogPosX;
+    var dz = dogTargetZ - dogPosZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.15) {
+        dogMovingToBall = false;
+        return;
+    }
+
+    var dogSpeed = 1.2; // unità al secondo
+
+    var dirX = dx / dist;
+    var dirZ = dz / dist;
+
+    dogPosX += dirX * dogSpeed * deltaTime;
+    dogPosZ += dirZ * dogSpeed * deltaTime;
+}
+ 
+
+function clamp(value, minValue, maxValue) {
+    return Math.max(minValue, Math.min(maxValue, value));
+}
+
+function keepDogOutsideTable(x, z) {
+    var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
+
+    var minX = TABLE_X - halfW;
+    var maxX = TABLE_X + halfW;
+    var minZ = TABLE_Z - halfD;
+    var maxZ = TABLE_Z + halfD;
+
+    if (!(x > minX && x < maxX && z > minZ && z < maxZ)) {
+        return { x: x, z: z };
+    }
+
+    var distLeft = Math.abs(x - minX);
+    var distRight = Math.abs(maxX - x);
+    var distBack = Math.abs(z - minZ);
+    var distFront = Math.abs(maxZ - z);
+
+    var minDist = Math.min(distLeft, distRight, distBack, distFront);
+
+    if (minDist === distLeft) {
+        x = minX;
+    } else if (minDist === distRight) {
+        x = maxX;
+    } else if (minDist === distBack) {
+        z = minZ;
+    } else {
+        z = maxZ;
+    }
+
+    return { x: x, z: z };
+}
+
+function updateDogMovementToBall1(deltaTime) {
+    if (!dogMovingToBall) return;
+    if (!dogPath || dogPath.length === 0) return;
+
+    initDogPositionIfNeeded();
+
+    var target = dogPath[dogPathIndex];
+
+    var dx = target.x - dogCurrentX;
+    var dz = target.z - dogCurrentZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.20) {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+            dogMovingToBall = false;
+        }
+
+        return;
+    }
+
+    var dogSpeed = 1.2;
+
+    var dirX = dx / dist;
+    var dirZ = dz / dist;
+
+   /* var nextX = dogCurrentX + dirX * dogSpeed * deltaTime;
+    var nextZ = dogCurrentZ + dirZ * dogSpeed * deltaTime;
+
+    // Safety check: anche se il waypoint path sbaglia,
+    // il cane non può entrare nella zona del tavolo.
+    var corrected = keepDogOutsideTable(nextX, nextZ);
+
+    dogCurrentX = corrected.x;
+    dogCurrentZ = corrected.z;
+
+    dogAngleToBall = Math.atan2(dirX, dirZ) * 180.0 / Math.PI; */
+    var nextX = dogCurrentX + dirX * dogSpeed * deltaTime;
+    var nextZ = dogCurrentZ + dirZ * dogSpeed * deltaTime;
+
+    // Safety check: se il prossimo passo entra nel tavolo,
+    // non lo facciamo entrare.
+    if (!isInsideTableAvoidZone(nextX, nextZ)) {
+        dogCurrentX = nextX;
+        dogCurrentZ = nextZ;
+    }
+
+    dogAngleToBall = Math.atan2(dirX, dirZ) * 180.0 / Math.PI;
+}
+
+function updateDogMovementToBall(deltaTime) {
+    if (!dogMovingToBall) return;
+    if (!dogPath || dogPath.length === 0) return;
+
+    initDogPositionIfNeeded();
+
+    var distanceToBall = dist2D(
+        dogCurrentX,
+        dogCurrentZ,
+        ballBody.position.x,
+        ballBody.position.z
+    );
+
+    if (distanceToBall < 0.90) {
+        dogMovingToBall = false;
+        return;
+    }
+
+    var target = dogPath[dogPathIndex];
+
+    var dx = target.x - dogCurrentX;
+    var dz = target.z - dogCurrentZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.20) {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+            dogMovingToBall = false;
+        }
+
+        return;
+    }
+
+    var dogSpeed = 1.2;
+
+    var dirX = dx / dist;
+    var dirZ = dz / dist;
+
+    var nextX = dogCurrentX + dirX * dogSpeed * deltaTime;
+    var nextZ = dogCurrentZ + dirZ * dogSpeed * deltaTime;
+
+    // safety: se per qualche motivo sta entrando nel tavolo,
+    // passa al waypoint successivo invece di bloccarsi lì
+    if (isInsideTableAvoidZone(nextX, nextZ)) {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+            dogMovingToBall = false;
+        }
+
+        return;
+    }
+
+    dogCurrentX = nextX;
+    dogCurrentZ = nextZ;
+
+    dogAngleToBall = Math.atan2(dirX, dirZ) * 180.0 / Math.PI;
+}
+
+
+function checkBallStoppedAndSendDog(deltaTime) {
+    if (!ballBody) return;
+
+    var vx = ballBody.velocity.x;
+    var vy = ballBody.velocity.y;
+    var vz = ballBody.velocity.z;
+
+    var speed = Math.sqrt(vx * vx + vy * vy + vz * vz);
+
+    if (speed < 0.08) {
+        ballStoppedTimer += deltaTime;
+    } else {
+        ballStoppedTimer = 0.0;
+        ballAlreadyTargeted = false;
+    }
+
+    if (ballStoppedTimer > 0.6 && !ballAlreadyTargeted) {
+       /*  dogTargetX = ballBody.position.x;
+        dogTargetZ = ballBody.position.z; */
+        initDogPositionIfNeeded();
+
+         var reachableTarget = getReachableBallTarget(
+            ballBody.position.x,
+            ballBody.position.z
+        );
+
+
+
+        dogPath = computeDogPathToBall(
+            dogCurrentX,
+            dogCurrentZ,
+            reachableTarget.x,
+            reachableTarget.z
+        );
+
+        
+        dogPathIndex = 0;
+        dogMovingToBall = true;
+        ballAlreadyTargeted = true;
     }
 }
 

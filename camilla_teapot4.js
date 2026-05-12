@@ -44,10 +44,21 @@ var camAngle = 0.0;
 var camPitch = 0.0;
 var camRadius = 8.0;
 
+var cameraTarget =  vec3(0.0, 0.5, 0.0);
 var cameraFov = 80.0;
 var cameraAngle = 35.0;
 var cameraHeight = 4.0;
 var cameraDistance = 10.0;   // questo è lo zoom
+
+
+var cameraAngleSlider ;
+var cameraHeightSlider;
+var cameraDistanceSlider ;
+
+var cameraAngleValue ;
+var cameraHeightValue ;
+var cameraDistanceValue ;
+
 
 var at = vec3(0.0, 0.5, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
@@ -70,7 +81,7 @@ var ROOM_MAX_Z =  7.0;
 
 var WALL_HEIGHT = 4.0;
 var WALL_THICKNESS = 0.25;
-var PHYSICS_FLOOR_Y = -2.0;
+var PHYSICS_FLOOR_Y = -2.4;
 var miniGameActive = false;
 var ballVisible = false;
 
@@ -106,7 +117,7 @@ var catWalkRange = 1.0;
 
 //dog walk 
 var moveDog = false;
-var dogBasePos = vec3(-3.0, -1.8, 0.8);
+var dogBasePos = vec3(-5.0, -1.8, 0.8);
 var dogWalkTime = 0.0;
 var dogWalkSpeed = 0.025;
 var dogWalkRange = 2.0;
@@ -196,6 +207,28 @@ var tableColliderSY = 0.3;
 var tableColliderSZ = 4.0;
 
 var tableColliderBody = null;
+
+//dog position
+var dogCurrentX = null;
+var dogCurrentZ = null;
+
+var dogTargetX = 0.0;
+var dogTargetZ = 0.0;
+
+var dogMovingToBall = false;
+var dogAngleToBall = 0.0;
+
+var ballStoppedTimer = 0.0;
+var ballAlreadyTargeted = false;
+
+function initDogPositionIfNeeded() {
+    if (dogCurrentX === null || dogCurrentZ === null) {
+        dogCurrentX = dogBasePos[0];
+        dogCurrentZ = dogBasePos[2];
+    }
+}
+
+
 
 function initPointShadowMaps()
 {
@@ -445,13 +478,13 @@ onload = async function init() {
     curtain = new CannonCurtain(
         gl,
         physicsWorld,
-        28,     // rows
-        24,     // cols
-        2.7,    // width lungo Z
-        2.2,    // height lungo Y
-        6.92,   // originX, poco dentro la parete destra
-        1.25,   // originY, bordo alto della tenda
-        -1.28    // originZ, centro finestra circa
+        CURTAIN_ROWS,
+        CURTAIN_COLS,
+        CURTAIN_WIDTH,
+        CURTAIN_HEIGHT,
+        CURTAIN_ORIGIN_X,
+        CURTAIN_ORIGIN_Y,
+        CURTAIN_ORIGIN_Z
     );
     var windSlider = document.getElementById("windSlider");
     var windValue = document.getElementById("windValue");
@@ -499,6 +532,34 @@ onload = async function init() {
     };
 
     // settings bottoni + sliders
+
+    var buttonResetCamera = document.getElementById("ButtonResetCamera");
+
+    if (buttonResetCamera) {
+        buttonResetCamera.onclick = function () {
+            resetCameraView();
+        };
+    }
+    var buttonFocusCurtain = document.getElementById("ButtonFocusCurtain");
+
+    if (buttonFocusCurtain) {
+        buttonFocusCurtain.onclick = function () {
+            focusCurtainCamera();
+        };
+    }
+    var buttonCollision = document.getElementById("ButtonCollision");
+
+    if (buttonCollision) {
+        buttonCollision.onclick = function () {
+            showCollisionDebug = !showCollisionDebug;
+
+            if (showCollisionDebug) {
+                buttonCollision.innerHTML = "Hide Collisions";
+            } else {
+                buttonCollision.innerHTML = "Show Collisions";
+            }
+        };
+    }
     document.getElementById("ButtonLightDir").onclick = function () {
         showLightDirection = !showLightDirection;
         this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
@@ -660,31 +721,15 @@ onload = async function init() {
 
 
 
-    var cameraAngleSlider = document.getElementById("CameraAngle");
-    var cameraHeightSlider = document.getElementById("CameraHeight");
-    var cameraDistanceSlider = document.getElementById("CameraDistance");
+     cameraAngleSlider = document.getElementById("CameraAngle");
+    cameraHeightSlider = document.getElementById("CameraHeight");
+    cameraDistanceSlider = document.getElementById("CameraDistance");
 
-    var cameraAngleValue = document.getElementById("CameraAngleValue");
-    var cameraHeightValue = document.getElementById("CameraHeightValue");
-    var cameraDistanceValue = document.getElementById("CameraDistanceValue");
+    cameraAngleValue = document.getElementById("CameraAngleValue");
+    cameraHeightValue = document.getElementById("CameraHeightValue");
+    cameraDistanceValue = document.getElementById("CameraDistanceValue");
 
-    function updateOrbitCameraFromSliders() {
-        cameraAngle = parseFloat(cameraAngleSlider.value);
-        cameraHeight = parseFloat(cameraHeightSlider.value);
-        cameraDistance = parseFloat(cameraDistanceSlider.value);
-
-        var rad = radians(cameraAngle);
-
-        eye = vec3(
-            cameraDistance * Math.sin(rad),
-            cameraHeight,
-            cameraDistance * Math.cos(rad)
-        );
-
-        cameraAngleValue.innerHTML = cameraAngle.toFixed(0) + "°";
-        cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
-        cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
-    }
+    
 
     cameraAngleSlider.oninput = updateOrbitCameraFromSliders;
     cameraHeightSlider.oninput = updateOrbitCameraFromSliders;
@@ -785,6 +830,31 @@ onload = async function init() {
     render();
 };
 
+function updateOrbitCameraFromSliders() {
+        cameraAngle = parseFloat(cameraAngleSlider.value);
+        cameraHeight = parseFloat(cameraHeightSlider.value);
+        cameraDistance = parseFloat(cameraDistanceSlider.value);
+
+        var rad = radians(cameraAngle);
+
+        /* eye = vec3(
+            cameraDistance * Math.sin(rad),
+            cameraHeight,
+            cameraDistance * Math.cos(rad)
+        ); */
+        eye = vec3(
+            cameraTarget[0] + cameraDistance * Math.sin(rad),
+            cameraTarget[1] + cameraHeight,
+            cameraTarget[2] + cameraDistance * Math.cos(rad)
+        );
+
+        at = cameraTarget;
+        up = vec3(0.0, 1.0, 0.0);
+
+        cameraAngleValue.innerHTML = cameraAngle.toFixed(0) + "°";
+        cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
+        cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
+    }
 
 
 
@@ -1303,3 +1373,39 @@ function clampTeapotToTable() {
 }
 
 
+function resetCameraView() {
+    cameraTarget = vec3(0.0, 0.5, 0.0);
+
+    cameraAngle = 35.0;
+    cameraHeight = 4.0;
+    cameraDistance = 10.0;
+    cameraFov = 80.0;
+
+    if (cameraAngleSlider) cameraAngleSlider.value = cameraAngle;
+    if (cameraHeightSlider) cameraHeightSlider.value = cameraHeight;
+    if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
+
+    updateOrbitCameraFromSliders();
+}
+
+
+function focusCurtainCamera() {
+    // Punto centrale circa della tenda
+    cameraTarget = vec3(
+        CURTAIN_ORIGIN_X,
+        CURTAIN_ORIGIN_Y - CURTAIN_HEIGHT / 2.0,
+        CURTAIN_ORIGIN_Z
+    );
+
+    cameraAngle = -90.0;
+    cameraHeight = 0.8;
+    cameraDistance = 4.0;
+    cameraFov = 45.0;
+
+    // Aggiorna sliders
+    if (cameraAngleSlider) cameraAngleSlider.value = cameraAngle;
+    if (cameraHeightSlider) cameraHeightSlider.value = cameraHeight;
+    if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
+
+    updateOrbitCameraFromSliders();
+}

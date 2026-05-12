@@ -28,15 +28,13 @@
     <div class="control-group">
                  <div class="top-buttons">
 
-                    <button id = "ButtonX">Rotate X</button>
-                    <button id = "ButtonY">Rotate Y</button>
-                    <button id = "ButtonZ">Rotate Z</button>
-                    <button id = "ButtonT">Toggle Teapot Rotation</button>
+                    
                     <button id="ButtonTex">Disable Textures</button>
-                    <button id="ButtonTableRotation">Toggle Table Rotation</button>
+                    
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
                     <button id="ButtonDogMove">Toggle Dog Walk</button>
                     <button id="ButtonLightDir">Show Light Direction</button>
+                    <button id="ButtonCollision">Show Collisions</button>
 
             </div>
   
@@ -133,6 +131,8 @@
                                 value="1"
                             >
                             <span id="RotationSpeedValue_teapot">1.0x</span>
+
+                            
                             </div>
 
                             <div class="control-row">
@@ -149,6 +149,11 @@
 
                             </div>
                             </details>
+                            <button id = "ButtonX">Rotate T. X</button>
+                            <button id = "ButtonY">Rotate T. Y</button>
+                            <button id = "ButtonZ">Rotate T. Z</button>
+                            <button id = "ButtonT">Toggle Teapot Rotation</button>
+                            <button id="ButtonTableRotation">Toggle Table Rotation</button>
              </div>
                         <div class="control-group">
                                 <h3>Camera views</h3>
@@ -156,6 +161,8 @@
                                 <button id="ButtonTeapotFocus" class="side-button">
                                     Focus Teapot
                                 </button>
+                                <button id="ButtonFocusCurtain">Focus Curtain</button>
+                                <button id="ButtonResetCamera">Reset Camera</button>
                          </div>
                          <div class="control-group">
                                 <h3>Night&Day</h3>
@@ -245,7 +252,7 @@
             </div>
 
 
-            <canvas id="gl-canvas" width="1700" height="1000">
+            <canvas id="gl-canvas" width="1700" height="1100">
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
         </div>

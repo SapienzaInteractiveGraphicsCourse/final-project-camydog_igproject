@@ -1,5 +1,5 @@
 function drawHomeScene(gl, viewMatrix, projectionMatrix) {
-    console.log("[function drawHomeScene]");
+    //console.log("[function drawHomeScene]");
     
 
     //curtain always present in the scene
@@ -32,9 +32,13 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         }
 
         physicsWorld.step(fixedTimeStep, deltaTime, 5);
+        
 
         if (miniGameActive) {
             updateBallBounceAnimation();
+            
+            checkBallStoppedAndSendDog(deltaTime);
+            updateDogMovementToBall(deltaTime);
         }
 
         if (curtain) {
@@ -59,12 +63,25 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         }
     }
 
-    var dogZ = dogBasePos[2];
+
+   initDogPositionIfNeeded();
+
+    var dogX = dogCurrentX;
+    var dogZ = dogCurrentZ;
     var dogFacingAngle = 0.0;
 
-    if (moveDog) {
+    if (dogMovingToBall) {
+        dogX = dogCurrentX;
+        dogZ = dogCurrentZ;
+        dogFacingAngle = dogAngleToBall;
+    } else if (moveDog) {
         dogWalkTime += dogWalkSpeed;
+
+        dogX = dogBasePos[0];
         dogZ = dogBasePos[2] + Math.sin(dogWalkTime) * dogWalkRange;
+
+        dogCurrentX = dogX;
+        dogCurrentZ = dogZ;
 
         var direction = Math.cos(dogWalkTime);
 
@@ -73,6 +90,9 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         } else {
             dogFacingAngle = 0.0;
         }
+    } else {
+        dogX = dogCurrentX;
+        dogZ = dogCurrentZ;
     }
 
     var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
@@ -149,7 +169,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     //matrici dog
     var modelMatrixDog = mat4();
-    modelMatrixDog = mult(modelMatrixDog, translate(dogBasePos[0], dogBasePos[1], dogZ));
+    modelMatrixDog = mult(modelMatrixDog, translate(dogX, dogBasePos[1], dogZ));
     modelMatrixDog = mult(modelMatrixDog, rotate(dogFacingAngle, [0, 1, 0]));
     modelMatrixDog = mult(modelMatrixDog, rotate(-90, [1, 0, 0]));
     modelMatrixDog = mult(modelMatrixDog, scalem(1.0, 1.0, 1.0));
@@ -499,7 +519,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
 
-    if (showTableColliderDebug) {
+    if (showCollisionDebug) {
         
         //parte per collisione tavolo
         drawObject(
