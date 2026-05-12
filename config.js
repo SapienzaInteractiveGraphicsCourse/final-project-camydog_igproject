@@ -2,7 +2,7 @@
 var ENABLE_START_SCREEN = false; 
 
 // variable to enable debug mode
-var showTableColliderDebug = false;
+var showCollisionDebug = false;
 
 //object array
 var currentScene = "home"; // "home" or "walk"
@@ -49,3 +49,13 @@ var corniceTexture;
 var ballTexture;
 
 
+//curtain variables
+var CURTAIN_ROWS = 28;
+var CURTAIN_COLS = 24;
+
+var CURTAIN_WIDTH = 2.7;
+var CURTAIN_HEIGHT = 2.2;
+
+var CURTAIN_ORIGIN_X = 6.92;
+var CURTAIN_ORIGIN_Y = 1.25;
+var CURTAIN_ORIGIN_Z = -1.28;
