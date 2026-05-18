@@ -14,6 +14,9 @@ var modelPath_cat= "./Cat/cat.obj";
 var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./ball_color/ball.obj";
 
+//path folder rigged dog
+var pathFolderRiggedDog = "./dog_separated_model/";
+
 // images paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
 var path_img_table="./table_tex_512.jpg";
@@ -47,6 +50,7 @@ var skyboxTexture;
 var paintingTexture;
 var corniceTexture;
 var ballTexture;
+var riggedDogTexture;
 
 
 //curtain variables

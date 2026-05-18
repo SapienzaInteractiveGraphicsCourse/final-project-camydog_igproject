@@ -45,13 +45,16 @@ shaodw mapping
 -table collision detection
 
 
-## Cloth finestra (?)
+## Cloth finestra
+Ok messo con Cannon... ci sta l'ombra da sistemare ma mi sempre carino
 
 # FPS indicazione sopra canvas
 FPS shown on the canvas
 
 # Night/Day mode
 
+
+# Rigged Dog
 
 # Walk Mode?
 

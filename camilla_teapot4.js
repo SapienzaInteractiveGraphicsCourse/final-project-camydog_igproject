@@ -417,6 +417,11 @@ onload = async function init() {
 
     dogBuffers = createBuffers(dogPoints, dogNormals, dogTex);
 
+    //rigged dog parts loading
+    //Non serve await per forza, perché la funzione imposta separatedDogLoaded = true quando ha finito.
+    riggedDogTexture = dogTexture; // usa la stessa texture del dog intero
+    loadSeparatedDogParts(gl);
+
 
     //room buffers
     roomPlaneBuffers = createPlaneBuffers();

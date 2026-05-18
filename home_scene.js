@@ -431,6 +431,9 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         false,  // twoSided
         true    // receiveShadow
     );
+
+    // prova disegno rigged dog parts
+    drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
     drawObject(
         lightSphereBuffers,
         null,
