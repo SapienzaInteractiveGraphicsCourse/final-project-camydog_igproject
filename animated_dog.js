@@ -22,6 +22,17 @@ var separatedDogBaseZ = 1.5;
 
 var separatedDogScale = 2.0;
 
+// offset to apply to legs to the body
+var DOG_LEG_ATTACH_OFFSET_Y = 0.04;
+
+//offset for tail
+var DOG_TAIL_ATTACH_OFFSET_Z = 0.05;
+
+//tail animation parameters
+var DOG_TAIL_WAG_AMOUNT = 9.5
+.0;
+var DOG_TAIL_WAG_SPEED = 5.0;
+
 
 async function loadDogPartOBJ(gl, url) {
     const response = await fetch(url);
@@ -293,7 +304,9 @@ function drawSeparatedDogLeg(
                     baseMatrix,
                     viewMatrix,
                     projectionMatrix,
-                    legAngle) {
+                    legAngle,
+                    attachOffsetY,
+                    attachOffsetZ) {
 
     var pivot = getLegPivot(legBuffers);
     var m = baseMatrix;
@@ -314,10 +327,11 @@ function drawSeparatedDogLeg(
     m = mult(m, rotate(legAngle, [1, 0, 0]));
 
     m = mult(m, translate(-pivot.x, -pivot.y, -pivot.z));
+    m = mult(m, translate(0.0, attachOffsetY, attachOffsetZ));
 
     drawObject(
         legBuffers,
-        dogTexture,      // se non vuoi texture, metti null
+        wallTexture,      // se non vuoi texture, metti null
         m,
         viewMatrix,
         projectionMatrix,
@@ -361,13 +375,14 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
         l'altra va indietro.
     */
     var walkPhase = t * 6.0;
+    var tailAngle = Math.sin(t * DOG_TAIL_WAG_SPEED) * DOG_TAIL_WAG_AMOUNT;
 
     var legA = 0.0;
     var legB = 0.0;
 
     if (separatedDogWalkEnabled) {
-        legA = Math.sin(walkPhase) * 7.0;
-        legB = Math.sin(walkPhase + Math.PI) * 7.0;
+        legA = Math.sin(walkPhase) * 2.5;
+        legB = Math.sin(walkPhase + Math.PI) * 2.5;
     }
 
     /*
@@ -397,7 +412,7 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
     */
     drawObject(
         dogBodyPartBuffers,
-        dogTexture,
+        wallTexture,
         baseMatrix,
         viewMatrix,
         projectionMatrix,
@@ -410,7 +425,7 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
 
     drawObject(
         dogHeadPartBuffers,
-        dogTexture,
+        wallTexture,
         baseMatrix,
         viewMatrix,
         projectionMatrix,
@@ -423,7 +438,7 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
 
     drawObject(
         dogEarRightBuffers,
-        dogTexture,
+        wallTexture,
         baseMatrix,
         viewMatrix,
         projectionMatrix,
@@ -436,7 +451,7 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
 
     drawObject(
         dogEarLeftBuffers,
-        dogTexture,
+        wallTexture,
         baseMatrix,
         viewMatrix,
         projectionMatrix,
@@ -448,21 +463,26 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
     );
 
     /*
-        Coda: per ora la lasciamo fissa.
-        Dopo possiamo farla scodinzolare.
+        
+       Coda -> prov a scodinzolare.
     */
-    drawObject(
-        dogTailPartBuffers,
-        dogTexture,
+    drawSeparatedDogTail(
         baseMatrix,
         viewMatrix,
         projectionMatrix,
-        true,
-        false,
-        true,
-        true,
-        0
+        tailAngle
     );
+
+    //giunture 
+    var pivotFR = getLegPivot(dogLegFrontRightBuffers);
+    var pivotFL = getLegPivot(dogLegFrontLeftBuffers);
+    var pivotBR = getLegPivot(dogLegBackRightBuffers);
+    var pivotBL = getLegPivot(dogLegBackLeftBuffers);
+
+    //drawDogJoint(baseMatrix, viewMatrix, projectionMatrix, pivotFR, 0.055, 0.035, 0.055);
+    //drawDogJoint(baseMatrix, viewMatrix, projectionMatrix, pivotFL, 0.055, 0.035, 0.055);
+    //drawDogJoint(baseMatrix, viewMatrix, projectionMatrix, pivotBR, 0.060, 0.035, 0.060);
+    //drawDogJoint(baseMatrix, viewMatrix, projectionMatrix, pivotBL, 0.060, 0.035, 0.060);
 
     /*
         PIVOT ZAMPE
@@ -494,7 +514,9 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
         baseMatrix,
         viewMatrix,
         projectionMatrix,
-        legA
+        legA,
+        0.04,
+        0.0
     );
 
     // dietro sinistra
@@ -503,7 +525,9 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
         baseMatrix,
         viewMatrix,
         projectionMatrix,
-        legA
+        legA,
+        0.03,
+        0.02
     );
 
     // davanti sinistra
@@ -512,7 +536,9 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
         baseMatrix,
         viewMatrix,
         projectionMatrix,
-        legB
+        legB,
+        0.04,
+        0.0
     );
 
     // dietro destra
@@ -522,8 +548,96 @@ function drawSeparatedDog(viewMatrix, projectionMatrix, time) {
         viewMatrix,
         projectionMatrix,
         legB,
-        backX,
-        legPivotY,
-        rightZ
+        0.03,
+        0.02
+    );
+}
+
+
+
+function drawDogJoint(baseMatrix, viewMatrix, projectionMatrix, pivot, sx, sy, sz) {
+    var m = baseMatrix;
+
+    m = mult(m, translate(
+        pivot.x,
+        pivot.y + 0.03,
+        pivot.z
+    ));
+
+    m = mult(m, scalem(sx, sy, sz));
+
+    drawObject(
+        lightSphereBuffers,
+        dogTexture,
+        m,
+        viewMatrix,
+        projectionMatrix,
+        true,
+        false,
+        true,
+        true,
+        0
+    );
+}
+
+function getTailPivot(tailBuffers) {
+    if (!tailBuffers || !tailBuffers.bounds) {
+        return {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0
+        };
+    }
+
+    var min = tailBuffers.bounds.min;
+    var max = tailBuffers.bounds.max;
+
+    /*
+        Pivot della coda: base della coda, cioè la parte più vicina al corpo.
+
+        Nel tuo modello sembra che la coda vada verso il retro del cane.
+        Se ruota dal punto sbagliato, aggiustiamo questo pivot.
+    */
+    return {
+        x: max[0],
+        y: (min[1] + max[1]) / 2.0,
+        z: (min[2] + max[2]) / 2.0
+    };
+}
+
+function drawSeparatedDogTail(
+    baseMatrix,
+    viewMatrix,
+    projectionMatrix,
+    tailAngle
+) {
+    var pivot = getTailPivot(dogTailPartBuffers);
+
+    var m = baseMatrix;
+
+    m = mult(m, translate(pivot.x, pivot.y, pivot.z));
+
+    /*
+        Scodinzolio laterale.
+        Se la coda si muove sull'asse sbagliato, cambiamo [0,1,0].
+    */
+    m = mult(m, rotate(tailAngle, [0, 1, 0]));
+
+    m = mult(m, translate(-pivot.x, -pivot.y, -pivot.z));
+
+   // offset to attach tail to the body
+    m = mult(m, translate(0.0, 0.02, 0.0));
+
+    drawObject(
+        dogTailPartBuffers,
+        wallTexture,
+        m,
+        viewMatrix,
+        projectionMatrix,
+        true,
+        false,
+        true,
+        true,
+        0
     );
 }
