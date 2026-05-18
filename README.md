@@ -56,6 +56,5 @@ FPS shown on the canvas
 
 # Rigged Dog
 
-# Walk Mode?
-
-Prima di walk mode e di cambiar eil render()
+## Walk Mode
+Dovrei scomporre ancora il cane perchè così non va bene.... magari suddividere le zampe posteriori
