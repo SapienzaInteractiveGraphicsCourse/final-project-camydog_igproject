@@ -433,7 +433,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     );
 
     // prova disegno rigged dog parts
-    drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
+    //drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
     drawObject(
         lightSphereBuffers,
         null,
@@ -443,6 +443,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         false,
         true
     );
+
+    drawSkinnedDog(viewMatrix, projectionMatrix);
+
+
+
 
      //ball mini-game render
    if (ballVisible && ballBody) {

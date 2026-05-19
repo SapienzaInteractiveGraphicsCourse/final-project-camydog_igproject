@@ -790,6 +790,82 @@ void main()
 }
 </script>
 
+<!-- Prova shader rigged dog -->
+<script id="skinned-dog-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+attribute vec2 vTexCoord;
+
+attribute vec4 vJoints;
+attribute vec4 vWeights;
+
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat3 normalMatrix;
+
+uniform mat4 boneMatrices[64];
+
+varying vec3 fNormal;
+varying vec2 fTexCoord;
+
+void main()
+{
+    int j0 = int(vJoints.x);
+    int j1 = int(vJoints.y);
+    int j2 = int(vJoints.z);
+    int j3 = int(vJoints.w);
+
+    mat4 skinMatrix =
+        vWeights.x * boneMatrices[j0] +
+        vWeights.y * boneMatrices[j1] +
+        vWeights.z * boneMatrices[j2] +
+        vWeights.w * boneMatrices[j3];
+
+    vec4 skinnedPos = skinMatrix * vPosition;
+    vec4 skinnedNormal = skinMatrix * vec4(vNormal.xyz, 0.0);
+
+    vec4 worldPos = modelMatrix * skinnedPos;
+
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
+
+    fNormal = normalize(normalMatrix * skinnedNormal.xyz);
+    fTexCoord = vTexCoord;
+}
+</script>
+
+<script id="skinned-dog-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec3 fNormal;
+varying vec2 fTexCoord;
+
+uniform sampler2D uTexture;
+uniform bool useTexture;
+
+void main()
+{
+    vec3 N = normalize(fNormal);
+
+    vec3 lightDir = normalize(vec3(0.4, 1.0, 0.6));
+
+    float diff = max(dot(N, lightDir), 0.0);
+
+    //purple color base, modulated by texture if enabled
+    vec3 baseColor = vec3(0.3, 0.3, 0.8);
+
+    if (useTexture) {
+        baseColor = texture2D(uTexture, fTexCoord).rgb;
+    }
+
+    vec3 ambient = baseColor * 0.35;
+    vec3 diffuse = baseColor * diff * 0.75;
+
+    gl_FragColor = vec4(ambient + diffuse, 1.0);
+}
+</script>
+
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <!-- <script src="./liquid-glass-js/container.js"></script>
 <script src="./liquid-glass-js/button.js"></script> -->
@@ -801,11 +877,12 @@ void main()
 <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
 
 <script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="utils.js"></script>
 <script type="text/javascript" src="gltf_debug_loader.js"></script>
 <script type="text/javascript" src="home_scene.js"></script>
 <script type="text/javascript" src="park_scene.js"></script>
 <script type="text/javascript" src="physics.js"></script>
-<script type="text/javascript" src="utils.js"></script>
+
 <script type="text/javascript" src="animated_dog.js"></script>
 <script type="text/javascript" src="shaders.js"></script>
 <script type="text/javascript" src="camilla_teapot4.js"></script>

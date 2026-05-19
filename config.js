@@ -63,3 +63,30 @@ var CURTAIN_HEIGHT = 2.2;
 var CURTAIN_ORIGIN_X = 6.92;
 var CURTAIN_ORIGIN_Y = 1.25;
 var CURTAIN_ORIGIN_Z = -1.28;
+
+
+//skinned dog variables
+var skinnedDog = null;
+var skinnedDogProgram = null;
+var skinnedDogAttribs = {};
+var skinnedDogUniforms = {};
+
+// Front legs
+var FRONT_LEFT_HIP   = 4;
+var FRONT_LEFT_KNEE  = 3;
+var FRONT_LEFT_ANKLE = 2;
+var FRONT_LEFT_BALL  = 1;
+
+var FRONT_RIGHT_HIP   = 11;
+var FRONT_RIGHT_KNEE  = 10;
+var FRONT_RIGHT_ANKLE = 9;
+var FRONT_RIGHT_BALL  = 8;
+
+// Hind legs
+var HIND_LEFT_HIP    = 41;
+var HIND_LEFT_KNEE1  = 40;
+var HIND_LEFT_KNEE2  = 39;
+
+var HIND_RIGHT_HIP   = 47;
+var HIND_RIGHT_KNEE1 = 46;
+var HIND_RIGHT_KNEE2 = 45;

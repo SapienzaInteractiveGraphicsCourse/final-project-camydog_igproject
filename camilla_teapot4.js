@@ -354,6 +354,28 @@ onload = async function init() {
     //new shadow map for point light
     initPointShadowMaps();
 
+    // test for  GLB loading for rigged dog
+    loadGLBDebug("./shiba_dog.glb")
+    .then(function (result) {
+        console.log("GLB debug loaded successfully");
+        debugReadSkinnedMeshData(
+            result.gltf,
+            result.binary
+        );
+        skinnedDog = createSkinnedDogBuffers(
+            gl,
+            result.gltf,
+            result.binary
+        );
+
+        console.log("Skinned dog buffers created:", skinnedDog);
+        printDogJointNames();
+    })
+    .catch(function (error) {
+        console.error("GLB debug load error:", error);
+    });
+
+
 
     //carico le texture per teapot e tavolo + cat
 
@@ -461,6 +483,29 @@ onload = async function init() {
     skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
     skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
     skyboxSamplerLoc = gl.getUniformLocation(skyboxProgram, "skybox");
+
+
+
+    // part for trying to visualize the rigged dog
+    skinnedDogProgram = initShaders(
+        gl,
+        "skinned-dog-vertex-shader",
+        "skinned-dog-fragment-shader"
+    );
+
+    skinnedDogAttribs.vPosition = gl.getAttribLocation(skinnedDogProgram, "vPosition");
+    skinnedDogAttribs.vNormal   = gl.getAttribLocation(skinnedDogProgram, "vNormal");
+    skinnedDogAttribs.vTexCoord = gl.getAttribLocation(skinnedDogProgram, "vTexCoord");
+    skinnedDogAttribs.vJoints   = gl.getAttribLocation(skinnedDogProgram, "vJoints");
+    skinnedDogAttribs.vWeights  = gl.getAttribLocation(skinnedDogProgram, "vWeights");
+
+    skinnedDogUniforms.modelMatrix      = gl.getUniformLocation(skinnedDogProgram, "modelMatrix");
+    skinnedDogUniforms.viewMatrix       = gl.getUniformLocation(skinnedDogProgram, "viewMatrix");
+    skinnedDogUniforms.projectionMatrix = gl.getUniformLocation(skinnedDogProgram, "projectionMatrix");
+    skinnedDogUniforms.normalMatrix     = gl.getUniformLocation(skinnedDogProgram, "normalMatrix");
+    skinnedDogUniforms.boneMatrices     = gl.getUniformLocation(skinnedDogProgram, "boneMatrices");
+    skinnedDogUniforms.uTexture         = gl.getUniformLocation(skinnedDogProgram, "uTexture");
+    skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture");
 
 
     //parte program per visualizzazione direzione luce (debug)
