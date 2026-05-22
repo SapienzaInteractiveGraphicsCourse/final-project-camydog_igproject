@@ -54,6 +54,11 @@ var ballTexture;
 var riggedDogTexture;
 
 
+//mtl variables
+var tableMtlTexture = null;
+var ballMtlTexture = null;
+
+
 //curtain variables
 var CURTAIN_ROWS = 28;
 var CURTAIN_COLS = 24;

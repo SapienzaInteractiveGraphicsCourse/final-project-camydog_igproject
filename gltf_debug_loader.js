@@ -452,11 +452,85 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
         flatten(nMat)
     );
 
+    gl.uniform1i(skinnedDogUniforms.receiveShadow, true);
+    gl.uniform1i(skinnedDogUniforms.usePointShadowMap, usePointShadowMap ? 1 : 0);
 
-    //var boneData = getSkinnedDogBoneData();
-    //var boneData = computeBoneMatricesRaw(skinnedDog, {});
+    gl.uniform4fv(
+        skinnedDogUniforms.lightPosition,
+        flatten(lightPosition)
+);
 
-    var localOverrides = {};
+if (usePointShadowMap) {
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap0, 4);
+
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap1, 5);
+
+    gl.activeTexture(gl.TEXTURE6);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap2, 6);
+
+    gl.activeTexture(gl.TEXTURE7);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap3, 7);
+
+    gl.activeTexture(gl.TEXTURE8);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap4, 8);
+
+    gl.activeTexture(gl.TEXTURE9);
+    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
+    gl.uniform1i(skinnedDogUniforms.pointShadowMap5, 9);
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix0,
+        false,
+        flatten(pointLightViewMatrices[0])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix1,
+        false,
+        flatten(pointLightViewMatrices[1])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix2,
+        false,
+        flatten(pointLightViewMatrices[2])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix3,
+        false,
+        flatten(pointLightViewMatrices[3])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix4,
+        false,
+        flatten(pointLightViewMatrices[4])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightViewMatrix5,
+        false,
+        flatten(pointLightViewMatrices[5])
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.pointLightProjectionMatrix,
+        false,
+        flatten(pointLightProjectionMatrix)
+    );
+}
+
+
+
+var localOverrides = {};
 
 var t = performance.now() * 0.001;
 

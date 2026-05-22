@@ -22,12 +22,12 @@ var modelViewMatrixLoc;
 
 
 var lightPosition = vec4(3.0, 3.0, 5.0, 1.0);
-var lightAmbient = vec4(0.5, 0.5, 0.5, 1.0);
-var lightDiffuse = vec4(0.0, 0.0, 1.0, 1.0);
+var lightAmbient = vec4(0.8, 0.8, 0.8, 1.0);
+var lightDiffuse = vec4(0.5, 0.5, 0.5, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 var lightSphereBuffers;
 
-var materialAmbient = vec4(0.3, 0.3, 0.3, 1.0);
+var materialAmbient = vec4(0.5, 0.5, 0.5, 1.0);
 var materialDiffuse = vec4(1.0, 0.8, 0.8, 1.0);
 var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
@@ -503,6 +503,55 @@ onload = async function init() {
     skinnedDogUniforms.boneMatrices     = gl.getUniformLocation(skinnedDogProgram, "boneMatrices");
     skinnedDogUniforms.uTexture         = gl.getUniformLocation(skinnedDogProgram, "uTexture");
     skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture"); 
+
+
+    skinnedDogUniforms.receiveShadow =
+        gl.getUniformLocation(skinnedDogProgram, "receiveShadow");
+
+    skinnedDogUniforms.usePointShadowMap =
+        gl.getUniformLocation(skinnedDogProgram, "usePointShadowMap");
+
+    skinnedDogUniforms.lightPosition =
+        gl.getUniformLocation(skinnedDogProgram, "lightPosition");
+
+    skinnedDogUniforms.pointShadowMap0 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap0");
+
+    skinnedDogUniforms.pointShadowMap1 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap1");
+
+    skinnedDogUniforms.pointShadowMap2 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap2");
+
+    skinnedDogUniforms.pointShadowMap3 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap3");
+
+    skinnedDogUniforms.pointShadowMap4 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap4");
+
+    skinnedDogUniforms.pointShadowMap5 =
+        gl.getUniformLocation(skinnedDogProgram, "pointShadowMap5");
+
+    skinnedDogUniforms.pointLightViewMatrix0 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix0");
+
+    skinnedDogUniforms.pointLightViewMatrix1 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix1");
+
+    skinnedDogUniforms.pointLightViewMatrix2 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix2");
+
+    skinnedDogUniforms.pointLightViewMatrix3 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix3");
+
+    skinnedDogUniforms.pointLightViewMatrix4 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix4");
+
+    skinnedDogUniforms.pointLightViewMatrix5 =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightViewMatrix5");
+
+    skinnedDogUniforms.pointLightProjectionMatrix =
+        gl.getUniformLocation(skinnedDogProgram, "pointLightProjectionMatrix");
 
 
     /* skinnedDogShadowProgram = initShaders(

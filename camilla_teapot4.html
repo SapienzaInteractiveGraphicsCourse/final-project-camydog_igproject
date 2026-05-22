@@ -808,6 +808,8 @@ uniform mat4 boneMatrices[64];
 
 varying vec3 fNormal;
 varying vec2 fTexCoord;
+varying vec3 fWorldPos;
+varying vec3 fWorldNormal;
 
 void main()
 {
@@ -827,6 +829,9 @@ void main()
 
     vec4 worldPos = modelMatrix * skinnedPos;
 
+    fWorldPos = worldPos.xyz;
+    fWorldNormal = normalize((modelMatrix * skinnedNormal).xyz);
+
     gl_Position = projectionMatrix * viewMatrix * worldPos;
 
     fNormal = normalize(normalMatrix * skinnedNormal.xyz);
@@ -843,25 +848,146 @@ varying vec2 fTexCoord;
 uniform sampler2D uTexture;
 uniform bool useTexture;
 
-void main()
+varying vec3 fWorldPos;
+varying vec3 fWorldNormal;
+
+uniform bool receiveShadow;
+uniform bool usePointShadowMap;
+
+uniform vec4 lightPosition;
+
+uniform sampler2D pointShadowMap0;
+uniform sampler2D pointShadowMap1;
+uniform sampler2D pointShadowMap2;
+uniform sampler2D pointShadowMap3;
+uniform sampler2D pointShadowMap4;
+uniform sampler2D pointShadowMap5;
+
+uniform mat4 pointLightViewMatrix0;
+uniform mat4 pointLightViewMatrix1;
+uniform mat4 pointLightViewMatrix2;
+uniform mat4 pointLightViewMatrix3;
+uniform mat4 pointLightViewMatrix4;
+uniform mat4 pointLightViewMatrix5;
+uniform mat4 pointLightProjectionMatrix;
+
+
+int choosePointShadowFace(vec3 dir)
 {
-    vec3 N = normalize(fNormal);
+    vec3 absDir = abs(dir);
 
-    vec3 lightDir = normalize(vec3(0.4, 1.0, 0.6));
-
-    float diff = max(dot(N, lightDir), 0.0);
-
-    //purple color base, modulated by texture if enabled
-    vec3 baseColor = vec3(0.3, 0.3, 0.8);
-
-    if (useTexture) {
-        baseColor = texture2D(uTexture, fTexCoord).rgb;
+    if (absDir.x >= absDir.y && absDir.x >= absDir.z) {
+        return dir.x > 0.0 ? 0 : 1;
     }
 
-    vec3 ambient = baseColor * 0.35;
-    vec3 diffuse = baseColor * diff * 0.75;
+    if (absDir.y >= absDir.x && absDir.y >= absDir.z) {
+        return dir.y > 0.0 ? 2 : 3;
+    }
 
-    gl_FragColor = vec4(ambient + diffuse, 1.0);
+    return dir.z > 0.0 ? 4 : 5;
+}
+
+float unpackDepth(vec4 rgbaDepth)
+{
+    const vec4 bitShift = vec4(
+        1.0 / (256.0 * 256.0 * 256.0),
+        1.0 / (256.0 * 256.0),
+        1.0 / 256.0,
+        1.0
+    );
+
+    return dot(rgbaDepth, bitShift);
+}
+
+float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
+{
+    float farPlane = 40.0;
+
+    vec3 lightWorldPos = lightPosition.xyz;
+    vec3 dir = worldPos - lightWorldPos;
+
+    int face = choosePointShadowFace(dir);
+
+    vec4 shadowCoord;
+
+    if (face == 0) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix0 * vec4(worldPos, 1.0);
+    } else if (face == 1) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix1 * vec4(worldPos, 1.0);
+    } else if (face == 2) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix2 * vec4(worldPos, 1.0);
+    } else if (face == 3) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix3 * vec4(worldPos, 1.0);
+    } else if (face == 4) {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix4 * vec4(worldPos, 1.0);
+    } else {
+        shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix5 * vec4(worldPos, 1.0);
+    }
+
+    vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0) {
+        return 1.0;
+    }
+
+    vec4 packedDepth;
+
+    if (face == 0) {
+        packedDepth = texture2D(pointShadowMap0, projCoords.xy);
+    } else if (face == 1) {
+        packedDepth = texture2D(pointShadowMap1, projCoords.xy);
+    } else if (face == 2) {
+        packedDepth = texture2D(pointShadowMap2, projCoords.xy);
+    } else if (face == 3) {
+        packedDepth = texture2D(pointShadowMap3, projCoords.xy);
+    } else if (face == 4) {
+        packedDepth = texture2D(pointShadowMap4, projCoords.xy);
+    } else {
+        packedDepth = texture2D(pointShadowMap5, projCoords.xy);
+    }
+
+    float closestDepth = unpackDepth(packedDepth);
+
+    float currentDepth = length(worldPos - lightWorldPos) / farPlane;
+
+    vec3 fragToLight = normalize(lightWorldPos - worldPos);
+    float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
+
+    float bias = max(0.004 * (1.0 - ndotl), 0.0008);
+
+    return currentDepth > closestDepth + bias ? 0.35 : 1.0;
+}
+
+void main()
+{
+    vec3 N = normalize(fWorldNormal);
+    vec3 L = normalize(lightPosition.xyz - fWorldPos);
+
+    float ndotl = dot(N, L);
+
+    if (ndotl <= 0.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    float diff = ndotl;
+
+    vec3 baseColor = texture2D(uTexture, fTexCoord).rgb;
+    
+
+    vec3 ambient = baseColor * 0.3;
+    vec3 diffuse = baseColor * diff * 1.0;
+
+    float shadow = 1.0;
+
+    if (receiveShadow && usePointShadowMap) {
+        shadow = computePointShadowForDog(fWorldPos, fWorldNormal);
+    }
+
+    gl_FragColor = vec4((ambient + diffuse) * shadow, 1.0);
 }
 </script>
 
