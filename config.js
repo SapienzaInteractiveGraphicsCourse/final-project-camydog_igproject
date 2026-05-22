@@ -13,9 +13,10 @@ var modelPath_table = "./Objects/table.obj";
 var modelPath_cat= "./Cat/cat.obj";
 var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./ball_color/ball.obj";
+var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
 
 //path folder rigged dog
-var pathFolderRiggedDog = "./dog_separated_model/";
+var pathFolderRiggedDog = "./Objects/dog_separated_model/";
 
 // images paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
@@ -25,7 +26,7 @@ var path_img_wall="./Textures/wall_tex.jpg";
 var path_img_floor="./Textures/parquet_tex.jpg";
 var path_img_dog = "./dog/dog_diff.jpg";
 var path_img_skybox = "./skybox/skybox.jpg";
-var path_img_skybox_night = "./Cubemap/cubemap_sky_night.png";
+var path_img_skybox_night = "./Textures/Cubemap/cubemap_sky_night.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
@@ -90,3 +91,12 @@ var HIND_LEFT_KNEE2  = 39;
 var HIND_RIGHT_HIP   = 47;
 var HIND_RIGHT_KNEE1 = 46;
 var HIND_RIGHT_KNEE2 = 45;
+
+
+var skinnedDogShadowProgram = null;
+var skinnedDogShadowAttribs = {};
+var skinnedDogDepthProgram = null;
+var skinnedDogDepthAttribs = {};
+var skinnedDogDepthUniforms = {};
+var skinnedDogShadowUniforms = {};
+var ENABLE_SKINNED_DOG_SHADOW = true;

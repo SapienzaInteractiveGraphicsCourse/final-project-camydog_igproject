@@ -992,3 +992,249 @@ function mat4FromGLTFArray(array, offset) {
         array[offset + 3],  array[offset + 7],  array[offset + 11], array[offset + 15]
     );
 }
+
+
+function getMimeTypeFromImage(gltf, imageIndex) {
+    var image = gltf.images[imageIndex];
+
+    if (image.mimeType) {
+        return image.mimeType;
+    }
+
+    return "image/png";
+}
+
+
+function rotationYMat4Raw(angleDeg) {
+    var a = angleDeg * Math.PI / 180.0;
+    var c = Math.cos(a);
+    var s = Math.sin(a);
+
+    var m = mat4IdentityRaw();
+
+    m[0] = c;
+    m[2] = -s;
+    m[8] = s;
+    m[10] = c;
+
+    return m;
+}
+function rotationXMat4Raw(angleDeg) {
+    var a = angleDeg * Math.PI / 180.0;
+    var c = Math.cos(a);
+    var s = Math.sin(a);
+
+    var m = mat4IdentityRaw();
+
+    m[5] = c;
+    m[6] = s;
+    m[9] = -s;
+    m[10] = c;
+
+    return m;
+}
+function rotationZMat4Raw(angleDeg) {
+    var a = angleDeg * Math.PI / 180.0;
+    var c = Math.cos(a);
+    var s = Math.sin(a);
+
+    var m = mat4IdentityRaw();
+
+    m[0] = c;
+    m[1] = s;
+    m[4] = -s;
+    m[5] = c;
+
+    return m;
+}
+
+
+
+function mat4InvertRaw(a) {
+    var out = new Float32Array(16);
+
+    var a00 = a[0],  a01 = a[1],  a02 = a[2],  a03 = a[3];
+    var a10 = a[4],  a11 = a[5],  a12 = a[6],  a13 = a[7];
+    var a20 = a[8],  a21 = a[9],  a22 = a[10], a23 = a[11];
+    var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+
+    var b00 = a00 * a11 - a01 * a10;
+    var b01 = a00 * a12 - a02 * a10;
+    var b02 = a00 * a13 - a03 * a10;
+    var b03 = a01 * a12 - a02 * a11;
+    var b04 = a01 * a13 - a03 * a11;
+    var b05 = a02 * a13 - a03 * a12;
+    var b06 = a20 * a31 - a21 * a30;
+    var b07 = a20 * a32 - a22 * a30;
+    var b08 = a20 * a33 - a23 * a30;
+    var b09 = a21 * a32 - a22 * a31;
+    var b10 = a21 * a33 - a23 * a31;
+    var b11 = a22 * a33 - a23 * a32;
+
+    var det =
+        b00 * b11 -
+        b01 * b10 +
+        b02 * b09 +
+        b03 * b08 -
+        b04 * b07 +
+        b05 * b06;
+
+    if (!det) {
+        console.warn("mat4InvertRaw: matrix not invertible");
+        return mat4IdentityRaw();
+    }
+
+    det = 1.0 / det;
+
+    out[0]  = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+    out[1]  = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+    out[2]  = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+    out[3]  = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+
+    out[4]  = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+    out[5]  = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+    out[6]  = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+    out[7]  = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+
+    out[8]  = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+    out[9]  = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+    out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+    out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+
+    out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+    out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+    out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+    out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+
+    return out;
+}
+
+
+function mat4FromArray(array, offset) {
+    return mat4(
+        array[offset + 0],  array[offset + 1],  array[offset + 2],  array[offset + 3],
+        array[offset + 4],  array[offset + 5],  array[offset + 6],  array[offset + 7],
+        array[offset + 8],  array[offset + 9],  array[offset + 10], array[offset + 11],
+        array[offset + 12], array[offset + 13], array[offset + 14], array[offset + 15]
+    );
+}
+
+function copyMat4ToFloat32Array(m, array, offset) {
+    var flat = flatten(m);
+
+    for (var i = 0; i < 16; i++) {
+        array[offset + i] = flat[i];
+    }
+}
+
+
+function mat4IdentityRaw() {
+    var m = new Float32Array(16);
+    m[0] = 1;
+    m[5] = 1;
+    m[10] = 1;
+    m[15] = 1;
+    return m;
+}
+
+function mat4MultiplyRaw(a, b) {
+    var out = new Float32Array(16);
+
+    for (var col = 0; col < 4; col++) {
+        for (var row = 0; row < 4; row++) {
+            out[col * 4 + row] =
+                a[0 * 4 + row] * b[col * 4 + 0] +
+                a[1 * 4 + row] * b[col * 4 + 1] +
+                a[2 * 4 + row] * b[col * 4 + 2] +
+                a[3 * 4 + row] * b[col * 4 + 3];
+        }
+    }
+
+    return out;
+}
+
+function quatToMat4Raw(x, y, z, w) {
+    var out = mat4IdentityRaw();
+
+    var x2 = x + x;
+    var y2 = y + y;
+    var z2 = z + z;
+
+    var xx = x * x2;
+    var xy = x * y2;
+    var xz = x * z2;
+
+    var yy = y * y2;
+    var yz = y * z2;
+    var zz = z * z2;
+
+    var wx = w * x2;
+    var wy = w * y2;
+    var wz = w * z2;
+
+    out[0] = 1 - (yy + zz);
+    out[1] = xy + wz;
+    out[2] = xz - wy;
+
+    out[4] = xy - wz;
+    out[5] = 1 - (xx + zz);
+    out[6] = yz + wx;
+
+    out[8] = xz + wy;
+    out[9] = yz - wx;
+    out[10] = 1 - (xx + yy);
+
+    return out;
+}
+
+function translationMat4Raw(x, y, z) {
+    var m = mat4IdentityRaw();
+    m[12] = x;
+    m[13] = y;
+    m[14] = z;
+    return m;
+}
+
+function scaleMat4Raw(x, y, z) {
+    var m = mat4IdentityRaw();
+    m[0] = x;
+    m[5] = y;
+    m[10] = z;
+    return m;
+}
+
+function quatToMat4(x, y, z, w) {
+    var x2 = x + x;
+    var y2 = y + y;
+    var z2 = z + z;
+
+    var xx = x * x2;
+    var xy = x * y2;
+    var xz = x * z2;
+
+    var yy = y * y2;
+    var yz = y * z2;
+    var zz = z * z2;
+
+    var wx = w * x2;
+    var wy = w * y2;
+    var wz = w * z2;
+
+    return mat4(
+        1.0 - (yy + zz), xy + wz,        xz - wy,        0.0,
+        xy - wz,         1.0 - (xx + zz), yz + wx,       0.0,
+        xz + wy,         yz - wx,        1.0 - (xx + yy), 0.0,
+        0.0,             0.0,            0.0,             1.0
+    );
+}
+
+
+function getNumComponents(type) {
+    if (type === "SCALAR") return 1;
+    if (type === "VEC2") return 2;
+    if (type === "VEC3") return 3;
+    if (type === "VEC4") return 4;
+    if (type === "MAT4") return 16;
+
+    throw new Error("Unsupported accessor type: " + type);
+}

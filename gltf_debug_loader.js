@@ -225,15 +225,6 @@ async function loadGLBDebug(url) {
     };
 }
 
-function getNumComponents(type) {
-    if (type === "SCALAR") return 1;
-    if (type === "VEC2") return 2;
-    if (type === "VEC3") return 3;
-    if (type === "VEC4") return 4;
-    if (type === "MAT4") return 16;
-
-    throw new Error("Unsupported accessor type: " + type);
-}
 
 function getComponentInfo(componentType) {
     // WebGL / glTF component types
@@ -343,51 +334,10 @@ function createIdentityBoneMatrices(numBones) {
 
     return data;
 }
-
-
-function drawSkinnedDog(viewMatrix, projectionMatrix) {
-    if (!skinnedDog || !skinnedDogProgram) return;
-
-    gl.useProgram(skinnedDogProgram);
-
-    var modelMatrix = mat4();
-    
-    var t = performance.now() * 0.001;
-    var walkMove = Math.sin(t * 1.2) * 0.35;
-
-    modelMatrix = mult(modelMatrix, translate(-3.2 + walkMove, -2.4, 1.2));
-    modelMatrix = mult(modelMatrix, rotate(90.0, [0, 1, 0]));
-    modelMatrix = mult(modelMatrix, scalem(1.5, 1.5, 1.5));
-
-    var mv = mult(viewMatrix, modelMatrix);
-    var nMat = normalMatrix(mv, true);
-
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.modelMatrix,
-        false,
-        flatten(modelMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.viewMatrix,
-        false,
-        flatten(viewMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.projectionMatrix,
-        false,
-        flatten(projectionMatrix)
-    );
-
-    gl.uniformMatrix3fv(
-        skinnedDogUniforms.normalMatrix,
-        false,
-        flatten(nMat)
-    );
-
+function getSkinnedDogBoneData() {
     var localOverrides = {};
 
+    var t = performance.now() * 0.001;
 
     // nodeIndex della coda, non jointIndex
     var tailNodeIndex = 51;
@@ -437,15 +387,7 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
     var frontBallA  = Math.max(0.0, -legA) * frontBallAmount;
     var frontBallB  = Math.max(0.0, -legB) * frontBallAmount;
 
-    // front legs più morbide
-   /*  localOverrides[FRONT_LEFT_KNEE]  = rotationXMat4Raw(-frontKneeA);
-    localOverrides[FRONT_LEFT_ANKLE] = rotationXMat4Raw(frontAnkleA);
-    localOverrides[FRONT_LEFT_BALL]  = rotationXMat4Raw(frontBallA);
-
-    localOverrides[FRONT_RIGHT_KNEE]  = rotationXMat4Raw(-frontKneeB);
-    localOverrides[FRONT_RIGHT_ANKLE] = rotationXMat4Raw(frontAnkleB);
-    localOverrides[FRONT_RIGHT_BALL]  = rotationXMat4Raw(frontBallB); */
-     
+    
     // front legs più morbide
     // knee su X, parte bassa su Z per renderla più visibile
     localOverrides[FRONT_LEFT_KNEE]  = rotationXMat4Raw(-frontKneeA);
@@ -467,7 +409,133 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
     localOverrides[HIND_LEFT_KNEE1] = rotationXMat4Raw(-hindKneeB);
     localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
 
-    var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
+    return computeBoneMatricesRaw(skinnedDog, localOverrides);
+}
+
+function drawSkinnedDog(viewMatrix, projectionMatrix) {
+    if (!skinnedDog || !skinnedDogProgram) return;
+
+    gl.useProgram(skinnedDogProgram);
+
+    //var modelMatrix =  getSkinnedDogModelMatrix();
+    
+    
+    var t = performance.now() * 0.001;
+    var walkMove = Math.sin(t * 1.2) * 0.35;
+
+    var modelMatrix = getSkinnedDogModelMatrix();
+
+    var mv = mult(viewMatrix, modelMatrix);
+    var nMat = normalMatrix(mv, true);
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.modelMatrix,
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.viewMatrix,
+        false,
+        flatten(viewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogUniforms.projectionMatrix,
+        false,
+        flatten(projectionMatrix)
+    );
+
+    gl.uniformMatrix3fv(
+        skinnedDogUniforms.normalMatrix,
+        false,
+        flatten(nMat)
+    );
+
+
+    //var boneData = getSkinnedDogBoneData();
+    //var boneData = computeBoneMatricesRaw(skinnedDog, {});
+
+    var localOverrides = {};
+
+var t = performance.now() * 0.001;
+
+/* Tail */
+var tailSpeed = 5.0;
+var baseAngle = Math.sin(t * tailSpeed);
+
+localOverrides[51] = rotationYMat4Raw(baseAngle * 8.0);
+localOverrides[50] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.25) * 12.0);
+localOverrides[49] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.50) * 16.0);
+localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
+
+/* Legs */
+var walkSpeed = 3.0;
+var walkPhase = t * walkSpeed;
+
+var legA = Math.sin(walkPhase);
+var legB = Math.sin(walkPhase + Math.PI);
+
+var frontHipAmount = 7.0;
+var hindHipAmount  = 8.0;
+
+var frontKneeAmount  = 10.0;
+var frontAnkleAmount = 10.0;
+var frontBallAmount  = 6.0;
+
+var hindKneeAmount = 7.0;
+
+var FRONT_LEFT_HIP   = 4;
+var FRONT_LEFT_KNEE  = 3;
+var FRONT_LEFT_ANKLE = 2;
+var FRONT_LEFT_BALL  = 1;
+
+var FRONT_RIGHT_HIP   = 11;
+var FRONT_RIGHT_KNEE  = 10;
+var FRONT_RIGHT_ANKLE = 9;
+var FRONT_RIGHT_BALL  = 8;
+
+var HIND_LEFT_HIP    = 41;
+var HIND_LEFT_KNEE1  = 40;
+var HIND_LEFT_KNEE2  = 39;
+
+var HIND_RIGHT_HIP   = 47;
+var HIND_RIGHT_KNEE1 = 46;
+var HIND_RIGHT_KNEE2 = 45;
+
+localOverrides[FRONT_LEFT_HIP]  = rotationXMat4Raw(legA * frontHipAmount);
+localOverrides[HIND_RIGHT_HIP]  = rotationXMat4Raw(legA * hindHipAmount);
+
+localOverrides[FRONT_RIGHT_HIP] = rotationXMat4Raw(legB * frontHipAmount);
+localOverrides[HIND_LEFT_HIP]   = rotationXMat4Raw(legB * hindHipAmount);
+
+var frontKneeA  = Math.max(0.0, -legA) * frontKneeAmount;
+var frontKneeB  = Math.max(0.0, -legB) * frontKneeAmount;
+
+var frontAnkleA = Math.max(0.0, -legA) * frontAnkleAmount;
+var frontAnkleB = Math.max(0.0, -legB) * frontAnkleAmount;
+
+var frontBallA  = Math.max(0.0, -legA) * frontBallAmount;
+var frontBallB  = Math.max(0.0, -legB) * frontBallAmount;
+
+localOverrides[FRONT_LEFT_KNEE]  = rotationXMat4Raw(-frontKneeA);
+localOverrides[FRONT_LEFT_ANKLE] = rotationXMat4Raw(frontAnkleA * 1.6);
+localOverrides[FRONT_LEFT_BALL]  = rotationXMat4Raw(-frontBallA * 1.2);
+
+localOverrides[FRONT_RIGHT_KNEE]  = rotationXMat4Raw(-frontKneeB);
+localOverrides[FRONT_RIGHT_ANKLE] = rotationXMat4Raw(frontAnkleB * 1.6);
+localOverrides[FRONT_RIGHT_BALL]  = rotationXMat4Raw(-frontBallB * 1.2);
+
+var hindKneeA = Math.max(0.0, -legA) * hindKneeAmount;
+var hindKneeB = Math.max(0.0, -legB) * hindKneeAmount;
+
+localOverrides[HIND_RIGHT_KNEE1] = rotationXMat4Raw(-hindKneeA);
+localOverrides[HIND_RIGHT_KNEE2] = rotationXMat4Raw(hindKneeA * 0.4);
+
+localOverrides[HIND_LEFT_KNEE1] = rotationXMat4Raw(-hindKneeB);
+localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
+
+var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
 
     gl.uniformMatrix4fv(
         skinnedDogUniforms.boneMatrices,
@@ -523,6 +591,248 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
     );
 }
 
+function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShadowPass) {
+    if (!skinnedDog || !skinnedDogShadowProgram) return;
+
+    gl.useProgram(skinnedDogShadowProgram);
+
+    var modelMatrix = getSkinnedDogModelMatrix();
+    var boneData = getSkinnedDogBoneData();
+
+    gl.uniformMatrix4fv(
+        skinnedDogShadowUniforms.modelMatrix,
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogShadowUniforms.lightViewMatrix,
+        false,
+        flatten(lightViewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogShadowUniforms.lightProjectionMatrix,
+        false,
+        flatten(lightProjectionMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogShadowUniforms.boneMatrices,
+        false,
+        boneData
+    );
+
+    gl.uniform4fv(
+        skinnedDogShadowUniforms.lightPosition,
+        flatten(lightPosition)
+    );
+
+    gl.uniform1f(skinnedDogShadowUniforms.pointShadowFar, 40.0);
+
+    gl.uniform1i(
+        skinnedDogShadowUniforms.pointShadowPass,
+        pointShadowPass ? 1 : 0
+    );
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
+    gl.vertexAttribPointer(skinnedDogShadowAttribs.vPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.jointBuffer);
+    gl.vertexAttribPointer(skinnedDogShadowAttribs.vJoints, 4, gl.UNSIGNED_BYTE, false, 0, 0);
+    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vJoints);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.weightBuffer);
+    gl.vertexAttribPointer(skinnedDogShadowAttribs.vWeights, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vWeights);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinnedDog.indexBuffer);
+
+    gl.drawElements(
+        gl.TRIANGLES,
+        skinnedDog.indexCount,
+        gl.UNSIGNED_SHORT,
+        0
+    );
+}
+
+
+function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
+    if (!skinnedDog || !skinnedDogDepthProgram) return;
+
+    gl.useProgram(skinnedDogDepthProgram);
+
+    var modelMatrix = getSkinnedDogModelMatrix();
+
+
+    var localOverrides = {};
+
+    var t = performance.now() * 0.001;
+
+    /* Tail */
+    var tailSpeed = 5.0;
+    var baseAngle = Math.sin(t * tailSpeed);
+
+    localOverrides[51] = rotationYMat4Raw(baseAngle * 8.0);
+    localOverrides[50] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.25) * 12.0);
+    localOverrides[49] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.50) * 16.0);
+    localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
+
+    /* Legs */
+    var walkSpeed = 3.0;
+    var walkPhase = t * walkSpeed;
+
+    var legA = Math.sin(walkPhase);
+    var legB = Math.sin(walkPhase + Math.PI);
+
+    var frontHipAmount = 7.0;
+    var hindHipAmount  = 8.0;
+
+    var frontKneeAmount  = 10.0;
+    var frontAnkleAmount = 10.0;
+    var frontBallAmount  = 6.0;
+
+    var hindKneeAmount = 7.0;
+
+    var FRONT_LEFT_HIP   = 4;
+    var FRONT_LEFT_KNEE  = 3;
+    var FRONT_LEFT_ANKLE = 2;
+    var FRONT_LEFT_BALL  = 1;
+
+    var FRONT_RIGHT_HIP   = 11;
+    var FRONT_RIGHT_KNEE  = 10;
+    var FRONT_RIGHT_ANKLE = 9;
+    var FRONT_RIGHT_BALL  = 8;
+
+    var HIND_LEFT_HIP    = 41;
+    var HIND_LEFT_KNEE1  = 40;
+    var HIND_LEFT_KNEE2  = 39;
+
+    var HIND_RIGHT_HIP   = 47;
+    var HIND_RIGHT_KNEE1 = 46;
+    var HIND_RIGHT_KNEE2 = 45;
+
+    localOverrides[FRONT_LEFT_HIP]  = rotationXMat4Raw(legA * frontHipAmount);
+    localOverrides[HIND_RIGHT_HIP]  = rotationXMat4Raw(legA * hindHipAmount);
+
+    localOverrides[FRONT_RIGHT_HIP] = rotationXMat4Raw(legB * frontHipAmount);
+    localOverrides[HIND_LEFT_HIP]   = rotationXMat4Raw(legB * hindHipAmount);
+
+    var frontKneeA  = Math.max(0.0, -legA) * frontKneeAmount;
+    var frontKneeB  = Math.max(0.0, -legB) * frontKneeAmount;
+
+    var frontAnkleA = Math.max(0.0, -legA) * frontAnkleAmount;
+    var frontAnkleB = Math.max(0.0, -legB) * frontAnkleAmount;
+
+    var frontBallA  = Math.max(0.0, -legA) * frontBallAmount;
+    var frontBallB  = Math.max(0.0, -legB) * frontBallAmount;
+
+    localOverrides[FRONT_LEFT_KNEE]  = rotationXMat4Raw(-frontKneeA);
+    localOverrides[FRONT_LEFT_ANKLE] = rotationXMat4Raw(frontAnkleA * 1.6);
+    localOverrides[FRONT_LEFT_BALL]  = rotationXMat4Raw(-frontBallA * 1.2);
+
+    localOverrides[FRONT_RIGHT_KNEE]  = rotationXMat4Raw(-frontKneeB);
+    localOverrides[FRONT_RIGHT_ANKLE] = rotationXMat4Raw(frontAnkleB * 1.6);
+    localOverrides[FRONT_RIGHT_BALL]  = rotationXMat4Raw(-frontBallB * 1.2);
+
+    var hindKneeA = Math.max(0.0, -legA) * hindKneeAmount;
+    var hindKneeB = Math.max(0.0, -legB) * hindKneeAmount;
+
+    localOverrides[HIND_RIGHT_KNEE1] = rotationXMat4Raw(-hindKneeA);
+    localOverrides[HIND_RIGHT_KNEE2] = rotationXMat4Raw(hindKneeA * 0.4);
+
+    localOverrides[HIND_LEFT_KNEE1] = rotationXMat4Raw(-hindKneeB);
+    localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
+
+    var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
+
+    //var boneData = computeBoneMatricesRaw(skinnedDog, {}); 
+    // prima test senza animazione nello shadow pass
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.modelMatrix,
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.lightViewMatrix,
+        false,
+        flatten(lightViewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.lightProjectionMatrix,
+        false,
+        flatten(lightProjectionMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.boneMatrices,
+        false,
+        boneData
+    );
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vPosition,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.jointBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vJoints,
+        4,
+        gl.UNSIGNED_BYTE,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vJoints);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.weightBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vWeights,
+        4,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vWeights);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinnedDog.indexBuffer);
+
+    gl.drawElements(
+        gl.TRIANGLES,
+        skinnedDog.indexCount,
+        gl.UNSIGNED_SHORT,
+        0
+    );
+
+    gl.uniform4fv(
+        skinnedDogDepthUniforms.lightPosition,
+        flatten(lightPosition)
+    );
+
+    gl.uniform1f(
+        skinnedDogDepthUniforms.pointShadowFar,
+        40.0
+    );
+
+    gl.uniform1i(
+        skinnedDogDepthUniforms.pointShadowPass,
+        true
+    );
+}
+
+
 
 function printDogJointNames() {
     if (!skinnedDog || !skinnedDog.skin || !skinnedDog.nodes) return;
@@ -572,30 +882,6 @@ function nodeLocalMatrix(node) {
     return m;
 }
 
-function quatToMat4(x, y, z, w) {
-    var x2 = x + x;
-    var y2 = y + y;
-    var z2 = z + z;
-
-    var xx = x * x2;
-    var xy = x * y2;
-    var xz = x * z2;
-
-    var yy = y * y2;
-    var yz = y * z2;
-    var zz = z * z2;
-
-    var wx = w * x2;
-    var wy = w * y2;
-    var wz = w * z2;
-
-    return mat4(
-        1.0 - (yy + zz), xy + wz,        xz - wy,        0.0,
-        xy - wz,         1.0 - (xx + zz), yz + wx,       0.0,
-        xz + wy,         yz - wx,        1.0 - (xx + yy), 0.0,
-        0.0,             0.0,            0.0,             1.0
-    );
-}
 
 
 function computeNodeWorldMatrix(skinnedDog, nodeIndex, localOverrides) {
@@ -677,98 +963,6 @@ function computeBoneMatricesRaw(skinnedDog, localOverrides) {
 
 
 
-function mat4FromArray(array, offset) {
-    return mat4(
-        array[offset + 0],  array[offset + 1],  array[offset + 2],  array[offset + 3],
-        array[offset + 4],  array[offset + 5],  array[offset + 6],  array[offset + 7],
-        array[offset + 8],  array[offset + 9],  array[offset + 10], array[offset + 11],
-        array[offset + 12], array[offset + 13], array[offset + 14], array[offset + 15]
-    );
-}
-
-function copyMat4ToFloat32Array(m, array, offset) {
-    var flat = flatten(m);
-
-    for (var i = 0; i < 16; i++) {
-        array[offset + i] = flat[i];
-    }
-}
-
-
-function mat4IdentityRaw() {
-    var m = new Float32Array(16);
-    m[0] = 1;
-    m[5] = 1;
-    m[10] = 1;
-    m[15] = 1;
-    return m;
-}
-
-function mat4MultiplyRaw(a, b) {
-    var out = new Float32Array(16);
-
-    for (var col = 0; col < 4; col++) {
-        for (var row = 0; row < 4; row++) {
-            out[col * 4 + row] =
-                a[0 * 4 + row] * b[col * 4 + 0] +
-                a[1 * 4 + row] * b[col * 4 + 1] +
-                a[2 * 4 + row] * b[col * 4 + 2] +
-                a[3 * 4 + row] * b[col * 4 + 3];
-        }
-    }
-
-    return out;
-}
-
-function quatToMat4Raw(x, y, z, w) {
-    var out = mat4IdentityRaw();
-
-    var x2 = x + x;
-    var y2 = y + y;
-    var z2 = z + z;
-
-    var xx = x * x2;
-    var xy = x * y2;
-    var xz = x * z2;
-
-    var yy = y * y2;
-    var yz = y * z2;
-    var zz = z * z2;
-
-    var wx = w * x2;
-    var wy = w * y2;
-    var wz = w * z2;
-
-    out[0] = 1 - (yy + zz);
-    out[1] = xy + wz;
-    out[2] = xz - wy;
-
-    out[4] = xy - wz;
-    out[5] = 1 - (xx + zz);
-    out[6] = yz + wx;
-
-    out[8] = xz + wy;
-    out[9] = yz - wx;
-    out[10] = 1 - (xx + yy);
-
-    return out;
-}
-
-function translationMat4Raw(x, y, z) {
-    var m = mat4IdentityRaw();
-    m[12] = x;
-    m[13] = y;
-    m[14] = z;
-    return m;
-}
-
-function scaleMat4Raw(x, y, z) {
-    var m = mat4IdentityRaw();
-    m[0] = x;
-    m[5] = y;
-    m[10] = z;
-    return m;
-}
 
 function nodeLocalMatrixRaw(node, localOverrides, nodeIndex) {
     var m;
@@ -807,64 +1001,6 @@ function nodeLocalMatrixRaw(node, localOverrides, nodeIndex) {
     return m;
 }
 
-function mat4InvertRaw(a) {
-    var out = new Float32Array(16);
-
-    var a00 = a[0],  a01 = a[1],  a02 = a[2],  a03 = a[3];
-    var a10 = a[4],  a11 = a[5],  a12 = a[6],  a13 = a[7];
-    var a20 = a[8],  a21 = a[9],  a22 = a[10], a23 = a[11];
-    var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
-
-    var b00 = a00 * a11 - a01 * a10;
-    var b01 = a00 * a12 - a02 * a10;
-    var b02 = a00 * a13 - a03 * a10;
-    var b03 = a01 * a12 - a02 * a11;
-    var b04 = a01 * a13 - a03 * a11;
-    var b05 = a02 * a13 - a03 * a12;
-    var b06 = a20 * a31 - a21 * a30;
-    var b07 = a20 * a32 - a22 * a30;
-    var b08 = a20 * a33 - a23 * a30;
-    var b09 = a21 * a32 - a22 * a31;
-    var b10 = a21 * a33 - a23 * a31;
-    var b11 = a22 * a33 - a23 * a32;
-
-    var det =
-        b00 * b11 -
-        b01 * b10 +
-        b02 * b09 +
-        b03 * b08 -
-        b04 * b07 +
-        b05 * b06;
-
-    if (!det) {
-        console.warn("mat4InvertRaw: matrix not invertible");
-        return mat4IdentityRaw();
-    }
-
-    det = 1.0 / det;
-
-    out[0]  = (a11 * b11 - a12 * b10 + a13 * b09) * det;
-    out[1]  = (a02 * b10 - a01 * b11 - a03 * b09) * det;
-    out[2]  = (a31 * b05 - a32 * b04 + a33 * b03) * det;
-    out[3]  = (a22 * b04 - a21 * b05 - a23 * b03) * det;
-
-    out[4]  = (a12 * b08 - a10 * b11 - a13 * b07) * det;
-    out[5]  = (a00 * b11 - a02 * b08 + a03 * b07) * det;
-    out[6]  = (a32 * b02 - a30 * b05 - a33 * b01) * det;
-    out[7]  = (a20 * b05 - a22 * b02 + a23 * b01) * det;
-
-    out[8]  = (a10 * b10 - a11 * b08 + a13 * b06) * det;
-    out[9]  = (a01 * b08 - a00 * b10 - a03 * b06) * det;
-    out[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
-    out[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
-
-    out[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
-    out[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
-    out[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
-    out[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
-
-    return out;
-}
 
 function computeNodeWorldMatrixRaw(skinnedDog, nodeIndex, cache, localOverrides) {
     if (cache[nodeIndex]) {
@@ -895,60 +1031,6 @@ function computeNodeWorldMatrixRaw(skinnedDog, nodeIndex, cache, localOverrides)
 }
 
 
-function rotationYMat4Raw(angleDeg) {
-    var a = angleDeg * Math.PI / 180.0;
-    var c = Math.cos(a);
-    var s = Math.sin(a);
-
-    var m = mat4IdentityRaw();
-
-    m[0] = c;
-    m[2] = -s;
-    m[8] = s;
-    m[10] = c;
-
-    return m;
-}
-function rotationXMat4Raw(angleDeg) {
-    var a = angleDeg * Math.PI / 180.0;
-    var c = Math.cos(a);
-    var s = Math.sin(a);
-
-    var m = mat4IdentityRaw();
-
-    m[5] = c;
-    m[6] = s;
-    m[9] = -s;
-    m[10] = c;
-
-    return m;
-}
-function rotationZMat4Raw(angleDeg) {
-    var a = angleDeg * Math.PI / 180.0;
-    var c = Math.cos(a);
-    var s = Math.sin(a);
-
-    var m = mat4IdentityRaw();
-
-    m[0] = c;
-    m[1] = s;
-    m[4] = -s;
-    m[5] = c;
-
-    return m;
-}
-
-
-
-function getMimeTypeFromImage(gltf, imageIndex) {
-    var image = gltf.images[imageIndex];
-
-    if (image.mimeType) {
-        return image.mimeType;
-    }
-
-    return "image/png";
-}
 
 function createTextureFromGLBImage(gl, gltf, binary, imageIndex) {
     var imageDef = gltf.images[imageIndex];
@@ -1015,4 +1097,31 @@ function createTextureFromGLBImage(gl, gltf, binary, imageIndex) {
     img.src = imageUrl;
 
     return texture;
+}
+
+
+function getSkinnedDogModelMatrix() {
+    var t = performance.now() * 0.001;
+
+    // Se vuoi camminata avanti/indietro globale
+    var walkMove = Math.sin(t * 1.2) * 0.35;
+
+    // Se vuoi piccolo bounce verticale, opzionale
+    var bodyBob = Math.abs(Math.sin(t * 3.0)) * 0.025;
+
+    var modelMatrix = mat4();
+
+    modelMatrix = mult(
+        modelMatrix,
+        translate(
+            -3.2 + walkMove,
+            -2.48 + bodyBob,
+            4.0
+        )
+    );
+
+    modelMatrix = mult(modelMatrix, rotate(90.0, [0, 1, 0]));
+    modelMatrix = mult(modelMatrix, scalem(2.0, 2.0, 2.0));
+
+    return modelMatrix;
 }

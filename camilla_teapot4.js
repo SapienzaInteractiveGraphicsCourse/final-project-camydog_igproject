@@ -355,13 +355,10 @@ onload = async function init() {
     initPointShadowMaps();
 
     // test for  GLB loading for rigged dog
-    loadGLBDebug("./shiba_dog.glb")
+    loadGLBDebug(modelPath_shiba_glb)
     .then(function (result) {
         console.log("GLB debug loaded successfully");
-        debugReadSkinnedMeshData(
-            result.gltf,
-            result.binary
-        );
+        //debugReadSkinnedMeshData(result.gltf,result.binary);
         skinnedDog = createSkinnedDogBuffers(
             gl,
             result.gltf,
@@ -369,7 +366,7 @@ onload = async function init() {
         );
 
         console.log("Skinned dog buffers created:", skinnedDog);
-        printDogJointNames();
+        //printDogJointNames();
     })
     .catch(function (error) {
         console.error("GLB debug load error:", error);
@@ -505,8 +502,51 @@ onload = async function init() {
     skinnedDogUniforms.normalMatrix     = gl.getUniformLocation(skinnedDogProgram, "normalMatrix");
     skinnedDogUniforms.boneMatrices     = gl.getUniformLocation(skinnedDogProgram, "boneMatrices");
     skinnedDogUniforms.uTexture         = gl.getUniformLocation(skinnedDogProgram, "uTexture");
-    skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture");
+    skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture"); 
 
+
+    /* skinnedDogShadowProgram = initShaders(
+        gl,
+        "skinned-dog-shadow-vertex-shader",
+        "skinned-dog-shadow-fragment-shader"
+    );
+
+    skinnedDogShadowAttribs.vPosition = gl.getAttribLocation(skinnedDogShadowProgram, "vPosition");
+    skinnedDogShadowAttribs.vJoints   = gl.getAttribLocation(skinnedDogShadowProgram, "vJoints");
+    skinnedDogShadowAttribs.vWeights  = gl.getAttribLocation(skinnedDogShadowProgram, "vWeights");
+
+    skinnedDogShadowUniforms.modelMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "modelMatrix");
+    skinnedDogShadowUniforms.lightViewMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "lightViewMatrix");
+    skinnedDogShadowUniforms.lightProjectionMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "lightProjectionMatrix");
+    skinnedDogShadowUniforms.boneMatrices = gl.getUniformLocation(skinnedDogShadowProgram, "boneMatrices");
+
+    skinnedDogShadowUniforms.lightPosition = gl.getUniformLocation(skinnedDogShadowProgram, "lightPosition");
+    skinnedDogShadowUniforms.pointShadowFar = gl.getUniformLocation(skinnedDogShadowProgram, "pointShadowFar");
+    skinnedDogShadowUniforms.pointShadowPass = gl.getUniformLocation(skinnedDogShadowProgram, "pointShadowPass"); */
+
+    skinnedDogDepthProgram = initShaders(
+        gl,
+        "skinned-dog-depth-vertex-shader",
+        "skinned-dog-depth-fragment-shader"
+    );
+
+    skinnedDogDepthAttribs.vPosition = gl.getAttribLocation(skinnedDogDepthProgram, "vPosition");
+    skinnedDogDepthAttribs.vJoints   = gl.getAttribLocation(skinnedDogDepthProgram, "vJoints");
+    skinnedDogDepthAttribs.vWeights  = gl.getAttribLocation(skinnedDogDepthProgram, "vWeights");
+
+    skinnedDogDepthUniforms.modelMatrix = gl.getUniformLocation(skinnedDogDepthProgram, "modelMatrix");
+    skinnedDogDepthUniforms.lightViewMatrix = gl.getUniformLocation(skinnedDogDepthProgram, "lightViewMatrix");
+    skinnedDogDepthUniforms.lightProjectionMatrix = gl.getUniformLocation(skinnedDogDepthProgram, "lightProjectionMatrix");
+    skinnedDogDepthUniforms.boneMatrices = gl.getUniformLocation(skinnedDogDepthProgram, "boneMatrices");
+
+    skinnedDogDepthUniforms.lightPosition =
+        gl.getUniformLocation(skinnedDogDepthProgram, "lightPosition");
+
+    skinnedDogDepthUniforms.pointShadowFar =
+        gl.getUniformLocation(skinnedDogDepthProgram, "pointShadowFar");
+
+    skinnedDogDepthUniforms.pointShadowPass =
+        gl.getUniformLocation(skinnedDogDepthProgram, "pointShadowPass");
 
     //parte program per visualizzazione direzione luce (debug)
     debugLineProgram = initShaders(
@@ -550,6 +590,9 @@ onload = async function init() {
     var ambientProduct = mult(lightAmbient, materialAmbient);
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     var specularProduct = mult(lightSpecular, materialSpecular);
+
+
+    gl.useProgram(program);
 
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"), flatten(ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"), flatten(diffuseProduct));
@@ -1190,6 +1233,10 @@ function drawObject(obj,
      receiveShadow = true,
      wallShadowMode) {
 
+
+    //  be sure to use the right shader program before setting uniforms and attributes
+    gl.useProgram(program);   
+
     if (wallShadowMode === undefined) {
         wallShadowMode = 0;
     }
@@ -1364,6 +1411,8 @@ function drawObject(obj,
 
 
 function drawShadowObject(obj, modelMatrix) {
+    // be sure to use the right shader program before setting uniforms and attributes
+    gl.useProgram(shadowProgram);
     var lightModelViewMatrix = mult(lightViewMatrix, modelMatrix);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);

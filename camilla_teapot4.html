@@ -865,6 +865,162 @@ void main()
 }
 </script>
 
+<script id="skinned-dog-shadow-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vJoints;
+attribute vec4 vWeights;
+
+uniform mat4 modelMatrix;
+uniform mat4 lightViewMatrix;
+uniform mat4 lightProjectionMatrix;
+
+uniform mat4 boneMatrices[64];
+
+varying vec3 vWorldPos;
+
+void main()
+{
+    int j0 = int(vJoints.x);
+    int j1 = int(vJoints.y);
+    int j2 = int(vJoints.z);
+    int j3 = int(vJoints.w);
+
+    mat4 skinMatrix =
+        vWeights.x * boneMatrices[j0] +
+        vWeights.y * boneMatrices[j1] +
+        vWeights.z * boneMatrices[j2] +
+        vWeights.w * boneMatrices[j3];
+
+    vec4 skinnedPos = skinMatrix * vPosition;
+
+    vec4 worldPos = modelMatrix * skinnedPos;
+    vWorldPos = worldPos.xyz;
+
+    gl_Position = lightProjectionMatrix * lightViewMatrix * worldPos;
+}
+</script>
+
+<script id="skinned-dog-shadow-fragment-shader" type="x-shader/x-fragment">
+precision highp float;
+
+uniform vec4 lightPosition;
+uniform float pointShadowFar;
+uniform bool pointShadowPass;
+
+varying vec3 vWorldPos;
+
+vec4 packDepth(float depth)
+{
+    const vec4 bitShift = vec4(
+        256.0 * 256.0 * 256.0,
+        256.0 * 256.0,
+        256.0,
+        1.0
+    );
+
+    const vec4 bitMask = vec4(
+        0.0,
+        1.0 / 256.0,
+        1.0 / 256.0,
+        1.0 / 256.0
+    );
+
+    vec4 res = fract(depth * bitShift);
+    res -= res.xxyz * bitMask;
+    return res;
+}
+
+void main()
+{
+    if (pointShadowPass) {
+        float dist = length(vWorldPos - lightPosition.xyz);
+        dist = dist / pointShadowFar;
+
+        gl_FragColor = packDepth(dist);
+    } else {
+        float d = gl_FragCoord.z;
+        gl_FragColor = vec4(d, d, d, 1.0);
+    }
+}
+</script>
+
+<script id="skinned-dog-depth-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vJoints;
+attribute vec4 vWeights;
+
+uniform mat4 modelMatrix;
+uniform mat4 lightViewMatrix;
+uniform mat4 lightProjectionMatrix;
+uniform mat4 boneMatrices[64];
+
+varying vec3 vWorldPos;
+
+void main()
+{
+    int j0 = int(vJoints.x);
+    int j1 = int(vJoints.y);
+    int j2 = int(vJoints.z);
+    int j3 = int(vJoints.w);
+
+    mat4 skinMatrix =
+        vWeights.x * boneMatrices[j0] +
+        vWeights.y * boneMatrices[j1] +
+        vWeights.z * boneMatrices[j2] +
+        vWeights.w * boneMatrices[j3];
+
+    vec4 skinnedPos = skinMatrix * vPosition;
+    vec4 worldPos = modelMatrix * skinnedPos;
+
+    vWorldPos = worldPos.xyz;
+
+    gl_Position = lightProjectionMatrix * lightViewMatrix * worldPos;
+}
+</script>
+
+<script id="skinned-dog-depth-fragment-shader" type="x-shader/x-fragment">
+precision highp float;
+
+uniform vec4 lightPosition;
+uniform float pointShadowFar;
+uniform bool pointShadowPass;
+
+varying vec3 vWorldPos;
+
+vec4 packDepth(float depth)
+{
+    const vec4 bitShift = vec4(
+        256.0 * 256.0 * 256.0,
+        256.0 * 256.0,
+        256.0,
+        1.0
+    );
+
+    const vec4 bitMask = vec4(
+        0.0,
+        1.0 / 256.0,
+        1.0 / 256.0,
+        1.0 / 256.0
+    );
+
+    vec4 res = fract(depth * bitShift);
+    res -= res.xxyz * bitMask;
+    return res;
+}
+
+void main()
+{
+    if (pointShadowPass) {
+        float dist = length(vWorldPos - lightPosition.xyz);
+        dist = dist / pointShadowFar;
+
+        gl_FragColor = packDepth(dist);
+    } else {
+        float d = gl_FragCoord.z;
+        gl_FragColor = vec4(d, d, d, 1.0);
+    }
+}
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <!-- <script src="./liquid-glass-js/container.js"></script>
