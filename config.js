@@ -54,10 +54,18 @@ var ballTexture;
 var riggedDogTexture;
 
 
-//mtl variables
+//table specific  variables
 var tableMtlTexture = null;
-var ballMtlTexture = null;
+var tableMaterialProgram = null;
+var tableMaterialAttribs = {};
+var tableMaterialUniforms = {};
 
+var tableColorTexture = null;
+var tableSpecularTexture = null;
+var tableAOTexture = null;
+
+//ball specific variables
+var ballMtlTexture = null;
 
 //curtain variables
 var CURTAIN_ROWS = 28;

@@ -425,9 +425,15 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             projectionMatrix,useTexture_teapot, 
             false,false,true);
 
-    drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
-         projectionMatrix, useTexture_table, false,false,true);
-
+    /* drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
+         projectionMatrix, useTexture_table, false,false,true); */
+    
+    drawTableMaterial(
+        tableBuffers,
+        modelMatrix2,
+        viewMatrix,
+        projectionMatrix
+    );
     drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
          projectionMatrix, true, false,false,true);
 

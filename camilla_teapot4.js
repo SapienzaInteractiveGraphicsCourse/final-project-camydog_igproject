@@ -386,6 +386,10 @@ onload = async function init() {
     corniceTexture = loadTexture(path_img_cornice);
     ballTexture = loadTexture(path_img_ball);
     curtainTexture = loadTexture(path_img_curtain);
+
+    tableColorTexture = loadTexture("./table_obj/table_color.jpg");
+    tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
+    tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
     
 
     
@@ -609,6 +613,96 @@ onload = async function init() {
     debugLineProjectionMatrixLoc = gl.getUniformLocation(debugLineProgram, "projectionMatrix");
 
     debugLineBuffer = gl.createBuffer();
+
+
+    //new part for table 
+    tableMaterialProgram = initShaders(
+        gl,
+        "table-material-vertex-shader",
+        "table-material-fragment-shader"
+    );
+
+    tableMaterialAttribs.vPosition =
+        gl.getAttribLocation(tableMaterialProgram, "vPosition");
+
+    tableMaterialAttribs.vNormal =
+        gl.getAttribLocation(tableMaterialProgram, "vNormal");
+
+    tableMaterialAttribs.vTexCoord =
+        gl.getAttribLocation(tableMaterialProgram, "vTexCoord");
+
+    tableMaterialUniforms.modelMatrix =
+        gl.getUniformLocation(tableMaterialProgram, "modelMatrix");
+
+    tableMaterialUniforms.viewMatrix =
+        gl.getUniformLocation(tableMaterialProgram, "viewMatrix");
+
+    tableMaterialUniforms.projectionMatrix =
+        gl.getUniformLocation(tableMaterialProgram, "projectionMatrix");
+
+    tableMaterialUniforms.modelNormalMatrix =
+        gl.getUniformLocation(tableMaterialProgram, "modelNormalMatrix");
+
+    tableMaterialUniforms.lightPosition =
+        gl.getUniformLocation(tableMaterialProgram, "lightPosition");
+
+    tableMaterialUniforms.diffuseMap =
+        gl.getUniformLocation(tableMaterialProgram, "diffuseMap");
+
+    tableMaterialUniforms.specularMap =
+        gl.getUniformLocation(tableMaterialProgram, "specularMap");
+
+    tableMaterialUniforms.aoMap =
+        gl.getUniformLocation(tableMaterialProgram, "aoMap");
+
+
+    tableMaterialUniforms.receiveShadow =
+        gl.getUniformLocation(tableMaterialProgram, "receiveShadow");
+
+    tableMaterialUniforms.usePointShadowMap =
+        gl.getUniformLocation(tableMaterialProgram, "usePointShadowMap");
+
+    tableMaterialUniforms.pointShadowMap0 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap0");
+
+    tableMaterialUniforms.pointShadowMap1 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap1");
+
+    tableMaterialUniforms.pointShadowMap2 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap2");
+
+    tableMaterialUniforms.pointShadowMap3 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap3");
+
+    tableMaterialUniforms.pointShadowMap4 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap4");
+
+    tableMaterialUniforms.pointShadowMap5 =
+        gl.getUniformLocation(tableMaterialProgram, "pointShadowMap5");
+
+    tableMaterialUniforms.pointLightViewMatrix0 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix0");
+
+    tableMaterialUniforms.pointLightViewMatrix1 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix1");
+
+    tableMaterialUniforms.pointLightViewMatrix2 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix2");
+
+    tableMaterialUniforms.pointLightViewMatrix3 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix3");
+
+    tableMaterialUniforms.pointLightViewMatrix4 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix4");
+
+    tableMaterialUniforms.pointLightViewMatrix5 =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightViewMatrix5");
+
+    tableMaterialUniforms.pointLightProjectionMatrix =
+        gl.getUniformLocation(tableMaterialProgram, "pointLightProjectionMatrix");
+
+    // IMPORTANTISSIMO: torna al programma principale dopo initShaders
+    gl.useProgram(program);
     
     //inizializzazione fisica per mini-game
     initPhysics();
@@ -1556,4 +1650,89 @@ function focusCurtainCamera() {
     if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
 
     updateOrbitCameraFromSliders();
+}
+
+
+function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) {
+    if (!tableMaterialProgram) return;
+
+    gl.useProgram(tableMaterialProgram);
+
+    gl.uniform1i(tableMaterialUniforms.receiveShadow, true);
+    gl.uniform1i(tableMaterialUniforms.usePointShadowMap, usePointShadowMap ? 1 : 0);
+
+    var modelNMat = normalMatrix(modelMatrix, true);
+
+    gl.uniformMatrix4fv(tableMaterialUniforms.modelMatrix, false, flatten(modelMatrix));
+    gl.uniformMatrix4fv(tableMaterialUniforms.viewMatrix, false, flatten(viewMatrix));
+    gl.uniformMatrix4fv(tableMaterialUniforms.projectionMatrix, false, flatten(projectionMatrix));
+    gl.uniformMatrix3fv(tableMaterialUniforms.modelNormalMatrix, false, flatten(modelNMat));
+    gl.uniform4fv(tableMaterialUniforms.lightPosition, flatten(lightPosition));
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tableColorTexture);
+    gl.uniform1i(tableMaterialUniforms.diffuseMap, 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, tableSpecularTexture);
+    gl.uniform1i(tableMaterialUniforms.specularMap, 1);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, tableAOTexture);
+    gl.uniform1i(tableMaterialUniforms.aoMap, 2);
+
+    // SHADOW MAPS PRIMA DEL DRAW
+    if (usePointShadowMap) {
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap0, 4);
+
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap1, 5);
+
+        gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap2, 6);
+
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap3, 7);
+
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap4, 8);
+
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap5, 9);
+
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix0, false, flatten(pointLightViewMatrices[0]));
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix1, false, flatten(pointLightViewMatrices[1]));
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix2, false, flatten(pointLightViewMatrices[2]));
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix3, false, flatten(pointLightViewMatrices[3]));
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix4, false, flatten(pointLightViewMatrices[4]));
+        gl.uniformMatrix4fv(tableMaterialUniforms.pointLightViewMatrix5, false, flatten(pointLightViewMatrices[5]));
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightProjectionMatrix,
+            false,
+            flatten(pointLightProjectionMatrix)
+        );
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tableObj.vBuffer);
+    gl.vertexAttribPointer(tableMaterialAttribs.vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(tableMaterialAttribs.vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tableObj.nBuffer);
+    gl.vertexAttribPointer(tableMaterialAttribs.vNormal, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(tableMaterialAttribs.vNormal);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tableObj.tBuffer);
+    gl.vertexAttribPointer(tableMaterialAttribs.vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(tableMaterialAttribs.vTexCoord);
+
+    // DRAW ALLA FINE
+    gl.drawArrays(gl.TRIANGLES, 0, tableObj.numVertices);
 }

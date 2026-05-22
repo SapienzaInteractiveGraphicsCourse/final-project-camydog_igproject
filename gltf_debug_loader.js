@@ -181,7 +181,7 @@ async function loadGLBDebug(url) {
                 console.log("Joint node names:");
                 skin.joints.forEach(function (jointNodeIndex) {
                     const node = jsonChunk.nodes[jointNodeIndex];
-                    console.log(jointNodeIndex, node ? node.name : "(no name)");
+                    //console.log(jointNodeIndex, node ? node.name : "(no name)");
                 });
             }
 
