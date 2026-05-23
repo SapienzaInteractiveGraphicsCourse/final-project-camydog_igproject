@@ -1,0 +1,112 @@
+function getSkinnedDogBoneData_old() {
+    var localOverrides = {};
+
+    var t = performance.now() * 0.001;
+
+    // nodeIndex della coda, non jointIndex
+    var tailNodeIndex = 51;
+    var tailSpeed = 7.0;
+    var baseAngle = Math.sin(t * tailSpeed);
+
+   // Scodinzolio progressivo: la punta si muove di più
+    localOverrides[51] = rotationYMat4Raw(baseAngle * 8.0);
+    localOverrides[50] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.25) * 15.0);
+    localOverrides[49] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.50) * 18.0);
+    localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
+
+    /* Tongue animation */
+    var tongueSpeed = 6.0;
+    var tonguePhase = t * tongueSpeed;
+
+    var tongueMove = Math.sin(tonguePhase);
+
+    // neck movement when fetching ball, based on distance to ball
+    if (dogFetchLowerAmount > 0.01) {
+        var lower = dogFetchLowerAmount;
+
+        // dai tuoi screenshot:
+        // 23 Wolf_Neck_TopSHJnt.001
+        // 24 Wolf_Neck_TopSHJnt.002
+        // 25 Wolf_Neck_TopSHJnt.003
+        // 26 Wolf_Neck_TopSHJnt.004
+        // 29 Wolf_Neck_01SHJnt.001
+        // 30 Wolf_Neck_02SHJnt
+        // 27 Wolf_Neck_TopSHJnt
+        // 18 Wolf_Head_JawSHJnt
+        // 14 Wolf_Head_JawEndSHJnt
+
+            // TEST abbassamento collo/testa
+        localOverrides[30] = rotationZMat4Raw(-30.0);
+        localOverrides[28] = rotationZMat4Raw(-25.0);
+        localOverrides[27] = rotationZMat4Raw(-20.0);
+        localOverrides[18] = rotationZMat4Raw(-12.0);
+        // leggero movimento testa/mandibola
+        localOverrides[18] = rotationYMat4Raw(10.0 * lower);
+    }
+
+    // movimento leggero e morbido
+    localOverrides[17] = rotationXMat4Raw(tongueMove * 4.0);
+    localOverrides[16] = rotationXMat4Raw(Math.sin(tonguePhase + 0.25) * 6.0);
+    localOverrides[15] = rotationXMat4Raw(Math.sin(tonguePhase + 0.50) * 8.0);
+
+    /* Legs */
+    
+    var walkSpeed = 3.0;
+    var walkPhase = t * walkSpeed;
+
+    // movimento avanti/indietro
+    var legA = Math.sin(walkPhase);
+    var legB = Math.sin(walkPhase + Math.PI);
+
+    // ampiezze sobrie
+    var frontHipAmount = 10.0;
+    var hindHipAmount  = 8.0;
+
+    var frontKneeAmount  = 22.0;
+    var frontAnkleAmount = 26.0;
+    var frontBallAmount  = 18.0;
+
+    var hindKneeAmount = 7.0;
+
+    // diagonali insieme
+    localOverrides[FRONT_LEFT_HIP]  = rotationXMat4Raw(legA * frontHipAmount);
+    localOverrides[HIND_RIGHT_HIP]  = rotationXMat4Raw(legA * hindHipAmount);
+
+    localOverrides[FRONT_RIGHT_HIP] = rotationXMat4Raw(legB * frontHipAmount);
+    localOverrides[HIND_LEFT_HIP]   = rotationXMat4Raw(legB * hindHipAmount);
+
+    // piega ginocchio: solo quando la zampa "torna avanti"
+    var frontKneeA = Math.max(0.0, -legA) * frontKneeAmount;
+    var frontKneeB = Math.max(0.0, -legB) * frontKneeAmount;
+
+    var frontAnkleA = Math.max(0.0, -legA) * frontAnkleAmount;
+    var frontAnkleB = Math.max(0.0, -legB) * frontAnkleAmount;
+
+
+    var frontBallA  = Math.max(0.0, -legA) * frontBallAmount;
+    var frontBallB  = Math.max(0.0, -legB) * frontBallAmount;
+
+    
+    // front legs più morbide
+    // knee su X, parte bassa su Z per renderla più visibile
+    localOverrides[FRONT_LEFT_KNEE]  = rotationXMat4Raw(-frontKneeA);
+    localOverrides[FRONT_LEFT_ANKLE] = rotationXMat4Raw(frontAnkleA *1.8);
+    localOverrides[FRONT_LEFT_BALL]  = rotationXMat4Raw(-frontBallA*1.2);
+
+    localOverrides[FRONT_RIGHT_KNEE]  = rotationXMat4Raw(-frontKneeB);
+    localOverrides[FRONT_RIGHT_ANKLE] = rotationXMat4Raw(frontAnkleB *1.8);
+    localOverrides[FRONT_RIGHT_BALL]  = rotationXMat4Raw(-frontBallB*1.2);
+
+
+    // hind legs più leggere
+    var hindKneeA = Math.max(0.0, -legA) * hindKneeAmount;
+    var hindKneeB = Math.max(0.0, -legB) * hindKneeAmount;
+
+    localOverrides[HIND_RIGHT_KNEE1] = rotationXMat4Raw(-hindKneeA);
+    localOverrides[HIND_RIGHT_KNEE2] = rotationXMat4Raw(hindKneeA * 0.4);
+
+    localOverrides[HIND_LEFT_KNEE1] = rotationXMat4Raw(-hindKneeB);
+    localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
+
+    return computeBoneMatricesRaw(skinnedDog, localOverrides);
+}
