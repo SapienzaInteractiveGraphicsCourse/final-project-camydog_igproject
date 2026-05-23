@@ -105,6 +105,11 @@ var HIND_RIGHT_HIP   = 47;
 var HIND_RIGHT_KNEE1 = 46;
 var HIND_RIGHT_KNEE2 = 45;
 
+// Tongue bones - nodeIndex
+var TONGUE_02 = 17; // Wolf_Tongue_01_02SHJnt
+var TONGUE_03 = 16; // Wolf_Tongue_01_03SHJnt
+var TONGUE_04 = 15; // Wolf_Tongue_01_04SHJnt
+
 
 var skinnedDogShadowProgram = null;
 var skinnedDogShadowAttribs = {};
@@ -113,3 +118,17 @@ var skinnedDogDepthAttribs = {};
 var skinnedDogDepthUniforms = {};
 var skinnedDogShadowUniforms = {};
 var ENABLE_SKINNED_DOG_SHADOW = true;
+
+
+var dogFetchBallMode = false;
+
+var dogFetchX = -3.2;
+var dogFetchZ = 4.0;
+
+var dogPath = [];
+var dogPathIndex = 0;
+
+var dogFetchTarget = null;
+var dogFetchLowerAmount= 0.0;
+var skinnedDogAlreadyTargeted = false;
+var dogIsWalking = dogFetchBallMode;

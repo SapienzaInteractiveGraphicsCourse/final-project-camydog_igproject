@@ -442,8 +442,8 @@ function initPhysics() {
     ballBody.addShape(ballShape);
 
     // Un po' di damping per non farla rimbalzare per sempre
-    ballBody.linearDamping = 0.18;
-    ballBody.angularDamping = 0.35;
+    ballBody.linearDamping = 0.35;
+    ballBody.angularDamping = 0.75;
 
     physicsWorld.addBody(ballBody);
 
@@ -800,9 +800,122 @@ function checkBallStoppedAndSendDog(deltaTime) {
     }
 }
 
+/*
+
+    Skinned Dog +ball part
+
+*/
+function startSkinnedDogFetchBall() {
+    if (!ballBody) return;
+
+    var ballX = ballBody.position.x;
+    var ballZ = ballBody.position.z;
+
+    // target sicuro rispetto al tavolo
+    var safeTarget = getReachableBallTarget(ballX, ballZ);
+
+    // target sicuro rispetto alle pareti
+    safeTarget = clampDogTargetToRoom(safeTarget.x, safeTarget.z);
+
+    // il corpo non deve arrivare esattamente sulla palla
+    var dx = safeTarget.x - dogFetchX;
+    var dz = safeTarget.z - dogFetchZ;
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var bodyStopOffset = 0.95;
+
+    var bodyTargetX = safeTarget.x;
+    var bodyTargetZ = safeTarget.z;
+
+    if (dist > 0.001) {
+        bodyTargetX = safeTarget.x - (dx / dist) * bodyStopOffset;
+        bodyTargetZ = safeTarget.z - (dz / dist) * bodyStopOffset;
+    }
+
+    // riclampiamo anche il target del corpo
+    var clampedBodyTarget = clampDogTargetToRoom(bodyTargetX, bodyTargetZ);
+
+    dogPath = computeDogPathToBall(
+        dogFetchX,
+        dogFetchZ,
+        clampedBodyTarget.x,
+        clampedBodyTarget.z
+    );
+
+    dogPathIndex = 0;
+    dogFetchBallMode = true;
+    dogFetchLowerAmount = 0.0;
+
+    // questo invece è il punto che il cane guarda: la palla vera/safe
+    dogFetchTarget = {
+        x: safeTarget.x,
+        z: safeTarget.z
+    };
+
+    console.log("Skinned dog path:", dogPath);
+}
+
+function updateSkinnedDogFetchBall() {
+    if (!dogFetchBallMode || !dogPath || dogPath.length === 0) return;
+
+    var target = dogPath[dogPathIndex];
+
+    var dx = target.x - dogFetchX;
+    var dz = target.z - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var speed = 0.035;
+
+    if (dist > 0.12) {
+        dogFetchX += (dx / dist) * speed;
+        dogFetchZ += (dz / dist) * speed;
+
+        dogFetchTarget = {
+            x: target.x,
+            z: target.z
+        };
+    } else {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+            dogPathIndex = dogPath.length - 1;
+            dogFetchBallMode = false;
+
+            // arrivato vicino: si abbassa verso la palla
+            dogFetchLowerAmount = 1.0;
+            console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
+        }
+    }
+}
+
+
+function checkBallStoppedAndSendSkinnedDog() {
+    if (!miniGameActive || !ballBody || !ballVisible) return;
+    if (skinnedDogAlreadyTargeted) return;
+
+    if (isBallAlmostStopped()) {
+        startSkinnedDogFetchBall();
+        skinnedDogAlreadyTargeted = true;
+    }
+}
+function clampDogTargetToRoom(x, z) {
+    var margin = 1.25; // spazio per non infilare muso/corpo nelle pareti
+
+    var minX = -7.2 + margin;
+    var maxX =  7.2 - margin;
+
+    var minZ = -5.8 + margin;
+    var maxZ =  8.5 - margin;
+
+    return {
+        x: Math.max(minX, Math.min(maxX, x)),
+        z: Math.max(minZ, Math.min(maxZ, z))
+    };
+}
+
 /*///////////////////////////////////////////////////
-*
-*  CLOTH PART
+* CLOTH PART
 *
 *////////////////////////////////////////////////////*/
 

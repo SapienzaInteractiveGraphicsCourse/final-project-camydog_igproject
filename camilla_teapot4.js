@@ -756,15 +756,17 @@ onload = async function init() {
 
     //minigame settings buttons
     document.getElementById("ButtonMiniGame").onclick = function () {
-    miniGameActive = !miniGameActive;
+        miniGameActive = !miniGameActive;
 
-    if (miniGameActive) {
-            this.textContent = "Stop Ball ";
-            startBallMiniGame();
-        } else {
-            this.textContent = "Start Ball ";
-            stopBallMiniGame();
-        }
+        if (miniGameActive) {
+                this.textContent = "Stop Ball ";
+                startBallMiniGame();
+               
+                skinnedDogAlreadyTargeted = false;
+            } else {
+                this.textContent = "Start Ball ";
+                stopBallMiniGame();
+            }
     };
 
     // settings bottoni + sliders

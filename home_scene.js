@@ -37,8 +37,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         if (miniGameActive) {
             updateBallBounceAnimation();
             
-            checkBallStoppedAndSendDog(deltaTime);
-            updateDogMovementToBall(deltaTime);
+            //temporarly disable dog chasing ball to test ball bounce animation
+            //checkBallStoppedAndSendDog(deltaTime);
+            //updateDogMovementToBall(deltaTime);
+
+
+            
+            checkBallStoppedAndSendSkinnedDog();
+            updateSkinnedDogFetchBall(deltaTime);
         }
 
         if (curtain) {
@@ -310,7 +316,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(teapotBuffers, modelMatrix1);
         drawShadowObject(tableBuffers, modelMatrix2);
         drawShadowObject(catBuffers, modelMatrix3);
-        drawShadowObject(dogBuffers, modelMatrixDog);
+        //drawShadowObject(dogBuffers, modelMatrixDog);
 
 
         
@@ -437,7 +443,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
          projectionMatrix, true, false,false,true);
 
-    drawObject(
+    /* drawObject(
         dogBuffers,
         dogTexture,
         modelMatrixDog,
@@ -447,7 +453,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         false,  // isLightMarker
         false,  // twoSided
         true    // receiveShadow
-    );
+    ); */
 
     // prova disegno rigged dog parts
     //drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
