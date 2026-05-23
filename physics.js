@@ -29,7 +29,7 @@ var curtainWindStrength = 0.07;
 var tableBody = null;
 
 var TABLE_X = 0.0;
-var TABLE_Y = -1.9;
+var TABLE_Y = -2.09;
 var TABLE_Z = 0.0;
 
 var TABLE_TOP_WIDTH  = 3.6;
@@ -44,7 +44,7 @@ var TABLE_LEG_DEPTH  = 0.18;
 
 var TABLE_LEG_OFFSET_Y = -0.15;
 
-var TABLE_LEG_MARGIN_X = 0.50;
+var TABLE_LEG_MARGIN_X = 0.41;
 var TABLE_LEG_MARGIN_Z = 0.50;
 
 ///////////
