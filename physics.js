@@ -458,6 +458,7 @@ function startBallMiniGame() {
     }
 
     ballVisible = true;
+    dogHasBall = false;
 
     
     ballIdleBounceActive = false;
@@ -808,8 +809,22 @@ function checkBallStoppedAndSendDog(deltaTime) {
 function startSkinnedDogFetchBall() {
     if (!ballBody) return;
 
+    // RESET stato precedente del cane
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    // evita di partire già dentro la zona del tavolos
+    var correctedStart = keepDogOutsideTable(dogFetchX, dogFetchZ);
+    dogFetchX = correctedStart.x;
+    dogFetchZ = correctedStart.z;
+
     var ballX = ballBody.position.x;
     var ballZ = ballBody.position.z;
+    dogLookAtBallX = ballX;
+    dogLookAtBallZ = ballZ;
 
     // target sicuro rispetto al tavolo
     var safeTarget = getReachableBallTarget(ballX, ballZ);
@@ -822,7 +837,7 @@ function startSkinnedDogFetchBall() {
     var dz = safeTarget.z - dogFetchZ;
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    var bodyStopOffset = 0.95;
+    var bodyStopOffset = 0.65;
 
     var bodyTargetX = safeTarget.x;
     var bodyTargetZ = safeTarget.z;
@@ -844,7 +859,7 @@ function startSkinnedDogFetchBall() {
 
     dogPathIndex = 0;
     dogFetchBallMode = true;
-    dogFetchLowerAmount = 0.0;
+    dogFetchLowerAmount = 0.0; 
 
     // questo invece è il punto che il cane guarda: la palla vera/safe
     dogFetchTarget = {
@@ -854,9 +869,83 @@ function startSkinnedDogFetchBall() {
 
     console.log("Skinned dog path:", dogPath);
 }
+function updateSkinnedDogFetchBall(deltaTime) {
+    // IMPORTANTISSIMO: deve stare prima del return
+    if (dogFetchLoweringActive) {
+        dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
 
-function updateSkinnedDogFetchBall() {
+        if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
+            dogHasBall = true;
+            ballVisible = true;
+            ballIdleBounceActive = false;
+
+            if (ballBody) {
+                ballBody.velocity.set(0, 0, 0);
+                ballBody.angularVelocity.set(0, 0, 0);
+                ballBody.force.set(0, 0, 0);
+                ballBody.torque.set(0, 0, 0);
+                ballBody.sleep();
+            }
+
+            console.log("Dog picked up the ball!");
+        }
+    }
+
     if (!dogFetchBallMode || !dogPath || dogPath.length === 0) return;
+
+    var target = dogPath[dogPathIndex];
+
+    var dx = target.x - dogFetchX;
+    var dz = target.z - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var speed = 0.035;
+
+    if (dist > 0.12) {
+        var nextX = dogFetchX + (dx / dist) * speed;
+        var nextZ = dogFetchZ + (dz / dist) * speed;
+
+        // safety: non far entrare il cane nella zona del tavolo
+        var corrected = keepDogOutsideTable(nextX, nextZ);
+
+        dogFetchX = corrected.x;
+        dogFetchZ = corrected.z;
+
+        dogFetchTarget = {
+            x: target.x,
+            z: target.z
+        };
+    } else {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+            dogPathIndex = dogPath.length - 1;
+            dogFetchBallMode = false;
+            dogFetchLoweringActive = true;
+
+            // arrivato: guarda la palla vera
+            dogFetchTarget = {
+                x: dogLookAtBallX,
+                z: dogLookAtBallZ
+            };
+
+            console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
+        } else {
+            dogFetchTarget = {
+                x: dogPath[dogPathIndex].x,
+                z: dogPath[dogPathIndex].z
+            };
+        }
+    }
+}
+
+function updateSkinnedDogFetchBall_old() {
+    if (!dogFetchBallMode || !dogPath || dogPath.length === 0) return;
+
+     if (dogFetchLoweringActive) {
+        dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
+    }
 
     var target = dogPath[dogPathIndex];
 
@@ -878,12 +967,13 @@ function updateSkinnedDogFetchBall() {
     } else {
         dogPathIndex++;
 
-        if (dogPathIndex >= dogPath.length) {
+    if (dogPathIndex >= dogPath.length) {
             dogPathIndex = dogPath.length - 1;
             dogFetchBallMode = false;
 
             // arrivato vicino: si abbassa verso la palla
-            dogFetchLowerAmount = 1.0;
+            //dogFetchLowerAmount = 1.0;
+            dogFetchLoweringActive = true;
             console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
         }
     }
@@ -892,6 +982,7 @@ function updateSkinnedDogFetchBall() {
 
 function checkBallStoppedAndSendSkinnedDog() {
     if (!miniGameActive || !ballBody || !ballVisible) return;
+
     if (skinnedDogAlreadyTargeted) return;
 
     if (isBallAlmostStopped()) {

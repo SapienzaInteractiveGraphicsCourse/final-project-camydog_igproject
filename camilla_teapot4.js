@@ -366,7 +366,7 @@ onload = async function init() {
         );
 
         console.log("Skinned dog buffers created:", skinnedDog);
-        //printDogJointNames();
+        printDogJointNames();
     })
     .catch(function (error) {
         console.error("GLB debug load error:", error);

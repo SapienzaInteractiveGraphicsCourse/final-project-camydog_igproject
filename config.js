@@ -130,5 +130,15 @@ var dogPathIndex = 0;
 
 var dogFetchTarget = null;
 var dogFetchLowerAmount= 0.0;
+
 var skinnedDogAlreadyTargeted = false;
+
 var dogIsWalking = dogFetchBallMode;
+var dogLookAtBallX = 0.0;
+var dogLookAtBallZ = 0.0;
+var dogFetchLoweringActive = false;
+
+//dog taking ball 
+var dogHasBall = false;
+var dogMouthPickTimer = 0.0;
+var dogCurrentAngle = 90.0;

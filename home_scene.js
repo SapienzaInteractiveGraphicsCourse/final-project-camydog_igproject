@@ -473,8 +473,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
 
      //ball mini-game render
-   if (ballVisible && ballBody) {
-        var modelMatrixBall = mat4();
+   /* if (ballVisible && ballBody) {
+        /* var modelMatrixBall = mat4();
 
         modelMatrixBall = mult(
             modelMatrixBall,
@@ -501,8 +501,64 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false,   
             true, 
             0       // wallShadowMode
+        ); 
+               
+      
+
+    } */
+    if ((ballVisible || dogHasBall) && ballBody) {
+        var modelMatrixBall = mat4();
+
+        if (dogHasBall) {
+            /* var rad = dogCurrentAngle * Math.PI / 180.0;
+
+            var forwardX = Math.sin(rad);
+            var forwardZ = Math.cos(rad);
+
+            var mouthX = dogFetchX + forwardX * 0.75;
+            var mouthY = -1.15;
+            var mouthZ = dogFetchZ + forwardZ * 0.75;
+
+            modelMatrixBall = mult(modelMatrixBall, translate(mouthX, mouthY, mouthZ));
+            modelMatrixBall = mult(modelMatrixBall, scalem(0.25, 0.25, 0.25)); */
+            var rad = dogCurrentAngle * Math.PI / 180.0;
+
+            var forwardX = Math.sin(rad);
+            var forwardZ = Math.cos(rad);
+
+            
+            var mouthX = dogFetchX + forwardX * 1.10;
+           var mouthY = -1.50;
+            var mouthZ = dogFetchZ + forwardZ * 1.10;
+
+            modelMatrixBall = mult(modelMatrixBall, translate(mouthX, mouthY, mouthZ));
+            modelMatrixBall = mult(modelMatrixBall, scalem(ballRadius, ballRadius, ballRadius));
+        } else {
+            modelMatrixBall = mult(
+                modelMatrixBall,
+                translate(
+                    ballBody.position.x,
+                    ballBody.position.y,
+                    ballBody.position.z
+                )
+            );
+
+            modelMatrixBall = mult(modelMatrixBall, scalem(0.25, 0.25, 0.25));
+        }
+
+        drawObject(
+            ballBuffers,
+            ballTexture,
+            modelMatrixBall,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            true
         );
     }
+
     //parte per disegnaare direzione luce (debug)
     DrawLightDirectionArrow(
         gl,

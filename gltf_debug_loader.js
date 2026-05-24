@@ -341,9 +341,6 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
 
     gl.useProgram(skinnedDogProgram);
 
-    //var modelMatrix =  getSkinnedDogModelMatrix();
-    
-    
     var t = performance.now() * 0.001;
     var walkMove = Math.sin(t * 1.2) * 0.35;
 
@@ -471,26 +468,15 @@ localOverrides[15] = rotationXMat4Raw(Math.sin(tonguePhase + 0.50) * 16.0);
 
 
 //Walk to reach ball, based on distance to ball
-if (dogFetchLowerAmount > 0.01) {
+if (dogFetchLowerAmount > 0.01  && !dogFetchBallMode) {
     var lower = dogFetchLowerAmount;
 
-    // dai tuoi screenshot:
-    // 23 Wolf_Neck_TopSHJnt.001
-    // 24 Wolf_Neck_TopSHJnt.002
-    // 25 Wolf_Neck_TopSHJnt.003
-    // 26 Wolf_Neck_TopSHJnt.004
-    // 29 Wolf_Neck_01SHJnt.001
-    // 30 Wolf_Neck_02SHJnt
-    // 27 Wolf_Neck_TopSHJnt
-    // 18 Wolf_Head_JawSHJnt
-    // 14 Wolf_Head_JawEndSHJnt
+     // abbassamento collo verso la palla
+    localOverrides[30] = rotationXMat4Raw(28.0 * lower); // Wolf_Neck_01SHJnt
+    localOverrides[28] = rotationXMat4Raw(18.0 * lower); // Wolf_Neck_02SHJnt
+    localOverrides[27] = rotationXMat4Raw(10.0 * lower); // Wolf_Neck_TopSHJnt
 
-    localOverrides[29] = rotationXMat4Raw(12.0 * lower);
-    localOverrides[30] = rotationXMat4Raw(16.0 * lower);
-    localOverrides[27] = rotationXMat4Raw(20.0 * lower);
 
-    // leggero movimento testa/mandibola
-    localOverrides[18] = rotationXMat4Raw(10.0 * lower);
 }
 
 /* Tail */
@@ -631,6 +617,7 @@ gl.drawElements(
         gl.UNSIGNED_SHORT,
         0
 );
+
 }
 
 function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShadowPass) {
@@ -734,27 +721,12 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
     localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
 
 
-    //Walk to reach ball, based on distance to ball
-    if (dogFetchLowerAmount > 0.01) {
+    if (dogFetchLowerAmount > 0.01 && !dogFetchBallMode) {
         var lower = dogFetchLowerAmount;
 
-        // dai tuoi screenshot:
-        // 23 Wolf_Neck_TopSHJnt.001
-        // 24 Wolf_Neck_TopSHJnt.002
-        // 25 Wolf_Neck_TopSHJnt.003
-        // 26 Wolf_Neck_TopSHJnt.004
-        // 29 Wolf_Neck_01SHJnt.001
-        // 30 Wolf_Neck_02SHJnt
-        // 27 Wolf_Neck_TopSHJnt
-        // 18 Wolf_Head_JawSHJnt
-        // 14 Wolf_Head_JawEndSHJnt
-
-        localOverrides[29] = rotationXMat4Raw(12.0 * lower);
-        localOverrides[30] = rotationXMat4Raw(16.0 * lower);
-        localOverrides[27] = rotationXMat4Raw(20.0 * lower);
-
-        // leggero movimento testa/mandibola
-        localOverrides[18] = rotationXMat4Raw(10.0 * lower);
+        localOverrides[30] = rotationXMat4Raw(28.0 * lower);
+        localOverrides[28] = rotationXMat4Raw(18.0 * lower);
+        localOverrides[27] = rotationXMat4Raw(10.0 * lower);
     }
 
     /* Legs */
@@ -1224,14 +1196,26 @@ function getSkinnedDogModelMatrix() {
 
     var angle = 90.0;
 
-    if (dogFetchTarget) {
-        var dx = dogFetchTarget.x - dogFetchX;
-        var dz = dogFetchTarget.z - dogFetchZ;
+    var lookX = dogFetchX;
+    var lookZ = dogFetchZ;
 
-        if (Math.sqrt(dx * dx + dz * dz) > 0.001) {
-            angle = Math.atan2(dx, dz) * 180.0 / Math.PI;
-        }
+    if (dogFetchBallMode && dogFetchTarget) {
+        // mentre cammina guarda il waypoint
+        lookX = dogFetchTarget.x;
+        lookZ = dogFetchTarget.z;
+    } else {
+        // quando è arrivato guarda la palla vera
+        lookX = dogLookAtBallX;
+        lookZ = dogLookAtBallZ;
     }
+
+    var dxLook = lookX - dogFetchX;
+    var dzLook = lookZ - dogFetchZ;
+
+    if (Math.sqrt(dxLook * dxLook + dzLook * dzLook) > 0.001) {
+        angle = Math.atan2(dxLook, dzLook) * 180.0 / Math.PI;
+    }
+    dogCurrentAngle = angle;
 
     modelMatrix = mult(
         modelMatrix,
