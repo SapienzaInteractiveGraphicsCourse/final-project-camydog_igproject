@@ -760,12 +760,27 @@ onload = async function init() {
 
         if (miniGameActive) {
                 this.textContent = "Stop Ball ";
+
+                //to reset ball
+                //resetSkinnedDogBallInteraction();
+                resetSkinnedDogFetchState();   
+
+
                 startBallMiniGame();
+
+                
+
+                // importante: dopo reset, la palla deve essere libera
+                dogHasBall = false;
                
                 skinnedDogAlreadyTargeted = false;
-            } else {
+        } 
+        else {
                 this.textContent = "Start Ball ";
                 stopBallMiniGame();
+
+                resetSkinnedDogBallInteraction();
+                //resetSkinnedDogBallInteractionFull();
             }
     };
 

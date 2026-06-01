@@ -345,7 +345,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
 
         //ball mini-game shadow
-        if (ballVisible && ballBody) {
+        /* if (ballVisible && ballBody) {
             var modelMatrixBallShadow = mat4();
 
             modelMatrixBallShadow = mult(
@@ -363,6 +363,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             );
 
             drawShadowObject(ballBuffers, modelMatrixBallShadow);
+        } */
+        if ((ballVisible || dogHasBall) && ballBody) {
+            var modelMatrixBall = getBallModelMatrix();
+
+            drawShadowObject(ballBuffers, modelMatrixBall);
         }
 
 
@@ -507,20 +512,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     } */
     if ((ballVisible || dogHasBall) && ballBody) {
-        var modelMatrixBall = mat4();
-
-        if (dogHasBall) {
-            /* var rad = dogCurrentAngle * Math.PI / 180.0;
-
-            var forwardX = Math.sin(rad);
-            var forwardZ = Math.cos(rad);
-
-            var mouthX = dogFetchX + forwardX * 0.75;
-            var mouthY = -1.15;
-            var mouthZ = dogFetchZ + forwardZ * 0.75;
-
-            modelMatrixBall = mult(modelMatrixBall, translate(mouthX, mouthY, mouthZ));
-            modelMatrixBall = mult(modelMatrixBall, scalem(0.25, 0.25, 0.25)); */
+        var modelMatrixBall = getBallModelMatrix();
+        /* if (dogHasBall) {
             var rad = dogCurrentAngle * Math.PI / 180.0;
 
             var forwardX = Math.sin(rad);
@@ -544,7 +537,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             );
 
             modelMatrixBall = mult(modelMatrixBall, scalem(0.25, 0.25, 0.25));
-        }
+        } */
 
         drawObject(
             ballBuffers,

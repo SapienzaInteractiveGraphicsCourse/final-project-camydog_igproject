@@ -564,6 +564,32 @@ localOverrides[HIND_RIGHT_KNEE2] = rotationXMat4Raw(hindKneeA * 0.4);
 localOverrides[HIND_LEFT_KNEE1] = rotationXMat4Raw(-hindKneeB);
 localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
 
+
+
+if (dogHasBall) {
+    console.log("DOG CROUCH ACTIVE");
+
+    // zampa posteriore sinistra
+    localOverrides[41] = rotationXMat4Raw(18.0);   // hip
+    localOverrides[40] = rotationXMat4Raw(-28.0);  // knee1
+    localOverrides[39] = rotationXMat4Raw(18.0);   // knee2
+    localOverrides[38] = rotationXMat4Raw(8.0);    // ankle
+
+    // zampa posteriore destra
+    localOverrides[47] = rotationXMat4Raw(18.0);   // hip
+    localOverrides[46] = rotationXMat4Raw(-28.0);  // knee1
+    localOverrides[45] = rotationXMat4Raw(18.0);   // knee2
+    localOverrides[44] = rotationXMat4Raw(8.0);    // ankle
+    
+    localOverrides[4]  = rotationXMat4Raw(-8.0);   // Wolf_l_FrontLeg_HipSHJnt
+    localOverrides[3]  = rotationXMat4Raw(12.0);   // Wolf_l_FrontLeg_KneeSHJnt
+
+    localOverrides[11] = rotationXMat4Raw(-8.0);   // Wolf_r_FrontLeg_HipSHJnt
+    localOverrides[10] = rotationXMat4Raw(12.0);   // Wolf_r_FrontLeg_KneeSHJnt
+
+
+}
+
 var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
 
 gl.uniformMatrix4fv(
@@ -1217,11 +1243,17 @@ function getSkinnedDogModelMatrix() {
     }
     dogCurrentAngle = angle;
 
+    var holdBallBodyDown = 0.0;
+
+    if (dogHasBall) {
+        holdBallBodyDown = 0.08;
+    }
+
     modelMatrix = mult(
         modelMatrix,
         translate(
             dogFetchX,
-            -2.48 + bodyBob,
+            -2.48 + bodyBob - holdBallBodyDown,
             dogFetchZ
         )
     );

@@ -837,7 +837,7 @@ function startSkinnedDogFetchBall() {
     var dz = safeTarget.z - dogFetchZ;
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    var bodyStopOffset = 0.65;
+    var bodyStopOffset = 1.10;
 
     var bodyTargetX = safeTarget.x;
     var bodyTargetZ = safeTarget.z;
@@ -1004,6 +1004,91 @@ function clampDogTargetToRoom(x, z) {
         z: Math.max(minZ, Math.min(maxZ, z))
     };
 }
+
+function resetSkinnedDogBallInteraction() {
+    dogHasBall = false;
+
+    dogFetchBallMode = false;
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    skinnedDogAlreadyTargeted = false;
+
+    // opzionale, se lo hai aggiunto
+    if (typeof dogCrouchAmount !== "undefined") {
+        dogCrouchAmount = 0.0;
+    }
+
+    if (ballBody) {
+        ballBody.wakeUp();
+        ballBody.velocity.set(0, 0, 0);
+        ballBody.angularVelocity.set(0, 0, 0);
+        ballBody.force.set(0, 0, 0);
+        ballBody.torque.set(0, 0, 0);
+    }
+}
+
+function resetSkinnedDogFetchState() {
+    dogHasBall = false;
+    dogFetchBallMode = false;
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    skinnedDogAlreadyTargeted = false;
+}
+
+function getBallModelMatrix() {
+    var modelMatrixBall = mat4();
+
+    if (dogHasBall) {
+        var rad = dogCurrentAngle * Math.PI / 180.0;
+
+        var forwardX = Math.sin(rad);
+        var forwardZ = Math.cos(rad);
+
+        // Valori che hai calibrato tu
+        var mouthX = dogFetchX + forwardX * 1.10;
+        var mouthY = -1.50;
+        var mouthZ = dogFetchZ + forwardZ * 1.10;
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            translate(mouthX, mouthY, mouthZ)
+        );
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            scalem(ballRadius, ballRadius, ballRadius)
+        );
+    } else {
+        if (!ballBody) return modelMatrixBall;
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            translate(
+                ballBody.position.x,
+                ballBody.position.y,
+                ballBody.position.z
+            )
+        );
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            scalem(ballRadius, ballRadius, ballRadius)
+        );
+    }
+
+    return modelMatrixBall;
+}
+
 
 /*///////////////////////////////////////////////////
 * CLOTH PART
