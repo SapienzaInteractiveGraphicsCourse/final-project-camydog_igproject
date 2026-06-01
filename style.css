@@ -294,6 +294,18 @@
         #ButtonFocusCurtain:hover {
             background-color: #F06292;
         }
+        #ButtonMusic {
+            background-color: #3F51B5;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonMusic:hover {
+            background-color: #7986CB;
+        }
         
 
 body {

@@ -754,6 +754,10 @@ onload = async function init() {
         currentScene = "home";
     };
 
+    document.getElementById("ButtonMusic").onclick = function () {
+        toggleBackgroundMusic();
+    };
+
     //minigame settings buttons
     document.getElementById("ButtonMiniGame").onclick = function () {
         miniGameActive = !miniGameActive;
@@ -767,6 +771,7 @@ onload = async function init() {
 
 
                 startBallMiniGame();
+                playBallThrowSound();
 
                 
 

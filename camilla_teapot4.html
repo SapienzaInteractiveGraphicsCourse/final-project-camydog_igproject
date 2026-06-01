@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="./liquid-glass-js/styles.css"> -->
     <link rel="stylesheet" href="./style.css">
 </head>
+<audio id="backgroundMusic" loop>
+    <source src="sounds/background.mp3" type="audio/mpeg">
+</audio>
+<audio id="ballThrowSound">
+    <source src="sounds/ball_throw.mp3" type="audio/mpeg">
+</audio>
+
 <body  class="game-not-started">
+    
    
     <div id="startScreen">
         <div class="start-card">
@@ -30,7 +38,7 @@
 
                     
                     <button id="ButtonTex">Disable Textures</button>
-                    
+                    <button id="ButtonMusic">Music:OFF</button>
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
                     <button id="ButtonDogMove">Toggle Dog Walk</button>
                     <button id="ButtonLightDir">Show Light Direction</button>

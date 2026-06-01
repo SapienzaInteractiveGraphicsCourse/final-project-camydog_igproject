@@ -5,6 +5,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     //curtain always present in the scene
     // & also update physics for mini-game if active
 
+    //startBackgroundMusic();
+
     if (flag_rot_teapot) {
         theta[axis] += rotationSpeed_teapot;
     }

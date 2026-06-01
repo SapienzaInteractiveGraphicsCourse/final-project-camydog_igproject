@@ -1,3 +1,54 @@
+
+function startBackgroundMusic() {
+    var music = document.getElementById("backgroundMusic");
+    if (!music) return;
+
+    music.volume = 0.25;
+
+    music.play().catch(function(error) {
+        console.log("Music play blocked:", error);
+    });
+}
+
+function stopBackgroundMusic() {
+    var music = document.getElementById("backgroundMusic");
+    if (!music) return;
+
+    music.pause();
+}
+
+function toggleBackgroundMusic() {
+    var music = document.getElementById("backgroundMusic");
+    var button = document.getElementById("ButtonMusic");
+
+    if (!music || !button) return;
+
+    if (music.paused) {
+        music.play().catch(function(error) {
+            console.log("Music play blocked:", error);
+        });
+        button.textContent = "Music: ON";
+    } else {
+        music.pause();
+        button.textContent = "Music: OFF";
+    }
+}
+
+
+function playBallThrowSound() {
+    var sound = document.getElementById("ballThrowSound");
+
+    if (!sound) return;
+
+    sound.currentTime = 0;
+    sound.volume = 0.3;
+
+    sound.play().catch(function(error) {
+        console.log("Ball throw sound blocked:", error);
+    });
+}
+
+
 // create sphere for light source
 function loadTexture(path) {
     let tex = gl.createTexture();
