@@ -726,6 +726,7 @@ onload = async function init() {
         windSlider.addEventListener("input", function () {
             curtainWindStrength = parseFloat(this.value);
             windValue.textContent = curtainWindStrength.toFixed(3);
+            updateWindSound(curtainWindStrength);
         });
     }
 
@@ -756,6 +757,12 @@ onload = async function init() {
 
     document.getElementById("ButtonMusic").onclick = function () {
         toggleBackgroundMusic();
+    };
+
+    document.getElementById("windSlider").oninput = function () {
+        currentWind = parseFloat(this.value);
+
+        updateWindSound(currentWind);
     };
 
     //minigame settings buttons

@@ -876,6 +876,9 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
         if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
             dogHasBall = true;
+            //crouching starts
+            dogCrouchActive = true;
+            
             ballVisible = true;
             ballIdleBounceActive = false;
 
@@ -889,6 +892,19 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
             console.log("Dog picked up the ball!");
         }
+    }
+
+    // crouch/accucciamento dopo che prende la palla
+    /* if (dogHasBall) {
+        dogCrouchAmount += (1.0 - dogCrouchAmount) * 0.04;
+    } else {
+        dogCrouchAmount += (0.0 - dogCrouchAmount) * 0.08;
+    } */
+
+    if (dogCrouchActive) {
+        dogCrouchAmount += (1.0 - dogCrouchAmount) * 0.08;
+    } else {
+        dogCrouchAmount += (0.0 - dogCrouchAmount) * 0.08;
     }
 
     if (!dogFetchBallMode || !dogPath || dogPath.length === 0) return;
@@ -940,44 +956,6 @@ function updateSkinnedDogFetchBall(deltaTime) {
     }
 }
 
-function updateSkinnedDogFetchBall_old() {
-    if (!dogFetchBallMode || !dogPath || dogPath.length === 0) return;
-
-     if (dogFetchLoweringActive) {
-        dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
-    }
-
-    var target = dogPath[dogPathIndex];
-
-    var dx = target.x - dogFetchX;
-    var dz = target.z - dogFetchZ;
-
-    var dist = Math.sqrt(dx * dx + dz * dz);
-
-    var speed = 0.035;
-
-    if (dist > 0.12) {
-        dogFetchX += (dx / dist) * speed;
-        dogFetchZ += (dz / dist) * speed;
-
-        dogFetchTarget = {
-            x: target.x,
-            z: target.z
-        };
-    } else {
-        dogPathIndex++;
-
-    if (dogPathIndex >= dogPath.length) {
-            dogPathIndex = dogPath.length - 1;
-            dogFetchBallMode = false;
-
-            // arrivato vicino: si abbassa verso la palla
-            //dogFetchLowerAmount = 1.0;
-            dogFetchLoweringActive = true;
-            console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
-        }
-    }
-}
 
 
 function checkBallStoppedAndSendSkinnedDog() {

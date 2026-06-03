@@ -491,7 +491,7 @@ localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
 /* Legs */
 
 
-dogIsWalking = dogFetchBallMode;
+dogIsWalking = dogFetchBallMode && dogCrouchAmount < 0.1;
 
 var legA = 0.0;
 var legB = 0.0;
@@ -589,6 +589,82 @@ if (dogHasBall) {
 
 
 }
+
+
+/* if (dogCrouchAmount > 0.01) {
+    var c = dogCrouchAmount;
+
+    // posteriori leggere
+    localOverrides[41] = rotationXMat4Raw(8.0 * c);
+    localOverrides[40] = rotationXMat4Raw(-12.0 * c);
+    localOverrides[39] = rotationXMat4Raw(8.0 * c);
+
+    localOverrides[47] = rotationXMat4Raw(8.0 * c);
+    localOverrides[46] = rotationXMat4Raw(-12.0 * c);
+    localOverrides[45] = rotationXMat4Raw(8.0 * c);
+
+    // anteriori quasi dritte
+    localOverrides[4]  = rotationXMat4Raw(4.0 * c);
+    localOverrides[3]  = rotationXMat4Raw(-6.0 * c);
+
+    localOverrides[11] = rotationXMat4Raw(4.0 * c);
+    localOverrides[10] = rotationXMat4Raw(-6.0 * c);
+}
+ */
+
+if (dogCrouchAmount > 0.001) {
+    var c = dogCrouchAmount;
+
+
+    // FRONT LEGS - versione più pulita/allineata
+
+    localOverrides[4] = rotationXMat4Raw(-50.0 * c);
+    localOverrides[3] = rotationXMat4Raw(100.0 * c);
+    localOverrides[2] = rotationXMat4Raw(-30.0 * c);
+
+    localOverrides[11] = rotationXMat4Raw(-50.0 * c);
+    localOverrides[10] = rotationXMat4Raw(100.0 * c);
+    localOverrides[9]  = rotationXMat4Raw(-30.0 * c);
+
+    localOverrides[1] = rotationXMat4Raw(0.0 * c);
+    localOverrides[8] = rotationXMat4Raw(0.0 * c);
+
+    localOverrides[0] = rotationXMat4Raw(0.0 * c);
+    localOverrides[7] = rotationXMat4Raw(0.0 * c);
+
+
+    // ---- HIND LEGS ----
+    // HIND LEGS
+    // sinistra
+    localOverrides[41] = rotationXMat4Raw(-68.0 * c);   // hip più indietro
+    localOverrides[40] = rotationXMat4Raw(10.0 * c);    // knee1 meno piegato
+    localOverrides[39] = rotationXMat4Raw(-4.0 * c);    // knee2 leggero
+    localOverrides[38] = rotationXMat4Raw(2.0 * c);     // ankle
+
+    // destra
+    localOverrides[47] = rotationXMat4Raw(-68.0 * c);
+    localOverrides[46] = rotationXMat4Raw(10.0 * c);
+    localOverrides[45] = rotationXMat4Raw(-4.0 * c);
+    localOverrides[44] = rotationXMat4Raw(2.0 * c); 
+
+
+    //spline
+    // SPINE
+    localOverrides[35] = rotationXMat4Raw(-16.0 * c);
+    localOverrides[34] = rotationXMat4Raw(-14.0 * c);
+    localOverrides[33] = rotationXMat4Raw(-12.0 * c);
+
+
+    // se esistono e se ti va di provarli
+     localOverrides[32] = rotationXMat4Raw(-8.0 * c);
+     localOverrides[31] = rotationXMat4Raw(-5.0 * c);
+
+
+                
+
+
+}
+
 
 var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
 
@@ -1182,31 +1258,6 @@ function createTextureFromGLBImage(gl, gltf, binary, imageIndex) {
 }
 
 
-function getSkinnedDogModelMatri0_oldx() {
-    var t = performance.now() * 0.001;
-
-    // Se vuoi camminata avanti/indietro globale
-    var walkMove = Math.sin(t * 1.2) * 0.35;
-
-    // Se vuoi piccolo bounce verticale, opzionale
-    var bodyBob = Math.abs(Math.sin(t * 3.0)) * 0.025;
-
-    var modelMatrix = mat4();
-
-    modelMatrix = mult(
-        modelMatrix,
-        translate(
-            dogFetchX + walkMove,
-            -2.48 + bodyBob,
-            dogFetchZ
-        )
-    );
-
-    modelMatrix = mult(modelMatrix, rotate(90.0, [0, 1, 0]));
-    modelMatrix = mult(modelMatrix, scalem(2.0, 2.0, 2.0));
-
-    return modelMatrix;
-}
 
 function getSkinnedDogModelMatrix() {
     var modelMatrix = mat4();
@@ -1242,6 +1293,7 @@ function getSkinnedDogModelMatrix() {
         angle = Math.atan2(dxLook, dzLook) * 180.0 / Math.PI;
     }
     dogCurrentAngle = angle;
+    var dogScale = 2.0;
 
     var holdBallBodyDown = 0.0;
 
@@ -1249,17 +1301,30 @@ function getSkinnedDogModelMatrix() {
         holdBallBodyDown = 0.08;
     }
 
-    modelMatrix = mult(
+   
+     /* modelMatrix = mult(
         modelMatrix,
         translate(
             dogFetchX,
-            -2.48 + bodyBob - holdBallBodyDown,
+            -2.48 + bodyBob - crouchBodyDown,
             dogFetchZ
         )
-    );
+    ) 
 
     modelMatrix = mult(modelMatrix, rotate(angle, [0, 1, 0]));
-    modelMatrix = mult(modelMatrix, scalem(2.0, 2.0,2.0));
+    modelMatrix = mult(modelMatrix, scalem(2.0, 2.0,2.0)); */ 
+
+    var crouchYOffset = 0.15 * dogCrouchAmount;
+
+   
+    modelMatrix = mult(
+        modelMatrix,
+        translate(dogFetchX, -2.48 + bodyBob + crouchYOffset, dogFetchZ)
+    );
+    modelMatrix = mult(modelMatrix, rotate(dogCurrentAngle, [0, 1, 0]));
+    modelMatrix = mult(modelMatrix, scalem(dogScale, dogScale, dogScale));
+
+    
 
     return modelMatrix;
 }

@@ -142,3 +142,12 @@ var dogFetchLoweringActive = false;
 var dogHasBall = false;
 var dogMouthPickTimer = 0.0;
 var dogCurrentAngle = 90.0;
+
+
+//dog crouching variables
+
+var dogCrouchAmount = 0.0;
+var dogCrouchActive = false;
+
+var dogLieDownAmount = 0.0;
+var dogLieDownActive = false;

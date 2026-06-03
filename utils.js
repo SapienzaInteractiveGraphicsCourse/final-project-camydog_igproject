@@ -48,6 +48,30 @@ function playBallThrowSound() {
     });
 }
 
+function updateWindSound(windValue) {
+    var windSound = document.getElementById("windSound");
+    if (!windSound) return;
+
+    var wind = parseFloat(windValue);
+
+    // cambia questo se il tuo slider ha max diverso
+    var maxWind = 0.5;
+
+    if (wind > 0.05) {
+        var volume = Math.min(wind / maxWind, 1.0);
+
+        windSound.volume = volume * 1.0; // volume massimo al 45%
+
+        if (windSound.paused) {
+            windSound.play().catch(function(error) {
+                console.log("Wind sound blocked:", error);
+            });
+        }
+    } else {
+        windSound.pause();
+        windSound.currentTime = 0;
+    }
+}
 
 // create sphere for light source
 function loadTexture(path) {
