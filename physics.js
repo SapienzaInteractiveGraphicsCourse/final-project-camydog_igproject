@@ -1032,10 +1032,15 @@ function getBallModelMatrix() {
         var forwardX = Math.sin(rad);
         var forwardZ = Math.cos(rad);
 
-        // Valori che hai calibrato tu
-        var mouthX = dogFetchX + forwardX * 1.10;
-        var mouthY = -1.50;
-        var mouthZ = dogFetchZ + forwardZ * 1.10;
+        var crouchBodyDown = 0.22 * dogCrouchAmount;
+
+        // Quando il cane è sdraiato, la bocca arretra e scende
+        var mouthForwardOffset = 1.10 - 0.28 * dogCrouchAmount;
+        var mouthDownOffset = 0.32 * dogCrouchAmount;
+
+        var mouthX = dogFetchX + forwardX * mouthForwardOffset;
+        var mouthY = -1.50 - crouchBodyDown - mouthDownOffset;
+        var mouthZ = dogFetchZ + forwardZ * mouthForwardOffset;
 
         modelMatrixBall = mult(
             modelMatrixBall,
@@ -1066,7 +1071,6 @@ function getBallModelMatrix() {
 
     return modelMatrixBall;
 }
-
 
 /*///////////////////////////////////////////////////
 * CLOTH PART
