@@ -1011,8 +1011,9 @@ function resetSkinnedDogBallInteraction() {
 }
 
 function resetSkinnedDogFetchState() {
-    dogHasBall = false;
+    /* dogHasBall = false;
     dogFetchBallMode = false;
+
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
 
@@ -1020,7 +1021,27 @@ function resetSkinnedDogFetchState() {
     dogPathIndex = 0;
     dogFetchTarget = null;
 
+    skinnedDogAlreadyTargeted = false; */
+    // Palla non più in bocca
+    dogHasBall = false;
+
+    // Movimento verso la palla
+    dogFetchBallMode = false;
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    // Lowering di collo e testa
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    // Posa sdraiata
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    // Permette al cane di essere inviato verso la nuova palla
     skinnedDogAlreadyTargeted = false;
+
 }
 
 function getBallModelMatrix() {
