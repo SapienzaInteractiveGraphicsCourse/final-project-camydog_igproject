@@ -306,6 +306,18 @@
         #ButtonMusic:hover {
             background-color: #7986CB;
         }
+        #ButtonCallDogMode {
+            background-color: #fe4305;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonCallDogMode:hover {
+            background-color: #f27045;
+        }
         
 
 body {
