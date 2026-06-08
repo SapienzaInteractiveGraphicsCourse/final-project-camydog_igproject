@@ -151,3 +151,4 @@ var dogCrouchActive = false;
 
 var dogLieDownAmount = 0.0;
 var dogLieDownActive = false;
+var callDogClickMode = false;

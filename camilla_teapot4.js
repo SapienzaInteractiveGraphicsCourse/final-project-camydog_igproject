@@ -746,6 +746,26 @@ onload = async function init() {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
+    // button for calling dog mode
+    var callDogButton = document.getElementById("ButtonCallDogMode");
+
+    
+
+    
+
+    callDogButton.onclick = function () {
+        callDogClickMode = !callDogClickMode;
+
+        // Blocca qualsiasi trascinamento rimasto attivo
+        isDraggingCamera = false;
+
+        this.textContent = callDogClickMode
+            ? "Call Dog: ON"
+            : "Call Dog: OFF";
+
+        updateCanvasCursor();
+    };
+
     //park or home mode
     document.getElementById("ButtonGoOut").onclick = function () {
         currentScene = "park";
@@ -1003,16 +1023,29 @@ onload = async function init() {
     updateOrbitCameraFromSliders();
 
    canvas.addEventListener("mousedown", function(event) {
+        // In modalità Call Dog non iniziare la rotazione
+        if (callDogClickMode) {
+            return;
+        }
+
         isDraggingCamera = true;
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
+
+        updateCanvasCursor();
     });
 
     window.addEventListener("mouseup", function() {
         isDraggingCamera = false;
+        updateCanvasCursor();
     });
 
     window.addEventListener("mousemove", function(event) {
+        
+         if (callDogClickMode) {
+             updateCanvasCursor();
+            return;
+        }
         if (!isDraggingCamera) {
             return;
         }

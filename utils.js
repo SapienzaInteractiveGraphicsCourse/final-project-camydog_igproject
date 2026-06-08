@@ -73,6 +73,16 @@ function updateWindSound(windValue) {
     }
 }
 
+function updateCanvasCursor() {
+    if (callDogClickMode) {
+        canvas.style.cursor = "url('icons/hand_1.png') 12 4, pointer";
+    } else if (isDraggingCamera) {
+        canvas.style.cursor = "grabbing";
+    } else {
+        canvas.style.cursor = "grab";
+    }
+}
+
 // create sphere for light source
 function loadTexture(path) {
     let tex = gl.createTexture();
