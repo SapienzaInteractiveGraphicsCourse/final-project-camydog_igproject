@@ -67,6 +67,32 @@ var tableAOTexture = null;
 //ball specific variables
 var ballMtlTexture = null;
 
+// Camera variables
+var camAngle = 0.0;
+var camPitch = 0.0;
+var camRadius = 8.0;
+
+var cameraTarget =  vec3(0.0, 0.5, 0.0);
+var cameraFov = 80.0;
+var cameraAngle = 35.0;
+var cameraHeight = 4.0;
+var cameraDistance = 10.0;   // questo è lo zoom
+
+
+var cameraAngleSlider ;
+var cameraHeightSlider;
+var cameraDistanceSlider ;
+
+var cameraAngleValue ;
+var cameraHeightValue ;
+var cameraDistanceValue ;
+
+
+var at = vec3(0.0, 0.5, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
+var eye = vec3(0.0, 4.0, 10.0);
+var aspect;
+
 //curtain variables
 var CURTAIN_ROWS = 28;
 var CURTAIN_COLS = 24;
@@ -152,3 +178,18 @@ var dogCrouchActive = false;
 var dogLieDownAmount = 0.0;
 var dogLieDownActive = false;
 var callDogClickMode = false;
+
+var dogCallMode = false;
+var dogCallPath = [];
+var dogCallPathIndex = 0;
+
+
+var dogIsWalking =
+    (dogFetchBallMode || dogCallMode) &&
+    !dogCrouchActive;
+    
+
+//heart variables
+var showDogHeart = false;
+var dogHeartTimer = 0.0;
+var dogHeartDuration = 2.0;

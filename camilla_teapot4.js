@@ -40,30 +40,7 @@ var tx = 0.0;
 var ty = 0.0;
 var tz = 0.0;
 
-var camAngle = 0.0;
-var camPitch = 0.0;
-var camRadius = 8.0;
 
-var cameraTarget =  vec3(0.0, 0.5, 0.0);
-var cameraFov = 80.0;
-var cameraAngle = 35.0;
-var cameraHeight = 4.0;
-var cameraDistance = 10.0;   // questo è lo zoom
-
-
-var cameraAngleSlider ;
-var cameraHeightSlider;
-var cameraDistanceSlider ;
-
-var cameraAngleValue ;
-var cameraHeightValue ;
-var cameraDistanceValue ;
-
-
-var at = vec3(0.0, 0.5, 0.0);
-var up = vec3(0.0, 1.0, 0.0);
-var eye = vec3(0.0, 4.0, 10.0);
-var aspect;
 
 
 // ===============Cloth variables================
@@ -1021,6 +998,18 @@ onload = async function init() {
     cameraDistanceSlider.oninput = updateOrbitCameraFromSliders;
 
     updateOrbitCameraFromSliders();
+
+
+    canvas.addEventListener("click", function(event) {
+        if (!callDogClickMode) {
+            return;
+        }
+
+        callSkinnedDogToCamera();
+
+        // La modalità resta ON, quindi la manina resta visibile
+        updateCanvasCursor();
+    });
 
    canvas.addEventListener("mousedown", function(event) {
         // In modalità Call Dog non iniziare la rotazione

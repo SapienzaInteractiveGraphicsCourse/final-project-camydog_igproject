@@ -49,6 +49,16 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             updateSkinnedDogFetchBall(deltaTime);
         }
 
+        if (showDogHeart) {
+            dogHeartTimer += deltaTime;
+
+            if (dogHeartTimer >= dogHeartDuration) {
+                showDogHeart = false;
+            }
+        }
+
+        updateSkinnedDogCall(deltaTime);
+
         if (curtain) {
             curtain.updateMesh();
         }

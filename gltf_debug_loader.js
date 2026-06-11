@@ -1160,15 +1160,26 @@ function getSkinnedDogModelMatrix() {
     var lookX = dogFetchX;
     var lookZ = dogFetchZ;
 
-    if (dogFetchBallMode && dogFetchTarget) {
+    if ((dogFetchBallMode || dogCallMode) && dogFetchTarget) {
         // mentre cammina guarda il waypoint
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
-    } else {
+    } 
+    /* else {
         // quando è arrivato guarda la palla vera
         lookX = dogLookAtBallX;
         lookZ = dogLookAtBallZ;
-    }
+    } */
+    else if (dogFetchTarget) {
+        // quando è arrivato, conserva il target finale
+        // per esempio la posizione della camera
+        lookX = dogFetchTarget.x;
+        lookZ = dogFetchTarget.z;
+    } else {
+        // fallback: guarda la palla
+        lookX = dogLookAtBallX;
+        lookZ = dogLookAtBallZ;
+}
 
     var dxLook = lookX - dogFetchX;
     var dzLook = lookZ - dogFetchZ;
