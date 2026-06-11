@@ -76,10 +76,10 @@ function updateWindSound(windValue) {
 function updateCanvasCursor() {
     if (callDogClickMode) {
         canvas.style.cursor = "url('icons/hand_1.png') 12 4, pointer";
-    } else if (isDraggingCamera) {
-        canvas.style.cursor = "grabbing";
-    } else {
-        canvas.style.cursor = "grab";
+    }  else if (isDraggingCamera) {
+        canvas.style.cursor = "move";
+    }  else {
+        canvas.style.cursor = "move";
     }
 }
 

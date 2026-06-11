@@ -1165,11 +1165,7 @@ function getSkinnedDogModelMatrix() {
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
     } 
-    /* else {
-        // quando è arrivato guarda la palla vera
-        lookX = dogLookAtBallX;
-        lookZ = dogLookAtBallZ;
-    } */
+    
     else if (dogFetchTarget) {
         // quando è arrivato, conserva il target finale
         // per esempio la posizione della camera
@@ -1196,20 +1192,6 @@ function getSkinnedDogModelMatrix() {
         holdBallBodyDown = 0.08;
     }
 
-   
-     /* modelMatrix = mult(
-        modelMatrix,
-        translate(
-            dogFetchX,
-            -2.48 + bodyBob - crouchBodyDown,
-            dogFetchZ
-        )
-    ) 
-
-    modelMatrix = mult(modelMatrix, rotate(angle, [0, 1, 0]));
-    modelMatrix = mult(modelMatrix, scalem(2.0, 2.0,2.0)); */ 
-
-    //var crouchYOffset = 0.15 * dogCrouchAmount;
 
     var crouchBodyDown = 0.55 * dogCrouchAmount;
 

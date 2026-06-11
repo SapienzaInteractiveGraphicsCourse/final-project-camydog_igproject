@@ -110,6 +110,10 @@ var rightWallWindowBuffers;
 var ballBuffers = null;
 var ballTexture = null;
 
+//heart buffers
+var heartBuffers = null;
+
+
 //skybox
 var skyboxProgram;
 var skyboxBuffer;
@@ -297,6 +301,13 @@ onload = async function init() {
     var startButton = document.getElementById("ButtonStartGame");
     var startScreen = document.getElementById("startScreen");
 
+
+    //initialization for cursor
+    callDogClickMode = false;
+    isDraggingCamera = false;
+
+    updateCanvasCursor();
+
     if (!ENABLE_START_SCREEN) {
         document.body.classList.remove("game-not-started");
 
@@ -363,6 +374,7 @@ onload = async function init() {
     corniceTexture = loadTexture(path_img_cornice);
     ballTexture = loadTexture(path_img_ball);
     curtainTexture = loadTexture(path_img_curtain);
+    heartTexture = loadTexture(path_img_heart);
 
     tableColorTexture = loadTexture("./table_obj/table_color.jpg");
     tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
@@ -379,6 +391,17 @@ onload = async function init() {
         lightSphere.normals,
         lightSphere.texCoords
     );
+
+    //carico heart
+     await loadOBJ(modelPath_heart);
+    console.log("OBJ Heart loaded");
+    var heartPoints = pointsArray.slice();
+    var heartNormals = normalsArray.slice();
+    var heartTex = texCoordsArray.slice();
+    heartBuffers = createBuffers(heartPoints, heartNormals, heartTex);
+    if (heartBuffers)  {
+        console.log("Heart buffers created successfully"); 
+    }
 
     //carico teapot
     await loadOBJ(modelPath_teapot);
@@ -769,8 +792,12 @@ onload = async function init() {
         if (miniGameActive) {
                 this.textContent = "Stop Ball ";
 
+                setTimeout(function () {
+                    showDogHeart = false;
+                    dogHeartTimer = 0.0;
+                },2000);
+
                 //to reset ball
-                //resetSkinnedDogBallInteraction();
                 resetSkinnedDogFetchState();   
 
 

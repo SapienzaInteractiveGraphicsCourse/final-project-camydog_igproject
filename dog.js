@@ -127,28 +127,43 @@ function updateSkinnedDogCall(deltaTime) {
     }
 }
 
+
 function getDogHeartModelMatrix() {
     var heartMatrix = mat4();
+    var heart_scale=0.25
 
-    var heartY = -0.30;
+    var t = performance.now() * 0.001;
+    var floatOffset = Math.sin(t * 4.0) * 0.08;
+    var pulse = 1.0 + Math.sin(t * 7.0) * 0.08;
+
+    var rad = dogCurrentAngle * Math.PI / 180.0;
+
+    var forwardX = Math.sin(rad);
+    var forwardZ = Math.cos(rad);
+
+    var heartX = dogFetchX + forwardX * 0.65;
+    var heartY = -0.15 + floatOffset;
+    var heartZ = dogFetchZ + forwardZ * 0.65;
 
     heartMatrix = mult(
         heartMatrix,
-        translate(
-            dogFetchX,
-            heartY,
-            dogFetchZ
-        )
+        translate(heartX, heartY, heartZ)
     );
 
-    var pulse = 1.0 + Math.sin(performance.now() * 0.01) * 0.10;
+    
+
+    // corregge il cuore capovolto
+    heartMatrix = mult(
+        heartMatrix,
+        rotate(270.0, [1, 0, 0])
+    );
 
     heartMatrix = mult(
         heartMatrix,
         scalem(
-            0.35 * pulse,
-            0.35 * pulse,
-            0.35 * pulse
+            heart_scale * pulse,
+            heart_scale * pulse,
+            heart_scale * pulse
         )
     );
 

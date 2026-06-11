@@ -7,6 +7,25 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     //startBackgroundMusic();
 
+    if (showDogHeart) {
+            dogHeartTimer += deltaTime;
+
+            if (dogHeartTimer >= dogHeartDuration) {
+                showDogHeart = false;
+            }
+    } 
+    if (hideDogHeartPending) {
+    hideDogHeartTimer += deltaTime;
+
+    if (hideDogHeartTimer >= hideDogHeartDelay) {
+        showDogHeart = false;
+        dogHeartTimer = 0.0;
+
+        hideDogHeartPending = false;
+        hideDogHeartTimer = 0.0;
+    }
+    }
+
     if (flag_rot_teapot) {
         theta[axis] += rotationSpeed_teapot;
     }
@@ -37,6 +56,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         
 
         if (miniGameActive) {
+            
             updateBallBounceAnimation();
             
             //temporarly disable dog chasing ball to test ball bounce animation
@@ -49,20 +69,22 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             updateSkinnedDogFetchBall(deltaTime);
         }
 
-        if (showDogHeart) {
-            dogHeartTimer += deltaTime;
+        
 
-            if (dogHeartTimer >= dogHeartDuration) {
-                showDogHeart = false;
-            }
-        }
+        
 
         updateSkinnedDogCall(deltaTime);
+
+
+        
 
         if (curtain) {
             curtain.updateMesh();
         }
     }
+
+
+   
     
     
     var catZ = catBasePos[2];
@@ -112,6 +134,38 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         dogX = dogCurrentX;
         dogZ = dogCurrentZ;
     }
+
+
+   /*  if (showDogHeart && heartBuffers) {
+        var heartMatrix = mat4();
+        console.log("heartMatrix:", heartMatrix);
+
+        heartMatrix = mult(
+            heartMatrix,
+            translate(
+                dogFetchX,
+                -0.20,
+                dogFetchZ
+            )
+        );
+
+        heartMatrix = mult(
+            heartMatrix,
+            scalem(1.0, 1.0, 1.0)
+        );
+
+        drawObject(
+            heartBuffers,
+            ballTexture, // temporaneamente, solo per vedere il modello
+            heartMatrix,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+    } */
 
     var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 
@@ -487,42 +541,24 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     drawSkinnedDog(viewMatrix, projectionMatrix);
 
 
-
-
-     //ball mini-game render
-   /* if (ballVisible && ballBody) {
-        /* var modelMatrixBall = mat4();
-
-        modelMatrixBall = mult(
-            modelMatrixBall,
-            translate(
-                ballBody.position.x,
-                ballBody.position.y ,
-                ballBody.position.z
-            )
-        );
-
-        modelMatrixBall = mult(
-            modelMatrixBall,
-            scalem(ballRadius, ballRadius, ballRadius)
-        );
+    if (showDogHeart && heartBuffers) {
+        var heartMatrix = getDogHeartModelMatrix();
 
         drawObject(
-            ballBuffers,   // usa il buffer della sfera che già hai
-            ballTexture,
-            modelMatrixBall,
+            heartBuffers,
+            heartTexture, // temporaneamente, solo per vedere il modello
+            heartMatrix,
             viewMatrix,
             projectionMatrix,
-            true,  
-            false,  
-            false,   
-            true, 
-            0       // wallShadowMode
-        ); 
-               
-      
+            true,
+            false,
+            false,
+            false
+        );
+    }
 
-    } */
+    
+    
     if ((ballVisible || dogHasBall) && ballBody) {
         var modelMatrixBall = getBallModelMatrix();
         /* if (dogHasBall) {
