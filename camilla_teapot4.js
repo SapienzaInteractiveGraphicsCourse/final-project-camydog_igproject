@@ -1032,6 +1032,7 @@ onload = async function init() {
             return;
         }
 
+        playDogBarkSound();
         callSkinnedDogToCamera();
 
         // La modalità resta ON, quindi la manina resta visibile

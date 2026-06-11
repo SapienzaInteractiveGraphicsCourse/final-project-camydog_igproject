@@ -73,6 +73,26 @@ function updateWindSound(windValue) {
     }
 }
 
+function playDogBarkSound() {
+    var barkSound = document.getElementById("dogBarkSound");
+
+    if (!barkSound) {
+        console.warn("dogBarkSound not found");
+        return;
+    }
+
+    // Permette di riprodurlo da capo a ogni nuova chiamata
+    barkSound.pause();
+    barkSound.currentTime = 0;
+    barkSound.volume = 0.8;
+
+    barkSound.play().catch(function(error) {
+        console.log("Dog bark sound could not be played:", error);
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 function updateCanvasCursor() {
     if (callDogClickMode) {
         canvas.style.cursor = "url('icons/hand_1.png') 12 4, pointer";
