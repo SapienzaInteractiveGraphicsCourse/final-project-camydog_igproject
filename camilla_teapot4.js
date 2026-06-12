@@ -43,6 +43,9 @@ var tz = 0.0;
 
 
 
+
+
+
 // ===============Cloth variables================
 
 var curtain = null;
@@ -749,20 +752,23 @@ onload = async function init() {
     //button for petting the dog
     var petDogButton = document.getElementById("ButtonPetDogMode");
 
-    petDogButton.onclick = function () {
+   petDogButton.onclick = function () {
         petDogMode = !petDogMode;
 
-        // Le due modalità non devono essere attive insieme
         if (petDogMode) {
+            // Spegne Call Dog
             callDogClickMode = false;
             callDogButton.textContent = "Call Dog: OFF";
+        } else {
+            dogPetTargetYaw = 0.0;
+            dogPetTargetPitch = 0.0;
         }
+
+        isDraggingCamera = false;
 
         this.textContent = petDogMode
             ? "Pet Dog: ON"
             : "Pet Dog: OFF";
-
-        isDraggingCamera = false;
 
         updateCanvasCursor();
     };
@@ -1134,7 +1140,84 @@ onload = async function init() {
             cameraFov = 120.0;
         }
     });
+   /* canvas.addEventListener("mousemove", function(event) {
+        if (!petDogMode) return;
 
+        var rect = canvas.getBoundingClientRect();
+
+        var mouseX =
+            ((event.clientX - rect.left) / rect.width) * 2.0 - 1.0;
+
+        var mouseY =
+            1.0 - ((event.clientY - rect.top) / rect.height) * 2.0;
+        
+        dogPetHeadYaw = mouseX * 30.0;
+        dogPetHeadPitch = mouseY * 15.0;
+
+        console.log("PET:", dogPetHeadYaw, dogPetHeadPitch);
+    });
+ */
+
+    canvas.addEventListener("mousemove", function(event) {
+        if (!petDogMode) {
+            return;
+        }
+
+        var rect = canvas.getBoundingClientRect();
+
+        var mouseXCanvas =
+            (event.clientX - rect.left) * canvas.width / rect.width;
+
+        var mouseYCanvas =
+            (event.clientY - rect.top) * canvas.height / rect.height;
+
+        // Punto approssimativo sopra la testa del cane
+        var rad = dogCurrentAngle * Math.PI / 180.0;
+
+        var forwardX = Math.sin(rad);
+        var forwardZ = Math.cos(rad);
+
+        var headWorldPos = vec3(
+            dogFetchX + forwardX * 0.75,
+            -0.45,
+            dogFetchZ + forwardZ * 0.75
+        );
+
+        var headScreenPos = worldToScreen(
+            headWorldPos,
+            viewMatrix,
+            projectionMatrix,
+            canvas
+        );
+
+        if (!headScreenPos) {
+            return;
+        }
+
+        var dx = mouseXCanvas - headScreenPos.x;
+        var dy = mouseYCanvas - headScreenPos.y;
+
+        var distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Raggio della zona in cui il cane percepisce la carezza
+        var petRadius = 160.0;
+
+        if (distance > petRadius) {
+            dogPetHeadYaw = 0.0;
+            dogPetHeadPitch = 0.0;
+            return;
+        }
+
+        // Coordinate relative alla testa, tra circa -1 e +1
+        var localMouseX = dx / petRadius;
+        var localMouseY = -dy / petRadius;
+
+        dogPetHeadYaw = localMouseX * 30.0;
+        dogPetHeadPitch = localMouseY * 12.0;
+
+        showDogHeart = true;
+        dogHeartTimer = 0.0;
+    });
     render();
 };
 
@@ -1423,8 +1506,8 @@ function render() {
 
    
 
-    var viewMatrix = lookAt(eye, at, up);
-    var projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
+     viewMatrix = lookAt(eye, at, up);
+    projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 
 
     if (currentScene === "home") {

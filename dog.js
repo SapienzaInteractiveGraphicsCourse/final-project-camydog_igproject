@@ -169,3 +169,18 @@ function getDogHeartModelMatrix() {
 
     return heartMatrix;
 }
+
+// modalità carezza al cane
+function updateDogPetAnimation(deltaTime) {
+    var targetYaw = petDogMode ? dogPetTargetYaw : 0.0;
+    var targetPitch = petDogMode ? dogPetTargetPitch : 0.0;
+
+    var smoothing = 7.0;
+    var factor = Math.min(deltaTime * smoothing, 1.0);
+
+    dogPetHeadYaw +=
+        (targetYaw - dogPetHeadYaw) * factor;
+
+    dogPetHeadPitch +=
+        (targetPitch - dogPetHeadPitch) * factor;
+}

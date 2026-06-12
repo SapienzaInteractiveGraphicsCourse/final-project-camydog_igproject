@@ -74,6 +74,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         
 
         updateSkinnedDogCall(deltaTime);
+        updateDogPetAnimation(deltaTime);
 
 
         

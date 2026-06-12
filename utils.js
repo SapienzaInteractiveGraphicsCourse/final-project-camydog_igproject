@@ -1350,3 +1350,22 @@ function getNumComponents(type) {
 
     throw new Error("Unsupported accessor type: " + type);
 }
+
+
+function worldToScreen(worldPos, viewMatrix, projectionMatrix, canvas) {
+    var p = vec4(worldPos[0], worldPos[1], worldPos[2], 1.0);
+
+    var clip = mult(projectionMatrix, mult(viewMatrix, p));
+
+    if (Math.abs(clip[3]) < 0.0001) {
+        return null;
+    }
+
+    var ndcX = clip[0] / clip[3];
+    var ndcY = clip[1] / clip[3];
+
+    return {
+        x: (ndcX * 0.5 + 0.5) * canvas.width,
+        y: (1.0 - (ndcY * 0.5 + 0.5)) * canvas.height
+    };
+}

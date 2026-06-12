@@ -1131,11 +1131,18 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         localOverrides[32] = rotationXMat4Raw(-8.0 * c);
         localOverrides[31] = rotationXMat4Raw(-5.0 * c);
 
+    }
+    if (petDogMode) {
+      
+       
+    localOverrides[30] =
+        rotationZMat4Raw(-dogPetHeadYaw * 0.60);
 
-                    
+    localOverrides[28] =
+        rotationZMat4Raw(-dogPetHeadYaw * 0.40);
 
-
-
+    localOverrides[27] =
+        rotationZMat4Raw(-dogPetHeadYaw * 0.25);
 
     }
 

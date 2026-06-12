@@ -97,6 +97,9 @@ var cameraDistanceValue ;
 var at = vec3(0.0, 0.5, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 var eye = vec3(0.0, 4.0, 10.0);
+
+var viewMatrix = lookAt(eye, at, up);
+var projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 var aspect;
 
 //curtain variables
