@@ -57,4 +57,3 @@ FPS shown on the canvas
 # Rigged Dog
 
 ## Walk Mode
-Dovrei scomporre ancora il cane perchè così non va bene.... magari suddividere le zampe posteriori
