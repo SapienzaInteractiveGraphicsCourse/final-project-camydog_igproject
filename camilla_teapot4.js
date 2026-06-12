@@ -746,12 +746,29 @@ onload = async function init() {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
+    //button for petting the dog
+    var petDogButton = document.getElementById("ButtonPetDogMode");
+
+    petDogButton.onclick = function () {
+        petDogMode = !petDogMode;
+
+        // Le due modalità non devono essere attive insieme
+        if (petDogMode) {
+            callDogClickMode = false;
+            callDogButton.textContent = "Call Dog: OFF";
+        }
+
+        this.textContent = petDogMode
+            ? "Pet Dog: ON"
+            : "Pet Dog: OFF";
+
+        isDraggingCamera = false;
+
+        updateCanvasCursor();
+    };
+
     // button for calling dog mode
     var callDogButton = document.getElementById("ButtonCallDogMode");
-
-    
-
-    
 
     callDogButton.onclick = function () {
         callDogClickMode = !callDogClickMode;
@@ -1101,31 +1118,7 @@ onload = async function init() {
         updateOrbitCameraFromSliders();
     });
 
-    /* canvas.addEventListener("wheel", function(event) {
-    event.preventDefault();
 
-    cameraDistance += event.deltaY * 0.01;
-
-    if (cameraDistance < 3.0) {
-        cameraDistance = 3.0;
-    }
-
-    if (cameraDistance > 25.0) {
-        cameraDistance = 25.0;
-    }
-
-    document.getElementById("CameraDistance").value = cameraDistance;
-    document.getElementById("CameraDistanceValue").innerHTML = cameraDistance.toFixed(1);
-
-    var rad = radians(cameraAngle);
-
-    eye = vec3(
-        cameraDistance * Math.sin(rad),
-        cameraHeight,
-        cameraDistance * Math.cos(rad)
-    );
-    });
- */
 
     canvas.addEventListener("wheel", function(event) {
         event.preventDefault();

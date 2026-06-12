@@ -202,3 +202,15 @@ var dogHeartDuration = 2.0;
 var hideDogHeartPending = false;
 var hideDogHeartTimer = 0.0;
 var hideDogHeartDelay = 1.5;
+
+// caress to dog variables
+var petDogMode = false;
+
+var dogPetHeadYaw = 0.0;
+var dogPetHeadPitch = 0.0;
+
+var dogPetTargetYaw = 0.0;
+var dogPetTargetPitch = 0.0;
+
+var lastPetMouseX = 0.0;
+var lastPetMouseY = 0.0;

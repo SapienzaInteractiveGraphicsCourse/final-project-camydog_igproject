@@ -94,14 +94,17 @@ function playDogBarkSound() {
 ////////////////////////////////////////////////////////////////////////////////////////
 
 function updateCanvasCursor() {
-    if (callDogClickMode) {
-        canvas.style.cursor = "url('icons/hand_1.png') 12 4, pointer";
-    }  else if (isDraggingCamera) {
-        canvas.style.cursor = "move";
-    }  else {
+    if (petDogMode) {
+        canvas.style.cursor =
+            "url('icons/wave.png') 16 6, pointer";
+    } else if (callDogClickMode) {
+        canvas.style.cursor =
+            "url('icons/hand_1.png') 12 4, pointer";
+    } else {
         canvas.style.cursor = "move";
     }
 }
+//////////////////////
 
 // create sphere for light source
 function loadTexture(path) {
