@@ -318,6 +318,18 @@
         #ButtonCallDogMode:hover {
             background-color: #f27045;
         }
+        #ButtonPetDogMode {
+            background-color: #6D4C41;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #ButtonPetDogMode:hover {
+            background-color: #A1887F;
+        }
         
 
 body {
