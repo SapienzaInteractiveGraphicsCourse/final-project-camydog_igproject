@@ -752,26 +752,64 @@ onload = async function init() {
     //button for petting the dog
     var petDogButton = document.getElementById("ButtonPetDogMode");
 
-   petDogButton.onclick = function () {
+    /* petDogButton.onclick = function () {
         petDogMode = !petDogMode;
 
+        var breathSound = document.getElementById("dogBreathSound");
+
         if (petDogMode) {
-            // Spegne Call Dog
             callDogClickMode = false;
             callDogButton.textContent = "Call Dog: OFF";
-        } else {
-            dogPetTargetYaw = 0.0;
-            dogPetTargetPitch = 0.0;
-        }
 
-        isDraggingCamera = false;
+            // Sblocca l'audio tramite il click dell'utente
+            if (breathSound) {
+                breathSound.volume = 0.8;
+
+                breathSound.play()
+                    .then(function () {
+                        breathSound.pause();
+                        breathSound.currentTime = 0;
+                        console.log("Dog breath audio unlocked");
+                    })
+                    .catch(function (error) {
+                        console.log("Audio unlock error:", error);
+                    });
+            }
+        } else {
+            dogPetHeadYaw = 0.0;
+            dogPetHeadPitch = 0.0;
+
+            stopDogBreathSound();
+        }
 
         this.textContent = petDogMode
             ? "Pet Dog: ON"
             : "Pet Dog: OFF";
 
+        isDraggingCamera = false;
         updateCanvasCursor();
-    };
+    }; */
+    petDogButton.onclick = function () {
+    petDogMode = !petDogMode;
+
+    if (petDogMode) {
+        callDogClickMode = false;
+        callDogButton.textContent = "Call Dog: OFF";
+    } else {
+        dogPetHeadYaw = 0.0;
+        dogPetHeadPitch = 0.0;
+
+        dogBreathSound.pause();
+        dogBreathSound.currentTime = 0;
+    }
+
+    this.textContent = petDogMode
+        ? "Pet Dog: ON"
+        : "Pet Dog: OFF";
+
+    isDraggingCamera = false;
+    updateCanvasCursor();
+};
 
     // button for calling dog mode
     var callDogButton = document.getElementById("ButtonCallDogMode");
@@ -1200,15 +1238,27 @@ onload = async function init() {
         var distance = Math.sqrt(dx * dx + dy * dy);
 
         // Raggio della zona in cui il cane percepisce la carezza
-        var petRadius = 160.0;
+        var petRadius = 180.0;
 
         if (distance > petRadius) {
             dogPetHeadYaw = 0.0;
             dogPetHeadPitch = 0.0;
+
+            if (!dogBreathSound.paused) {
+                dogBreathSound.pause();
+                dogBreathSound.currentTime = 0;
+            }
+
             return;
         }
 
-        // Coordinate relative alla testa, tra circa -1 e +1
+        // La mano è vicina alla testa
+        if (dogBreathSound.paused) {
+            dogBreathSound.play().catch(function(error) {
+                console.log("Dog breath error:", error);
+            });
+        }
+
         var localMouseX = dx / petRadius;
         var localMouseY = -dy / petRadius;
 
@@ -1217,6 +1267,15 @@ onload = async function init() {
 
         showDogHeart = true;
         dogHeartTimer = 0.0;
+    });
+
+
+    canvas.addEventListener("mouseleave", function () {
+        dogPetHeadYaw = 0.0;
+        dogPetHeadPitch = 0.0;
+
+        dogBreathSound.pause();
+        dogBreathSound.currentTime = 0;
     });
     render();
 };
