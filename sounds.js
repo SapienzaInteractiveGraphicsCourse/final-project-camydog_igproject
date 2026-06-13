@@ -2,7 +2,7 @@ function startBackgroundMusic() {
     var music = document.getElementById("backgroundMusic");
     if (!music) return;
 
-    music.volume = 0.25;
+    music.volume = 0.01;
 
     music.play().catch(function(error) {
         console.log("Music play blocked:", error);
@@ -40,7 +40,7 @@ function playBallThrowSound() {
     if (!sound) return;
 
     sound.currentTime = 0;
-    sound.volume = 0.3;
+    sound.volume = 1.0;
 
     sound.play().catch(function(error) {
         console.log("Ball throw sound blocked:", error);

@@ -116,6 +116,9 @@ var ballTexture = null;
 //heart buffers
 var heartBuffers = null;
 
+//musicNote buffers
+var musicNoteBuffers = null;
+
 
 //skybox
 var skyboxProgram;
@@ -382,6 +385,7 @@ onload = async function init() {
     tableColorTexture = loadTexture("./table_obj/table_color.jpg");
     tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
     tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
+    musicNoteTexture = loadTexture(path_img_musicNote);
     
 
     
@@ -402,8 +406,19 @@ onload = async function init() {
     var heartNormals = normalsArray.slice();
     var heartTex = texCoordsArray.slice();
     heartBuffers = createBuffers(heartPoints, heartNormals, heartTex);
-    if (heartBuffers)  {
-        console.log("Heart buffers created successfully"); 
+    if (!heartBuffers)  {
+        console.log("Heart buffers not created successfully"); 
+    }
+
+    //loading musicNote
+    await loadOBJ(modelPath_musicNote);
+    console.log("OBJ Music Note loaded");
+    var musicNotePoints = pointsArray.slice();
+    var musicNoteNormals = normalsArray.slice();
+    var musicNoteTex = texCoordsArray.slice();
+    musicNoteBuffers = createBuffers(musicNotePoints, musicNoteNormals, musicNoteTex);
+    if (!musicNoteBuffers)  {
+        console.log("Music Note buffers not created successfully"); 
     }
 
     //carico teapot
@@ -414,7 +429,9 @@ onload = async function init() {
     var teapotNormals = normalsArray.slice();
     var teapotTex = texCoordsArray.slice();
     teapotBuffers = createBuffers(teapotPoints, teapotNormals, teapotTex);
-
+    if (!teapotBuffers)  {
+        console.log("Teapot buffers not created successfully");
+    }
 
     //carico parte del tavolo 
     await loadOBJ(modelPath_table);

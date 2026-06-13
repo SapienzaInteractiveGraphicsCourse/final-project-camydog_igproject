@@ -557,6 +557,49 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false
         );
     }
+    if (showDogMusicNote && musicNoteBuffers) {
+       
+        var noteMatrix1 = getDogNoteModelMatrix(0);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix1,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+
+        var noteMatrix2 = getDogNoteModelMatrix(1);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix2,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+
+        var noteMatrix3 = getDogNoteModelMatrix(2);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix3,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+    }
+
+
 
     
     

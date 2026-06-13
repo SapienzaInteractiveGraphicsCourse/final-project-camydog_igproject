@@ -15,6 +15,7 @@ var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./ball_color/ball.obj";
 var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
 var modelPath_heart= "./Objects/heart/heart.obj";
+var modelPath_musicNote= "./Objects/music_note_1.obj";
 
 //path folder rigged dog
 var pathFolderRiggedDog = "./Objects/dog_separated_model/";
@@ -33,6 +34,7 @@ var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
 var path_img_curtain = "./Textures/curtain_tex.png";
+var path_img_musicNote = "./Textures/hot_pink.jpg";
 
 
 //texture variables
@@ -55,6 +57,7 @@ var corniceTexture;
 var ballTexture;
 var riggedDogTexture;
 var heartTexture = null;
+var musicNoteTexture;
 
 
 //table specific  variables
@@ -218,3 +221,6 @@ var dogPetTargetPitch = 0.0;
 var lastPetMouseX = 0.0;
 var lastPetMouseY = 0.0;
 var dogBreathSound = new Audio("sounds/dog_breath.mp3");
+
+// musicNote variables
+var showDogMusicNote = false;

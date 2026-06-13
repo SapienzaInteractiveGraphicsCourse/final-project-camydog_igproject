@@ -482,6 +482,8 @@ function startBallMiniGame() {
 
 function stopBallMiniGame() {
     ballVisible = false;
+    showDogMusicNote = false;
+
 
     if (!ballBody) return;
 
@@ -809,6 +811,9 @@ function checkBallStoppedAndSendDog(deltaTime) {
 function startSkinnedDogFetchBall() {
     if (!ballBody) return;
 
+
+    showDogMusicNote = true;
+
     // RESET stato precedente del cane
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
@@ -877,6 +882,8 @@ function updateSkinnedDogFetchBall(deltaTime) {
         if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
             dogHasBall = true;
             //crouching starts
+            showDogMusicNote = false;
+
             dogCrouchActive = true;
             
             ballVisible = true;
