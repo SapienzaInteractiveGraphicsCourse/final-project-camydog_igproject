@@ -6,6 +6,10 @@ Sto aggiungendo la shadow map con 6 direzioni (?)
 
 - Problema che se la luce è dietro alle pareti comunque si vede :c
 
+# Slides for exam
+https://canva.link/6hl5piamvf281bk
+
+# Manuale (???????)
 
 Funzioni complicate 
 
