@@ -48,6 +48,22 @@
                     
                     <button id="ButtonTex">Disable Textures</button>
                     <button id="ButtonMusic">Music:OFF</button>
+
+                        <div class="control-row">
+                            <label for="MusicVolume">Music volume:</label>
+
+                            <input
+                                id="MusicVolume"
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value="0.60"
+                            >
+
+                            <span id="MusicVolumeValue">60%</span>
+                        </div>
+                        
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
                     <button id="ButtonDogMove">Toggle Dog Walk</button>
                     <button id="ButtonLightDir">Show Light Direction</button>
@@ -310,7 +326,6 @@ uniform mat3 modelNormalMatrix;
 uniform bool twoSided;
 
 
-
 uniform mat4 viewMatrix;
 
 uniform mat4 modelMatrix;
@@ -418,8 +433,9 @@ varying vec3 fWorldPos;
 
 uniform mediump vec4 lightPosition;
 
-uniform int wallShadowMode;
+uniform highp int wallShadowMode;
 
+uniform vec4 ambientProduct;
 
 int choosePointShadowFace(vec3 dir)
 {
@@ -478,7 +494,17 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
 
     // bias piccolo sulle superfici frontali, più alto sugli angoli radenti
-    float bias = max(0.003 * (1.0 - ndotl), 0.0002);
+    // attenzione // float bias = max(0.003 * (1.0 - ndotl), 0.0002);
+    float bias;
+
+    if (wallShadowMode != 0) {
+        bias = 0.000005;
+    } else {
+        bias = max(
+            0.0015 * (1.0 - ndotl),
+            0.00015
+        );
+    }
 
     float currentDistance = length(worldPos - lightWorldPos);
     float currentDepth = currentDistance / farPlane;
@@ -655,9 +681,56 @@ void main(){
         }
     }
 
-    vec4 baseColor = useTexture ? texColor * fColor : fColor;
-    gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
+    //vec4 baseColor = useTexture ? texColor * fColor : fColor;
+    //gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
 
+   vec4 baseColor;
+
+    // Per gli oggetti normali mantieni il comportamento attuale
+    if (wallShadowMode == 0) {
+        baseColor = useTexture
+            ? texColor * fColor
+            : fColor;
+    }
+    else {
+        // Normale interna teorica della parete
+        vec3 wallNormal = vec3(0.0);
+
+        if (wallShadowMode == 1) {
+            // parete posteriore
+            wallNormal = vec3(0.0, 0.0, 1.0);
+        }
+        else if (wallShadowMode == 2) {
+            // parete sinistra
+            wallNormal = vec3(1.0, 0.0, 0.0);
+        }
+        else if (wallShadowMode == 3) {
+            // parete destra
+            wallNormal = vec3(-1.0, 0.0, 0.0);
+        }
+
+        vec3 wallLightDir =
+            normalize(lightPosition.xyz - fWorldPos);
+
+        float wallDiffuse =
+            max(dot(wallNormal, wallLightDir), 0.0);
+
+        vec3 wallBaseColor = useTexture
+            ? texColor.rgb
+            : vec3(1.0);
+
+        // Luce uniforme su tutta la parete:
+        // ambient + diffuse, senza dipendere dalle normali della mesh
+        vec3 wallColor =
+            wallBaseColor * (0.18 + 0.82 * wallDiffuse);
+
+        baseColor = vec4(wallColor, 1.0);
+    }
+
+    gl_FragColor = vec4(
+        baseColor.rgb * shadow,
+        baseColor.a
+    );
     
 
 }
@@ -1285,7 +1358,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
 
     // bias piccolo sulle superfici frontali, più alto sugli angoli radenti
-    float bias = max(0.003 * (1.0 - ndotl), 0.0002);
+    float bias = max(0.003 * (1.0 - ndotl), 0.0002); //attenzione
+
+   
 
     float currentDistance = length(worldPos - lightWorldPos);
     float currentDepth = currentDistance / farPlane;

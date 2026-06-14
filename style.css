@@ -417,6 +417,11 @@ body.game-not-started .main-layout {
     border-bottom: 1px solid #ddd;
     padding-bottom: 6px;
 }
+.control-group .control-row {
+    margin-bottom: 10px;
+    color: #555;
+    
+}   
 
 .controls-panel {
     width: 340px;
