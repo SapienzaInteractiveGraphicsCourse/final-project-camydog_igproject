@@ -137,36 +137,6 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     }
 
 
-   /*  if (showDogHeart && heartBuffers) {
-        var heartMatrix = mat4();
-        console.log("heartMatrix:", heartMatrix);
-
-        heartMatrix = mult(
-            heartMatrix,
-            translate(
-                dogFetchX,
-                -0.20,
-                dogFetchZ
-            )
-        );
-
-        heartMatrix = mult(
-            heartMatrix,
-            scalem(1.0, 1.0, 1.0)
-        );
-
-        drawObject(
-            heartBuffers,
-            ballTexture, // temporaneamente, solo per vedere il modello
-            heartMatrix,
-            viewMatrix,
-            projectionMatrix,
-            true,
-            false,
-            false,
-            false
-        );
-    } */
 
     var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 
@@ -284,6 +254,119 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(7.08, -0.5, 0.0));
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.15, 4.2, 14.6));
 
+    //parete modificata per la parte con finestra // blocker invisibili attorno alla finestra
+    // La parete destra è lungo Z, quindi X rimane quasi fisso.
+
+    
+    var blockerX = 7.20;
+    var blockerThickness = 0.03;
+
+    // Limiti della parete
+    var wallYMin = -2.5;
+    var wallYMax =  1.5;
+
+    var wallZMin = -7.2;
+    var wallZMax =  7.2;
+
+    // Limiti reali della finestra
+    var windowY0 = -1.10;
+    var windowY1 =  0.90;
+
+    var windowZ0 = -2.52;
+    var windowZ1 = -0.36;
+
+    // Piccola sovrapposizione dei blocker dentro il foro
+    var overlap = 0.10;
+
+    var blockerWindowY0 = windowY0 + overlap;
+    var blockerWindowY1 = windowY1 - overlap;
+
+    var blockerWindowZ0 = windowZ0 + overlap;
+    var blockerWindowZ1 = windowZ1 - overlap;
+
+    // Bottom
+    var bottomCenterY =
+        (wallYMin + blockerWindowY0) * 0.5;
+
+    var bottomSizeY =
+        blockerWindowY0 - wallYMin;
+
+    // Top
+    var topCenterY =
+        (blockerWindowY1 + wallYMax) * 0.5;
+
+    var topSizeY =
+        wallYMax - blockerWindowY1;
+
+    // Lati: coprono tutta l’altezza della finestra
+    var sideCenterY =
+        (windowY0 + windowY1) * 0.5;
+
+    var sideSizeY =
+        windowY1 - windowY0 + overlap * 2.0;
+
+    // Left
+    var leftCenterZ =
+        (wallZMin + blockerWindowZ0) * 0.5;
+
+    var leftSizeZ =
+        blockerWindowZ0 - wallZMin;
+
+    // Right
+    var rightCenterZ =
+        (blockerWindowZ1 + wallZMax) * 0.5;
+
+    var rightSizeZ =
+        wallZMax - blockerWindowZ1;
+
+    var modelMatrixRightBlockerLeft = mat4();
+
+    modelMatrixRightBlockerLeft = mult(
+        modelMatrixRightBlockerLeft,
+        translate(
+            blockerX,
+            sideCenterY,
+            leftCenterZ
+        )
+    );
+
+    var modelMatrixRightBlockerLeft = mult(
+        modelMatrixRightBlockerLeft,
+        scalem(
+            blockerThickness,
+            sideSizeY,
+            leftSizeZ
+        )
+    );
+
+    var modelMatrixRightBlockerRight = mat4();
+
+    modelMatrixRightBlockerRight = mult(
+        modelMatrixRightBlockerRight,
+        translate(
+            blockerX,
+            sideCenterY,
+            rightCenterZ
+        )
+    );
+
+    var modelMatrixRightBlockerRight = mult(
+        modelMatrixRightBlockerRight,
+        scalem(
+            blockerThickness,
+            sideSizeY,
+            rightSizeZ
+        )
+    );
+
+    var modelMatrixRightBlockerBottom = mat4(); 
+    modelMatrixRightBlockerBottom = mult( modelMatrixRightBlockerBottom, translate( blockerX, bottomCenterY, 0.0 ) );
+     modelMatrixRightBlockerBottom = mult( modelMatrixRightBlockerBottom, scalem( blockerThickness, bottomSizeY, wallZMax - wallZMin ) );
+
+    var modelMatrixRightBlockerTop = mat4(); 
+    modelMatrixRightBlockerTop = mult( modelMatrixRightBlockerTop, translate( blockerX, topCenterY, 0.0 ) );
+     modelMatrixRightBlockerTop = mult( modelMatrixRightBlockerTop, scalem( blockerThickness, topSizeY, wallZMax - wallZMin ) );
+
     // ===== PAINTING =====
 
     // pannello del quadro sulla parete dietro
@@ -394,43 +477,77 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
         drawShadowObject(roomBoxBuffers, modelMatrixRightWall); */
 
-        // uso i blockers
+         // uso i blockers
 
        
         drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
 
+        // parete destra bucata reale
+        //gl.disable(gl.CULL_FACE);
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerBottom
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerTop
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerLeft
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerRight
+        );
+
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK); 
+
         //perparete destra con finestra bucata
         //drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
-        gl.disable(gl.CULL_FACE);
+       gl.disable(gl.CULL_FACE);
         //drawShadowObject(rightWallWindowBuffers, modelMatrixRightWallBlocker);
-        drawShadowObject(rightWallWindowBuffers, modelMatrixRightWall);
+        /* drawShadowObject(rightWallWindowBuffers, modelMatrixRightWall);
 
                 
         gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK);
+        gl.cullFace(gl.BACK); */
+
+        //blocker parete con finestra???????
+
+        /* gl.disable(gl.CULL_FACE);
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerTop
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerBottom
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerFront
+        );
+
+        drawShadowObject(
+            roomBoxBuffers,
+            modelMatrixRightBlockerBack
+        );
+
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK); */
 
 
-        //ball mini-game shadow
-        /* if (ballVisible && ballBody) {
-            var modelMatrixBallShadow = mat4();
 
-            modelMatrixBallShadow = mult(
-                modelMatrixBallShadow,
-                translate(
-                    ballBody.position.x,
-                    ballBody.position.y ,
-                    ballBody.position.z
-                )
-            );
-
-            modelMatrixBallShadow = mult(
-                modelMatrixBallShadow,
-                scalem(ballRadius, ballRadius, ballRadius)
-            );
-
-            drawShadowObject(ballBuffers, modelMatrixBallShadow);
-        } */
         if ((ballVisible || dogHasBall) && ballBody) {
             var modelMatrixBall = getBallModelMatrix();
 

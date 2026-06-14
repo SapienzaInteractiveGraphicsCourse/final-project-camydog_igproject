@@ -46,6 +46,10 @@ function loadTexture(path) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 
+        //per non interferire
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+
     };
 
     image.onerror = function() {
@@ -561,6 +565,9 @@ function LoadSkyboxTexture(gl)
         const image = new Image();
         image.onload = function () {
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
             gl.texImage2D(
                 target,
                 0,
@@ -569,6 +576,7 @@ function LoadSkyboxTexture(gl)
                 gl.UNSIGNED_BYTE,
                 image
             );
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         };
 
         image.src = url;
@@ -808,8 +816,8 @@ function LoadSkyboxTextureFromCross(gl, url)
         { target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, x: 2 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // right
         { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, x: 0 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // left
 
-        { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, x: 1 * faceSize, y: 2 * faceSize,rot:0, flipX: false, flipY: false }, // up
-        { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, x: 1 * faceSize, y: 0 * faceSize,rot:0, flipX: false, flipY: false }, // down
+        { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, x: 1 * faceSize, y: 0 * faceSize,rot:0, flipX: false, flipY: false }, // up
+        { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, x: 1 * faceSize, y: 2 * faceSize,rot:0, flipX: false, flipY: false }, // down
 
         { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, x: 1 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // front
         { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, x: 3 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // back
@@ -867,6 +875,9 @@ function LoadSkyboxTextureFromCross(gl, url)
 
             ctx.restore();
 
+
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
             gl.texImage2D(
                 faceInfo.target,

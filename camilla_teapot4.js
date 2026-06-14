@@ -844,6 +844,32 @@ onload = async function init() {
         updateCanvasCursor();
     };
 
+
+    //music slider for volume
+    var backgroundMusic =
+        document.getElementById("backgroundMusic");
+
+    var musicVolumeSlider =
+        document.getElementById("MusicVolume");
+
+    var musicVolumeValue =
+        document.getElementById("MusicVolumeValue");
+
+
+    // Volume iniziale
+    backgroundMusic.volume =
+        parseFloat(musicVolumeSlider.value);
+
+
+    musicVolumeSlider.addEventListener("input", function () {
+        var volume = parseFloat(this.value);
+
+        backgroundMusic.volume = volume;
+
+        musicVolumeValue.textContent =
+            Math.round(volume * 100) + "%";
+    });
+
     //park or home mode
     document.getElementById("ButtonGoOut").onclick = function () {
         currentScene = "park";

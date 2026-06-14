@@ -682,11 +682,11 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
 function printDogJointNames() {
     if (!skinnedDog || !skinnedDog.skin || !skinnedDog.nodes) return;
 
-    console.log("===== DOG JOINT NAMES =====");
+    //console.log("===== DOG JOINT NAMES =====");
 
     skinnedDog.skin.joints.forEach(function(nodeIndex, jointIndex) {
         var node = skinnedDog.nodes[nodeIndex];
-        console.log(jointIndex, nodeIndex, node.name);
+        //console.log(jointIndex, nodeIndex, node.name);
     });
 }
 
