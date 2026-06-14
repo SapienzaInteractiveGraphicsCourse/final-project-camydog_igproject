@@ -523,27 +523,27 @@ function LoadSkyboxTexture(gl)
     const faceInfos = [
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-            url: "skybox/bluecloud_rt.jpg",
+            url: path_folder_skyboxes + "bluecloud_rt.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-            url: "skybox/bluecloud_lf.jpg",
+            url: path_folder_skyboxes + "bluecloud_lf.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-            url: "skybox/bluecloud_dn.jpg",
+            url: path_folder_skyboxes + "bluecloud_dn.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-            url: "skybox/bluecloud_up.jpg",
+            url: path_folder_skyboxes + "bluecloud_up.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-            url: "skybox/bluecloud_bk.jpg",
+            url: path_folder_skyboxes + "bluecloud_bk.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-            url: "skybox/bluecloud_ft.jpg",
+            url: path_folder_skyboxes + "bluecloud_ft.jpg",
         },
     ];
 
