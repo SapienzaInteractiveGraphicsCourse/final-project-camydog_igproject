@@ -32,6 +32,7 @@ var path_folder_skyboxes = "./Skyboxes/";
 var path_img_skybox = "./Skyboxes/Skybox/skybox.jpg";
 var path_img_skybox_night = "./Skyboxes/Cubemap/cubemap_sky_night_2.png";
 var path_folder_skybox_park="./Skyboxes/Park2/";
+var path_img_moon = "./Textures/moon_2.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
@@ -60,6 +61,7 @@ var ballTexture;
 var riggedDogTexture;
 var heartTexture = null;
 var musicNoteTexture;
+var moonTexture;
 
 
 //table specific  variables

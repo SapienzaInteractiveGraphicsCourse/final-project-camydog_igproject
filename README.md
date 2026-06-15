@@ -63,3 +63,15 @@ FPS shown on the canvas
 # Rigged Dog
 
 ## Walk Mode
+
+
+# Objects
+-shiba
+-cat
+-teapot
+-cloth (Cannon)
+-moon texture (sphere) => from (google immaigni random)
+-table
+-ball
+-heart
+- music note

@@ -386,6 +386,7 @@ onload = async function init() {
     tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
     tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
     musicNoteTexture = loadTexture(path_img_musicNote);
+    moonTexture = loadTexture(path_img_moon);
     
 
     
@@ -1770,6 +1771,12 @@ function drawObject(obj,
         wallShadowMode
     );
 
+    //for night
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isNightMode"),
+        isNight ? 1 : 0
+    );
+
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "viewMatrix"), false, flatten(viewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
@@ -1804,6 +1811,8 @@ function drawObject(obj,
         gl.getUniformLocation(program, "usePointShadowMap"),
         usePointShadowMap ? 1 : 0
     );
+
+    
 
     gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);
 }

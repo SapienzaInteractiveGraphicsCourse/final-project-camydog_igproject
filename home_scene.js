@@ -646,15 +646,33 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     // prova disegno rigged dog parts
     //drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
-    drawObject(
-        lightSphereBuffers,
-        null,
-        modelMatrixLight,
-        viewMatrix,
-        projectionMatrix,
-        false,
-        true
-    );
+ 
+
+    if (isNight) {
+        drawObject(
+            lightSphereBuffers,
+            moonTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            true,   // usa texture
+            true,   // è il light marker
+            false,
+            false
+        );
+    } else {
+        drawObject(
+            lightSphereBuffers,
+            null,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            false,  // niente texture
+            true,   // è il light marker
+            false,
+            false
+        );
+    }
 
     drawSkinnedDog(viewMatrix, projectionMatrix);
 
