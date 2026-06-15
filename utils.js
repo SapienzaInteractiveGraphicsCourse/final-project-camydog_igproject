@@ -598,27 +598,27 @@ function LoadSkyboxTexturePark(gl)
     const faceInfos = [
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-            url: "skybox/Park2/negx.jpg",
+            url: path_folder_skybox_park + "negx.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-            url: "skybox/Park2/posx.jpg",
+            url: path_folder_skybox_park + "posx.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-            url: "skybox/Park2/posy.jpg",
+            url: path_folder_skybox_park + "posy.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-            url: "skybox/Park2/negy.jpg",
+            url: path_folder_skybox_park + "negy.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-            url: "skybox/Park2/posz.jpg",
+            url: path_folder_skybox_park + "posz.jpg",
         },
         {
             target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-            url: "skybox/Park2/negz.jpg",
+            url: path_folder_skybox_park + "negz.jpg",
         },
     ];
 
