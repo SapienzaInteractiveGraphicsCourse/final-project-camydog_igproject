@@ -439,6 +439,10 @@ uniform vec4 ambientProduct;
 
 uniform bool isNightMode;
 
+uniform bool isSunHalo;
+
+uniform float uGlobalAlpha;
+
 int choosePointShadowFace(vec3 dir)
 {
     vec3 absDir = abs(dir);
@@ -616,11 +620,35 @@ void main(){
         if (isNightMode && useTexture) {
             gl_FragColor =  texture2D(uTexture, fTexCoord) ;//vec4(0.82, 0.88, 1.0, 1.0);
         } else {
-            gl_FragColor = vec4(1.0, 1.0, 0.25, 1.0);
+            //gl_FragColor = texture2D(uTexture, fTexCoord); //;vec4(1.0, 1.0, 0.25, 1.0);
+            gl_FragColor = vec4(
+                texture2D(uTexture, fTexCoord).rgb * 1.2,
+                1.0
+            );
+
+           
         }
 
         return;
     }
+
+   
+
+        if (isSunHalo) {
+            vec4 glow = texture2D(uTexture, fTexCoord);
+
+            vec3 warmGlow =
+                glow.rgb * vec3(1.0, 0.65, 0.18);
+
+            gl_FragColor = vec4(
+                warmGlow,
+                glow.a * uGlobalAlpha
+            );
+
+            return;
+      }
+
+    
 
     //vec2 uv = fract(fTexCoord * 8.0);
     vec4 texColor = texture2D(uTexture, fTexCoord);

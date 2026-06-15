@@ -1288,3 +1288,5 @@ function worldToScreen(worldPos, viewMatrix, projectionMatrix, canvas) {
         y: (1.0 - (ndcY * 0.5 + 0.5)) * canvas.height
     };
 }
+
+

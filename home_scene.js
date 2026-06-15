@@ -160,7 +160,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     var modelMatrixLight = mat4();
     modelMatrixLight = mult(modelMatrixLight,translate(lightPosition[0], lightPosition[1], lightPosition[2]));
     //modelMatrixLight = mult(modelMatrixLight, translate(0.0, 1.5, 0.0));
-    modelMatrixLight = mult(modelMatrixLight, scalem(0.5, 0.5, 0.5));
+    modelMatrixLight = mult(modelMatrixLight, scalem(1.0, 1.0, 1.9));
 
     //matrici teapot -- sopra il tavolo, ruota in base a theta e scalato per essere più piccolo
     var modelMatrix1 = mat4();
@@ -646,9 +646,20 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     // prova disegno rigged dog parts
     //drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
- 
+
+
+    // pulsazione
+    var t = performance.now() * 0.001;
+    var pulse = 1.0 + 0.06 * Math.sin(t * 2.5);
+    var haloInnerScale = 3.8 * pulse;
+    var haloOuterScale = 5.2 * pulse;
+
+   var haloOuterMatrix = getBillboardHaloMatrix(haloOuterScale, viewMatrix);
+    var haloInnerMatrix = getBillboardHaloMatrix(haloInnerScale, viewMatrix);
+    
 
     if (isNight) {
+        //moon
         drawObject(
             lightSphereBuffers,
             moonTexture,
@@ -661,9 +672,33 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false
         );
     } else {
+
+        //halo
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.depthMask(false);
+
+        // outer
+        
+        drawObject(haloBuffers, haloTexture, haloOuterMatrix, viewMatrix, 
+            projectionMatrix, true, false, false, false,globalAlpha=0.005, isSunHalo=true);
+
+        // inner
+        
+        //drawObject(haloBuffers, haloTexture, haloInnerMatrix, viewMatrix, 
+        //    projectionMatrix, true, false, false, false,globalAlpha=0.0001, isSunHalo=true);
+
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+       
+
+
+        /* //sun
         drawObject(
             lightSphereBuffers,
-            null,
+            sunTexture,
             modelMatrixLight,
             viewMatrix,
             projectionMatrix,
@@ -672,6 +707,26 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false,
             false
         );
+
+
+ */
+
+        //new sun with model
+         drawObject(
+            sunBuffers,
+            sunTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            false,  // niente texture
+            true,   // è il light marker
+            false,
+            false
+        );
+    
+
+
+       
     }
 
     drawSkinnedDog(viewMatrix, projectionMatrix);

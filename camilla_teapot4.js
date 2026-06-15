@@ -119,6 +119,12 @@ var heartBuffers = null;
 //musicNote buffers
 var musicNoteBuffers = null;
 
+// halo buffer
+var haloBuffers = null;
+
+//sun buffers
+var sunBuffers = null;
+
 
 //skybox
 var skyboxProgram;
@@ -387,6 +393,37 @@ onload = async function init() {
     tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
     musicNoteTexture = loadTexture(path_img_musicNote);
     moonTexture = loadTexture(path_img_moon);
+    sunTexture = loadTexture(path_img_sun);
+    haloTexture = loadTexture(path_img_halo);
+
+    //halo buffers
+    haloBuffers = createBuffers(
+    [
+        vec4(-0.5, -0.5, 0.0, 1.0),
+        vec4( 0.5, -0.5, 0.0, 1.0),
+        vec4( 0.5,  0.5, 0.0, 1.0),
+
+        vec4(-0.5, -0.5, 0.0, 1.0),
+        vec4( 0.5,  0.5, 0.0, 1.0),
+        vec4(-0.5,  0.5, 0.0, 1.0)
+    ],
+    [
+        vec4(0, 0, 1, 0),
+        vec4(0, 0, 1, 0),
+        vec4(0, 0, 1, 0),
+        vec4(0, 0, 1, 0),
+        vec4(0, 0, 1, 0),
+        vec4(0, 0, 1, 0)
+    ],
+    [
+        vec2(0, 0),
+        vec2(1, 0),
+        vec2(1, 1),
+        vec2(0, 0),
+        vec2(1, 1),
+        vec2(0, 1)
+    ]
+);
     
 
     
@@ -399,6 +436,15 @@ onload = async function init() {
         lightSphere.normals,
         lightSphere.texCoords
     );
+
+    //carico sun
+    await loadOBJ(modelPath_sun);
+    console.log("OBJ Sun loaded");
+    var sunPoints = pointsArray.slice();
+    var sunNormals = normalsArray.slice();
+    var sunTex = texCoordsArray.slice();
+    sunBuffers = createBuffers(sunPoints, sunNormals, sunTex);
+
 
     //carico heart
      await loadOBJ(modelPath_heart);
@@ -496,7 +542,8 @@ onload = async function init() {
     gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, skyboxVertices, gl.STATIC_DRAW);
 
-    skyboxTexture = LoadSkyboxTexture(gl);
+    //skyboxTexture = LoadSkyboxTexture(gl);
+    skyboxTexture = LoadSkyboxTextureFromCross(gl,path_img_skybox_day);
     parkSkyboxTexture = LoadSkyboxTexturePark(gl);
     
     nightSkyboxTexture = LoadSkyboxTextureFromCross(gl,
@@ -1632,7 +1679,9 @@ function drawObject(obj,
      isLightMarker=false,
      twoSided = false, 
      receiveShadow = true,
-     wallShadowMode) {
+     wallShadowMode=false,
+    isSunHalo = false,
+    globalAlpha = 1.0) {
 
 
     //  be sure to use the right shader program before setting uniforms and attributes
@@ -1641,6 +1690,17 @@ function drawObject(obj,
     if (wallShadowMode === undefined) {
         wallShadowMode = 0;
     }
+
+
+    //for sun halo
+    gl.uniform1i(
+            gl.getUniformLocation(program, "isSunHalo"),
+                isSunHalo ? 1 : 0
+    );
+    gl.uniform1f(
+        gl.getUniformLocation(program, "uGlobalAlpha"),
+        globalAlpha
+    );
 
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
 
@@ -2001,4 +2061,34 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
 
     // DRAW ALLA FINE
     gl.drawArrays(gl.TRIANGLES, 0, tableObj.numVertices);
+}
+
+function getBillboardHaloMatrix(scale, viewMatrix) {
+    var haloMatrix = mat4();
+
+    haloMatrix = mult(
+        haloMatrix,
+        translate(
+            lightPosition[0],
+            lightPosition[1]-0.2,
+            lightPosition[2]
+        )
+    );
+
+    // billboard verso camera
+    haloMatrix[0][0] = viewMatrix[0][0];
+    haloMatrix[0][1] = viewMatrix[1][0];
+    haloMatrix[0][2] = viewMatrix[2][0];
+
+    haloMatrix[1][0] = viewMatrix[0][1];
+    haloMatrix[1][1] = viewMatrix[1][1];
+    haloMatrix[1][2] = viewMatrix[2][1];
+
+    haloMatrix[2][0] = viewMatrix[0][2];
+    haloMatrix[2][1] = viewMatrix[1][2];
+    haloMatrix[2][2] = viewMatrix[2][2];
+
+    haloMatrix = mult(haloMatrix, scalem(scale*1.6, scale*0.95, 1.0));
+
+    return haloMatrix;
 }

@@ -16,6 +16,7 @@ var modelPath_ball = "./ball_color/ball.obj";
 var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
 var modelPath_heart= "./Objects/heart/heart.obj";
 var modelPath_musicNote= "./Objects/music_note_1.obj";
+var modelPath_sun = "./Objects/sun/sun.obj";
 
 //path folder rigged dog
 var pathFolderRiggedDog = "./Objects/dog_separated_model/";
@@ -30,14 +31,17 @@ var path_img_dog = "./dog/dog_diff.jpg";
 var path_img_heart = "./Textures/red.jpg";
 var path_folder_skyboxes = "./Skyboxes/";
 var path_img_skybox = "./Skyboxes/Skybox/skybox.jpg";
+var path_img_skybox_day=  "./Skyboxes/Cubemap/cubemap_sky_day.png";
 var path_img_skybox_night = "./Skyboxes/Cubemap/cubemap_sky_night_2.png";
 var path_folder_skybox_park="./Skyboxes/Park2/";
 var path_img_moon = "./Textures/moon_2.png";
+var path_img_sun= "./Textures/sun.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
 var path_img_curtain = "./Textures/curtain_tex.png";
 var path_img_musicNote = "./Textures/hot_pink.jpg";
+var path_img_halo = "./Textures/halo.png";
 
 
 //texture variables
@@ -62,7 +66,8 @@ var riggedDogTexture;
 var heartTexture = null;
 var musicNoteTexture;
 var moonTexture;
-
+var sunTexture;
+var haloTexture;
 
 //table specific  variables
 var tableMtlTexture = null;
@@ -228,3 +233,5 @@ var dogBreathSound = new Audio("sounds/dog_breath.mp3");
 
 // musicNote variables
 var showDogMusicNote = false;
+
+var isSunHalo=false;
