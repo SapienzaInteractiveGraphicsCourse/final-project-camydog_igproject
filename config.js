@@ -229,7 +229,7 @@ var dogPetTargetPitch = 0.0;
 
 var lastPetMouseX = 0.0;
 var lastPetMouseY = 0.0;
-var dogBreathSound = new Audio("sounds/dog_breath.mp3");
+var dogBreathSound = new Audio("./Audio/dog_breath.mp3");
 
 // musicNote variables
 var showDogMusicNote = false;
