@@ -299,6 +299,66 @@
 
     </div> 
 
+<script id="halo-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec2 vTexCoord;
+
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+uniform vec3 haloWorldPosition;
+uniform vec2 haloSize;
+
+varying vec2 fTexCoord;
+
+void main() {
+    // Centro del sole trasformato nello spazio della camera
+    vec4 centerView =
+        viewMatrix * vec4(haloWorldPosition, 1.0);
+
+
+    // In view space la camera guarda verso -Z.
+    // Aumentando Z portiamo il quad leggermente verso la camera.
+    //centerView.z += 0.30;
+
+    // Il quad viene costruito direttamente nel piano XY della camera:
+    // quindi guarda sempre la camera, anche dall'alto.
+    vec4 positionView = centerView;
+
+    positionView.x += vPosition.x * haloSize.x;
+    positionView.y += vPosition.y * haloSize.y;
+
+    gl_Position = projectionMatrix * positionView;
+
+    fTexCoord = vTexCoord;
+}
+</script>
+
+<script id="halo-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform sampler2D haloTexture;
+uniform float uGlobalAlpha;
+
+varying vec2 fTexCoord;
+
+void main() {
+    vec4 glow = texture2D(haloTexture, fTexCoord);
+
+    //gl_FragColor = vec4(
+    //    glow.rgb,
+    //    glow.a * uGlobalAlpha
+    //);
+
+    vec3 neutralGlow = vec3(1.0, 0.95, 0.80);
+
+    gl_FragColor = vec4(
+        neutralGlow,
+        glow.a * uGlobalAlpha
+    );
+}
+</script>
+
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
@@ -335,6 +395,8 @@ uniform mat4 lightProjectionMatrix;
 
 varying vec3 fWorldPos;
 
+varying vec3 fMoonObjectPos;
+
 
 
 void main() 
@@ -358,6 +420,8 @@ void main()
 
     fNormal = N;
     fLightDir = L;
+
+    fMoonObjectPos = normalize(vPosition.xyz);
 
     // Compute terms in the illumination equation
     vec4 ambient = ambientProduct;
@@ -442,6 +506,9 @@ uniform bool isNightMode;
 uniform bool isSunHalo;
 
 uniform float uGlobalAlpha;
+
+varying vec3 fMoonObjectPos;
+uniform bool isMoon;
 
 int choosePointShadowFace(vec3 dir)
 {
@@ -615,6 +682,23 @@ void main(){
     //    gl_FragColor = vec4(1.0, 1.0, 0.25, 1.0);
     //    return;
     //}
+
+    if (isLightMarker && isMoon) {
+        vec3 p = normalize(fMoonObjectPos);
+
+        float u =
+            0.5 + atan(p.z, p.x) / (2.0 * 3.14159265);
+
+        float v =
+            0.5 - asin(p.y) / 3.14159265;
+
+        gl_FragColor = texture2D(
+            uTexture,
+            vec2(u, v)
+        );
+
+        return;
+    }
     
     if (isLightMarker) {
         if (isNightMode && useTexture) {
@@ -628,6 +712,8 @@ void main(){
 
            
         }
+
+    
 
         return;
     }

@@ -125,6 +125,8 @@ var haloBuffers = null;
 //sun buffers
 var sunBuffers = null;
 
+var moonBuffers;
+
 
 //skybox
 var skyboxProgram;
@@ -392,7 +394,7 @@ onload = async function init() {
     tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
     tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
     musicNoteTexture = loadTexture(path_img_musicNote);
-    moonTexture = loadTexture(path_img_moon);
+    moonTexture = loadTexture(path_img_moon, true);
     sunTexture = loadTexture(path_img_sun);
     haloTexture = loadTexture(path_img_halo);
 
@@ -430,12 +432,27 @@ onload = async function init() {
     gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
 
     //Buffers per luce 
-    var lightSphere = createSphere(1.0, 16, 16);
+    var lightSphere = createSphere(1.0, 16,15);
     lightSphereBuffers = createBuffers(
         lightSphere.points,
         lightSphere.normals,
         lightSphere.texCoords
     );
+
+    haloProgram = initShaders(
+        gl,
+        "halo-vertex-shader",
+        "halo-fragment-shader"
+    );
+
+    //carico moon
+    await loadOBJ(modelPath_moon);
+    console.log("OBJ Moon loaded");
+    var moonPoints = pointsArray.slice();
+    var moonNormals = normalsArray.slice();
+    var moonTex = texCoordsArray.slice();
+    moonBuffers = createBuffers(moonPoints, moonNormals, moonTex);
+
 
     //carico sun
     await loadOBJ(modelPath_sun);
@@ -1681,7 +1698,8 @@ function drawObject(obj,
      receiveShadow = true,
      wallShadowMode=false,
     isSunHalo = false,
-    globalAlpha = 1.0) {
+    globalAlpha = 1.0,
+    ) {
 
 
     //  be sure to use the right shader program before setting uniforms and attributes
@@ -1690,6 +1708,11 @@ function drawObject(obj,
     if (wallShadowMode === undefined) {
         wallShadowMode = 0;
     }
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isMoon"),
+        isNight && isLightMarker ? 1 : 0
+    );
 
 
     //for sun halo
@@ -2063,7 +2086,7 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
     gl.drawArrays(gl.TRIANGLES, 0, tableObj.numVertices);
 }
 
-function getBillboardHaloMatrix(scale, viewMatrix) {
+/* function getBillboardHaloMatrix(scale, viewMatrix) {
     var haloMatrix = mat4();
 
     haloMatrix = mult(
@@ -2091,4 +2114,223 @@ function getBillboardHaloMatrix(scale, viewMatrix) {
     haloMatrix = mult(haloMatrix, scalem(scale*1.6, scale*0.95, 1.0));
 
     return haloMatrix;
+} */
+/* function getBillboardHaloMatrix(scale, viewMatrix) {
+    // Direzione dalla luce verso la camera
+    var dx = eye[0] - lightPosition[0];
+    var dy = eye[1] - lightPosition[1];
+    var dz = eye[2] - lightPosition[2];
+
+    var len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    if (len > 0.0001) {
+        dx /= len;
+        dy /= len;
+        dz /= len;
+    }
+
+    // Piccolissimo offset verso la camera:
+    // evita che il sole copra il quad.
+    var offset = 0.06;
+
+    var haloX = lightPosition[0] + dx * offset;
+    var haloY = lightPosition[1] + dy * offset;
+    var haloZ = lightPosition[2] + dz * offset;
+
+    // Rotazione billboard
+    var billboardRotation = mat4();
+
+    billboardRotation[0][0] = viewMatrix[0][0];
+    billboardRotation[0][1] = viewMatrix[1][0];
+    billboardRotation[0][2] = viewMatrix[2][0];
+
+    billboardRotation[1][0] = viewMatrix[0][1];
+    billboardRotation[1][1] = viewMatrix[1][1];
+    billboardRotation[1][2] = viewMatrix[2][1];
+
+    billboardRotation[2][0] = viewMatrix[0][2];
+    billboardRotation[2][1] = viewMatrix[1][2];
+    billboardRotation[2][2] = viewMatrix[2][2];
+
+    var haloMatrix = mat4();
+
+    haloMatrix = mult(
+        haloMatrix,
+        translate(haloX, haloY, haloZ)
+    );
+
+    haloMatrix = mult(
+        haloMatrix,
+        billboardRotation
+    );
+
+    // Mantengo esattamente la forma che avevi scelto
+    haloMatrix = mult(
+        haloMatrix,
+        scalem(
+            scale * 1.6,
+            scale * 0.95,
+            1.0
+        )
+    );
+
+    return haloMatrix;
+} */
+
+function getBillboardHaloMatrix(scale, viewMatrix) {
+    var haloMatrix = mat4();
+
+    // direzione dal sole verso la camera
+    var dx = eye[0] - lightPosition[0];
+    var dy = eye[1] - lightPosition[1];
+    var dz = eye[2] - lightPosition[2];
+
+    var len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (len < 0.0001) len = 1.0;
+
+    dx /= len;
+    dy /= len;
+    dz /= len;
+
+    // piccolo offset verso la camera
+    var haloOffset = 0.05;   // prova 0.10, 0.15, 0.18
+
+    var haloX = lightPosition[0] + dx * haloOffset;
+    var haloY = lightPosition[1] + dy * haloOffset;
+    var haloZ = lightPosition[2] + dz * haloOffset;
+
+    haloMatrix = mult(
+        haloMatrix,
+        translate(haloX, haloY, haloZ)
+    );
+
+    // billboard verso la camera
+    haloMatrix[0][0] = viewMatrix[0][0];
+    haloMatrix[0][1] = viewMatrix[1][0];
+    haloMatrix[0][2] = viewMatrix[2][0];
+
+    haloMatrix[1][0] = viewMatrix[0][1];
+    haloMatrix[1][1] = viewMatrix[1][1];
+    haloMatrix[1][2] = viewMatrix[2][1];
+
+    haloMatrix[2][0] = viewMatrix[0][2];
+    haloMatrix[2][1] = viewMatrix[1][2];
+    haloMatrix[2][2] = viewMatrix[2][2];
+
+    // più tondo
+    haloMatrix = mult(
+        haloMatrix,
+        scalem(scale, scale, 1.0)
+    );
+
+    return haloMatrix;
+}
+
+function drawSunHalo(
+    haloBuffers,
+    haloTexture,
+    viewMatrix,
+    projectionMatrix,
+    width,
+    height,
+    alpha
+) {
+    gl.useProgram(haloProgram);
+
+    // Posizioni del quad
+    gl.bindBuffer(gl.ARRAY_BUFFER, haloBuffers.vBuffer);
+
+    var positionLoc =
+        gl.getAttribLocation(haloProgram, "vPosition");
+
+    gl.vertexAttribPointer(
+        positionLoc,
+        4,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+
+    gl.enableVertexAttribArray(positionLoc);
+
+    // Coordinate texture
+    gl.bindBuffer(gl.ARRAY_BUFFER, haloBuffers.tBuffer);
+
+    var texCoordLoc =
+        gl.getAttribLocation(haloProgram, "vTexCoord");
+
+    gl.vertexAttribPointer(
+        texCoordLoc,
+        2,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+
+    gl.enableVertexAttribArray(texCoordLoc);
+
+    // Matrici
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(haloProgram, "viewMatrix"),
+        false,
+        flatten(viewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(
+            haloProgram,
+            "projectionMatrix"
+        ),
+        false,
+        flatten(projectionMatrix)
+    );
+
+    // Posizione del sole
+    gl.uniform3f(
+        gl.getUniformLocation(
+            haloProgram,
+            "haloWorldPosition"
+        ),
+        lightPosition[0],
+        lightPosition[1] - 0.2,
+        lightPosition[2]
+    );
+
+    // Dimensioni del quad
+    gl.uniform2f(
+        gl.getUniformLocation(haloProgram, "haloSize"),
+        width,
+        height
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(
+            haloProgram,
+            "uGlobalAlpha"
+        ),
+        alpha
+    );
+
+    // Texture
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        haloTexture
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(
+            haloProgram,
+            "haloTexture"
+        ),
+        0
+    );
+
+    gl.drawArrays(
+        gl.TRIANGLES,
+        0,
+        haloBuffers.numVertices
+    );
 }

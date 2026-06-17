@@ -15,7 +15,7 @@ function updateCanvasCursor() {
 //////////////////////
 
 // create sphere for light source
-function loadTexture(path) {
+ function loadTexture(path,isMoon=false) {
     let tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
 
@@ -58,7 +58,96 @@ function loadTexture(path) {
 
     image.src = path;
     return tex;
-}
+} 
+
+/* function loadTexture(path, isMoon = false) {
+    let tex = gl.createTexture();
+
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        1,
+        1,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        new Uint8Array([255, 255, 255, 255])
+    );
+
+    let image = new Image();
+
+    image.onload = function () {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+
+        gl.pixelStorei(
+            gl.UNPACK_FLIP_Y_WEBGL,
+            true
+        );
+
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            image
+        );
+
+        gl.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_MIN_FILTER,
+            gl.LINEAR
+        );
+
+        gl.texParameteri(
+            gl.TEXTURE_2D,
+            gl.TEXTURE_MAG_FILTER,
+            gl.LINEAR
+        );
+
+        if (isMoon) {
+            gl.texParameteri(
+                gl.TEXTURE_2D,
+                gl.TEXTURE_WRAP_S,
+                gl.REPEAT
+            );
+
+            gl.texParameteri(
+                gl.TEXTURE_2D,
+                gl.TEXTURE_WRAP_T,
+                gl.CLAMP_TO_EDGE
+            );
+        } else {
+            gl.texParameteri(
+                gl.TEXTURE_2D,
+                gl.TEXTURE_WRAP_S,
+                gl.CLAMP_TO_EDGE
+            );
+
+            gl.texParameteri(
+                gl.TEXTURE_2D,
+                gl.TEXTURE_WRAP_T,
+                gl.CLAMP_TO_EDGE
+            );
+        }
+
+        gl.pixelStorei(
+            gl.UNPACK_FLIP_Y_WEBGL,
+            false
+        );
+    };
+
+    image.onerror = function () {
+        console.log("texture failed:", path);
+    };
+
+    image.src = path;
+
+    return tex;
+} */
 
 function createBuffers(points, normals, texCoords) {
     let obj = {};
@@ -668,7 +757,7 @@ function LoadSkyboxTexturePark(gl)
 }
 
 
-function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
+/* function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
 {
     // La skybox deve fare solo da sfondo:
     // la disegno senza depth test e senza scrivere nel depth buffer
@@ -738,8 +827,89 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
     gl.depthFunc(gl.LESS);
-}
+} */
+function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
+{
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
 
+    gl.useProgram(skyboxProgram);
+
+    gl.uniform1i(
+        gl.getUniformLocation(skyboxProgram, "flipSkyboxY"),
+        flipY ? 1 : 0
+    );
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
+
+    gl.enableVertexAttribArray(skyboxPosLoc);
+    gl.vertexAttribPointer(
+        skyboxPosLoc,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+
+    var viewNoTranslation = mat4();
+
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 4; j++) {
+            viewNoTranslation[i][j] = viewMatrix[i][j];
+        }
+    }
+
+    viewNoTranslation[0][3] = 0.0;
+    viewNoTranslation[1][3] = 0.0;
+    viewNoTranslation[2][3] = 0.0;
+
+    var mvp = mult(
+        projectionMatrix,
+        viewNoTranslation
+    );
+
+    gl.uniformMatrix4fv(
+        skyboxMvpLoc,
+        false,
+        flatten(mvp)
+    );
+
+    gl.activeTexture(gl.TEXTURE0);
+
+    if (isNight) {
+        gl.bindTexture(
+            gl.TEXTURE_CUBE_MAP,
+            nightSkyboxTexture
+        );
+    }
+    else if (currentScene === "park") {
+        gl.bindTexture(
+            gl.TEXTURE_CUBE_MAP,
+            parkSkyboxTexture
+        );
+    }
+    else {
+        gl.bindTexture(
+            gl.TEXTURE_CUBE_MAP,
+            skyboxTexture
+        );
+    }
+
+    gl.uniform1i(skyboxSamplerLoc, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+    // Ripristino obbligatorio
+    gl.depthMask(true);
+    gl.depthFunc(gl.LESS);
+    gl.enable(gl.DEPTH_TEST);
+
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+}
 
 
 function createBoxBuffers() {
@@ -1290,3 +1460,49 @@ function worldToScreen(worldPos, viewMatrix, projectionMatrix, canvas) {
 }
 
 
+function getMoonMatrix() {
+    var dx = eye[0] - lightPosition[0];
+    var dy = eye[1] - lightPosition[1];
+    var dz = eye[2] - lightPosition[2];
+
+    // Rotazione orizzontale
+    var yaw = Math.atan2(dx, dz) * 180.0 / Math.PI;
+
+    // Rotazione verticale
+    var horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+    var pitch = -Math.atan2(dy, horizontalDistance) * 180.0 / Math.PI;
+
+    var moonScale = 1.0;
+
+    var modelMatrixMoon = mat4();
+
+    modelMatrixMoon = mult(
+        modelMatrixMoon,
+        translate(
+            lightPosition[0],
+            lightPosition[1],
+            lightPosition[2]
+        )
+    );
+
+    modelMatrixMoon = mult(
+        modelMatrixMoon,
+        rotate(yaw, [0, 1, 0])
+    );
+
+    modelMatrixMoon = mult(
+        modelMatrixMoon,
+        rotate(pitch, [1, 0, 0])
+    );
+
+    modelMatrixMoon = mult(
+        modelMatrixMoon,
+        scalem(
+            moonScale,
+            moonScale,
+            moonScale
+        )
+    );
+
+    return modelMatrixMoon;
+}

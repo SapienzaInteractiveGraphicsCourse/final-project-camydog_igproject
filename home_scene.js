@@ -160,7 +160,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     var modelMatrixLight = mat4();
     modelMatrixLight = mult(modelMatrixLight,translate(lightPosition[0], lightPosition[1], lightPosition[2]));
     //modelMatrixLight = mult(modelMatrixLight, translate(0.0, 1.5, 0.0));
-    modelMatrixLight = mult(modelMatrixLight, scalem(1.0, 1.0, 1.9));
+    modelMatrixLight = mult(modelMatrixLight, scalem(1.0, 1.0, 1.0));
 
     //matrici teapot -- sopra il tavolo, ruota in base a theta e scalato per essere più piccolo
     var modelMatrix1 = mat4();
@@ -649,85 +649,17 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
 
     // pulsazione
-    var t = performance.now() * 0.001;
+    /* var t = performance.now() * 0.001;
     var pulse = 1.0 + 0.06 * Math.sin(t * 2.5);
     var haloInnerScale = 3.8 * pulse;
     var haloOuterScale = 5.2 * pulse;
 
    var haloOuterMatrix = getBillboardHaloMatrix(haloOuterScale, viewMatrix);
-    var haloInnerMatrix = getBillboardHaloMatrix(haloInnerScale, viewMatrix);
-    
+    var haloInnerMatrix = getBillboardHaloMatrix(haloInnerScale, viewMatrix); 
 
-    if (isNight) {
-        //moon
-        drawObject(
-            lightSphereBuffers,
-            moonTexture,
-            modelMatrixLight,
-            viewMatrix,
-            projectionMatrix,
-            true,   // usa texture
-            true,   // è il light marker
-            false,
-            false
-        );
-    } else {
+     */
 
-        //halo
-
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-        gl.depthMask(false);
-
-        // outer
-        
-        drawObject(haloBuffers, haloTexture, haloOuterMatrix, viewMatrix, 
-            projectionMatrix, true, false, false, false,globalAlpha=0.005, isSunHalo=true);
-
-        // inner
-        
-        //drawObject(haloBuffers, haloTexture, haloInnerMatrix, viewMatrix, 
-        //    projectionMatrix, true, false, false, false,globalAlpha=0.0001, isSunHalo=true);
-
-
-        gl.depthMask(true);
-        gl.disable(gl.BLEND);
-       
-
-
-        /* //sun
-        drawObject(
-            lightSphereBuffers,
-            sunTexture,
-            modelMatrixLight,
-            viewMatrix,
-            projectionMatrix,
-            false,  // niente texture
-            true,   // è il light marker
-            false,
-            false
-        );
-
-
- */
-
-        //new sun with model
-         drawObject(
-            sunBuffers,
-            sunTexture,
-            modelMatrixLight,
-            viewMatrix,
-            projectionMatrix,
-            false,  // niente texture
-            true,   // è il light marker
-            false,
-            false
-        );
-    
-
-
-       
-    }
+    //prima night sun hale era quiii  !!!!!!!!!!!!
 
     drawSkinnedDog(viewMatrix, projectionMatrix);
 
@@ -942,6 +874,186 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameRight,
         viewMatrix, projectionMatrix, true, false, false, true);
 
+
+
+    if (isNight) {
+        //moon and no NO HALO
+
+        var modelMatrixMoon = mat4();
+
+        modelMatrixMoon = mult(
+            modelMatrixMoon,
+            translate(
+                lightPosition[0],
+                lightPosition[1],
+                lightPosition[2]
+            )
+        );
+
+        var moonScale = 1.0;
+
+        modelMatrixMoon = mult(
+            modelMatrixMoon,
+            scalem(
+                moonScale,
+                moonScale,
+                moonScale
+            )
+        );
+
+         drawObject(
+            moonBuffers,
+            moonTexture,
+            modelMatrixMoon, // non modelMatrixLight
+            viewMatrix,
+            projectionMatrix,
+            true,
+            true,
+            false,
+            false
+        );
+        /* drawObject(
+            lightSphereBuffers,
+            moonTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            true,   // usa texture
+            true,   // è il light marker
+            false,
+            false
+        ); */
+    } else {
+
+        //halo
+
+        /* gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        gl.depthMask(false);
+
+        gl.disable(gl.CULL_FACE);
+        // outer
+        
+        //drawObject(haloBuffers, haloTexture, haloOuterMatrix, viewMatrix, 
+        //    projectionMatrix, true, false, false, false,globalAlpha=0.005, isSunHalo=true);
+
+        //prova per alone 
+        drawObject(
+            haloBuffers,
+            haloTexture,
+            haloOuterMatrix,
+            viewMatrix,
+            projectionMatrix,
+            true,    // useTexture
+            false,   // isLightMarker
+            false,   // twoSided
+            false,   // receiveShadow
+            false,   // wallShadowMode
+            true,    // isSunHalo
+           1.0  // globalAlpha
+        );
+ */
+        // inner
+        
+        //drawObject(haloBuffers, haloTexture, haloInnerMatrix, viewMatrix, 
+        //    projectionMatrix, true, false, false, false,globalAlpha=0.0001, isSunHalo=true);
+
+
+       /*  gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+        */
+
+
+        /* //sun
+        drawObject(
+            lightSphereBuffers,
+            sunTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            false,  // niente texture
+            true,   // è il light marker
+            false,
+            false
+        );
+
+
+ */
+
+        /* //new sun with model
+         drawObject(
+            sunBuffers,
+            sunTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            false,  // niente texture
+            true,   // è il light marker
+            false,
+            false
+        );
+     */
+
+
+
+        var t = performance.now() * 0.001;
+
+        var pulse =
+            1.0 + 0.025 * Math.sin(t * 1.7);
+
+        var haloWidth = 8.3 * pulse;
+        var haloHeight = 5.0 * pulse;
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+
+        gl.depthMask(false);
+        gl.disable(gl.CULL_FACE);
+
+        drawSunHalo(
+            haloBuffers,
+            haloTexture,
+            viewMatrix,
+            projectionMatrix,
+            haloWidth,
+            haloHeight,
+            1.0
+        );
+
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+
+        // Ripristina il programma principale
+        gl.useProgram(program);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+        gl.depthMask(true);
+
+        // Sole
+        drawObject(
+            sunBuffers,
+            sunTexture,
+            modelMatrixLight,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            true,
+            false,
+            false
+        );
+
+
+       
+    }
 
 }
 

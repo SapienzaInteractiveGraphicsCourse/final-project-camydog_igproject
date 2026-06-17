@@ -17,6 +17,7 @@ var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
 var modelPath_heart= "./Objects/heart/heart.obj";
 var modelPath_musicNote= "./Objects/music_note_1.obj";
 var modelPath_sun = "./Objects/sun/sun.obj";
+var modelPath_moon= "./Objects/moon.obj";
 
 //path folder rigged dog
 var pathFolderRiggedDog = "./Objects/dog_separated_model/";
@@ -234,4 +235,6 @@ var dogBreathSound = new Audio("./Audio/dog_breath.mp3");
 // musicNote variables
 var showDogMusicNote = false;
 
+
+var haloProgram;
 var isSunHalo=false;
