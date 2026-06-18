@@ -784,10 +784,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
         viewMatrix, projectionMatrix, true, false, false,  true,1);
 
-    gl.disable(gl.CULL_FACE);
+    
     drawObject(roomBoxBuffers, wallTexture, modelMatrixLeftWall,
         viewMatrix, projectionMatrix, true, false, false,  true,2);
 
+    gl.disable(gl.CULL_FACE);
+    
     //draw parete destra (bucata da finestra)
     drawObject(rightWallWindowBuffers, wallTexture, modelMatrixRightWall,
     viewMatrix, projectionMatrix, true, false, false, true, 3);

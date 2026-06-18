@@ -22,8 +22,10 @@ function drawObject(obj,
      isLightMarker=false,
      twoSided = false, 
      receiveShadow = true,
-     wallShadowMode
-)
+     wallShadowMode=false,
+    isSunHalo = false,
+    globalAlpha = 1.0,
+    ) 
 # Main functions
 init()
 render()
@@ -70,7 +72,9 @@ FPS shown on the canvas
 -cat
 -teapot
 -cloth (Cannon)
--moon texture (sphere) => from (google immaigni random)
+-moon model -> https://www.cgtrader.com/items/6369973/download-page
+-moon texture  => from (google immaigni random)
+- sun model => https://www.cgtrader.com/items/5092264/download-page
 -sun texture (sphere) => from goggle immaigni random
 -table -> Free 3D https://free3d.com/3d-model/tablle-396579.html?dd_referrer=
 -ball

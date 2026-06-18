@@ -58,10 +58,10 @@
                                 min="0"
                                 max="1"
                                 step="0.01"
-                                value="0.60"
+                                value="0.10"
                             >
 
-                            <span id="MusicVolumeValue">60%</span>
+                            <span id="MusicVolumeValue">10%</span>
                         </div>
                         
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
@@ -720,7 +720,7 @@ void main(){
 
    
 
-        if (isSunHalo) {
+    if (isSunHalo) {
             vec4 glow = texture2D(uTexture, fTexCoord);
 
             vec3 warmGlow =
@@ -819,6 +819,7 @@ void main(){
             : fColor;
     }
     else {
+        /* 
         // Normale interna teorica della parete
         vec3 wallNormal = vec3(0.0);
 
@@ -851,6 +852,125 @@ void main(){
             wallBaseColor * (0.18 + 0.82 * wallDiffuse);
 
         baseColor = vec4(wallColor, 1.0);
+        */
+
+        /*
+        vec3 wallNormal = vec3(0.0);
+
+        vec3 wallLightDir =
+            normalize(lightPosition.xyz - fWorldPos);
+
+        vec3 realNormal =
+            normalize(fWorldNormal);
+
+        bool isInternalWallFace =
+            dot(realNormal, wallNormal) > 0.5;
+
+        if (wallShadowMode == 3) {
+            isInternalWallFace =
+                isInternalWallFace && !gl_FrontFacing;
+        }
+        float wallDiffuse;
+
+        if (isInternalWallFace) {
+            // faccia interna: uso la normale teorica pulita
+            wallDiffuse =
+                max(dot(wallNormal, wallLightDir), 0.0);
+        }
+        else {
+            // faccia esterna/dietro: uso la normale reale della mesh
+            // così non viene illuminata come se fosse interna
+            wallDiffuse =
+                max(dot(realNormal, wallLightDir), 0.0);
+        }
+
+        vec3 wallBaseColor = useTexture
+            ? texColor.rgb
+            : vec3(1.0);
+
+        vec3 wallColor =
+            wallBaseColor * (0.18 + 0.82 * wallDiffuse);
+
+        baseColor = vec4(wallColor, 1.0);
+
+        */
+
+        vec3 wallNormal = vec3(0.0);
+
+        if (wallShadowMode == 1) {
+            // parete posteriore: interno verso +Z
+            wallNormal = vec3(0.0, 0.0, 1.0);
+        }
+        else if (wallShadowMode == 2) {
+            // parete sinistra: interno verso +X
+            wallNormal = vec3(1.0, 0.0, 0.0);
+        }
+        else if (wallShadowMode == 3) {
+            // parete destra con finestra: interno verso -X
+            wallNormal = vec3(-1.0, 0.0, 0.0);
+        }
+
+        vec3 wallLightDir =
+            normalize(lightPosition.xyz - fWorldPos);
+
+        vec3 realNormal =
+            normalize(fWorldNormal);
+
+        vec3 wallBaseColor = useTexture
+            ? texColor.rgb
+            : vec3(1.0);
+
+        float wallDiffuse = 0.0;
+
+        if (wallShadowMode == 3) {
+            /*
+                Parete destra con finestra:
+                è una parete piatta disegnata anche da dietro perché fai gl.disable(CULL_FACE).
+                Quindi uso gl_FrontFacing per decidere quale lato illuminare.
+            */
+
+            bool rightWallInternalFace = gl_FrontFacing;
+
+            if (rightWallInternalFace) {
+                wallDiffuse =
+                    max(dot(wallNormal, wallLightDir), 0.0);
+            }
+            else {
+                 // lato esterno / retro della parete con finestra
+                vec3 externalWallNormal =
+                    -wallNormal;
+
+                wallDiffuse =
+                    max(dot(externalWallNormal, wallLightDir), 0.0);
+                    }
+        }
+        else {
+            /*
+                Pareti normali fatte con roomBoxBuffers:
+                qui posso usare la normale reale per capire se sto sulla faccia interna.
+            */
+
+            bool isInternalWallFace =
+                dot(realNormal, wallNormal) > 0.5;
+
+            if (isInternalWallFace) {
+                wallDiffuse =
+                    max(dot(wallNormal, wallLightDir), 0.0);
+            }
+            else {
+                // retro/esterno: solo ambient
+                wallDiffuse = 0.0;
+            }
+        }
+
+        vec3 wallColor =
+            wallBaseColor * (0.18 + 0.82 * wallDiffuse);
+
+        baseColor = vec4(wallColor, 1.0);
+
+
+
+
     }
 
     gl_FragColor = vec4(

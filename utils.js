@@ -441,7 +441,7 @@ function createRightWallWithWindowBuffers() {
 
     // normale della parete destra della box
     //var n = vec4(1.0, 0.0, 0.0, 0.0);
-    var n = vec4(-1.0, 0.0, 0.0, 0.0);
+    var n = vec4(-.0, 0.0, 0.0, 0.0);
 
     // pezzo sotto la finestra
     addFace(
