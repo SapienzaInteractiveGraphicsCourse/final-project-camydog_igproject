@@ -471,7 +471,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         
 
-        drawShadowObject(roomBoxBuffers, modelMatrixFloor);
+        //drawShadowObject(roomBoxBuffers, modelMatrixFloor);
 
         /*drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);

@@ -92,7 +92,7 @@
 
                  <div class="control-row">
                     <label for="LightX">Light X:</label>
-                    <input id="LightX" type="range" min="-10" max="10" step="0.1" value="6.6">
+                    <input id="LightX" type="range" min="-10" max="20" step="0.1" value="6.6">
                     <span id="LightXValue">6.6</span>
                  </div>
 
@@ -105,7 +105,7 @@
                 
                   <div class="control-row">
                     <label for="LightZ">Light Z:</label>
-                    <input id="LightZ" type="range" min="-7.7" max="10" step="0.1" value="0.8">
+                    <input id="LightZ" type="range" min="-12" max="15" step="0.1" value="0.8">
                     <span id="LightZValue">0.8</span>
                   </div>
             </div>
@@ -582,8 +582,12 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     float currentDistance = length(worldPos - lightWorldPos);
     float currentDepth = currentDistance / farPlane;
 
+    //float fade = smoothstep(5.0, 18.0, currentDistance);
+
+    //float quantita_luce = mix(0.20, 0.65, fade);
+
     //attenzione su gpt
-    float quantita_luce=0.0;
+    float quantita_luce=0.15;
 
     if (face == 0) {
         shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix0 * vec4(worldPos, 1.0);
@@ -977,6 +981,8 @@ void main(){
         baseColor.rgb * shadow,
         baseColor.a
     );
+
+    
     
 
 }
@@ -1239,13 +1245,15 @@ float unpackDepth(vec4 rgbaDepth)
 
     return dot(rgbaDepth, bitShift);
 }
-
+ /*
 float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
 {
     float farPlane = 40.0;
 
     vec3 lightWorldPos = lightPosition.xyz;
     vec3 dir = worldPos - lightWorldPos;
+    vec3 shadowWorldPos =
+    worldPos + normalize(worldNormal) * 0.04;
 
     int face = choosePointShadowFace(dir);
 
@@ -1301,6 +1309,127 @@ float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
 
     return currentDepth > closestDepth + bias ? 0.35 : 1.0;
 }
+*/
+float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
+{
+    float farPlane = 40.0;
+
+    vec3 lightWorldPos = lightPosition.xyz;
+
+    /*
+        Offset anti self-shadow per il cane.
+        Se vedi ancora macchie nere sul corpo, prova 0.06.
+    */
+    vec3 shadowWorldPos =
+        worldPos + normalize(worldNormal) * 0.04;
+
+    vec3 dir =
+        shadowWorldPos - lightWorldPos;
+
+    int face = choosePointShadowFace(dir);
+
+    vec4 shadowCoord;
+
+    if (face == 0) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix0 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 1) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix1 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 2) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix2 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 3) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix3 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 4) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix4 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix5 *
+            vec4(shadowWorldPos, 1.0);
+    }
+
+    vec3 projCoords =
+        shadowCoord.xyz / shadowCoord.w;
+
+    projCoords =
+        projCoords * 0.5 + 0.5;
+
+    if (
+        projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0
+    ) {
+        return 1.0;
+    }
+
+    vec4 packedDepth;
+
+    if (face == 0) {
+        packedDepth =
+            texture2D(pointShadowMap0, projCoords.xy);
+    }
+    else if (face == 1) {
+        packedDepth =
+            texture2D(pointShadowMap1, projCoords.xy);
+    }
+    else if (face == 2) {
+        packedDepth =
+            texture2D(pointShadowMap2, projCoords.xy);
+    }
+    else if (face == 3) {
+        packedDepth =
+            texture2D(pointShadowMap3, projCoords.xy);
+    }
+    else if (face == 4) {
+        packedDepth =
+            texture2D(pointShadowMap4, projCoords.xy);
+    }
+    else {
+        packedDepth =
+            texture2D(pointShadowMap5, projCoords.xy);
+    }
+
+    float closestDepth =
+        unpackDepth(packedDepth);
+
+    float currentDepth =
+        length(shadowWorldPos - lightWorldPos) / farPlane;
+
+    vec3 fragToLight =
+        normalize(lightWorldPos - shadowWorldPos);
+
+    float ndotl =
+        max(dot(normalize(worldNormal), fragToLight), 0.0);
+
+    float bias =
+        max(
+            0.006 * (1.0 - ndotl),
+            0.0012
+        );
+
+    return currentDepth > closestDepth + bias
+        ? 0.55
+        : 1.0;
+}
 
 void main()
 {
@@ -1314,7 +1443,10 @@ void main()
         return;
     }
 
-    float diff = ndotl;
+    //modifica per ombre
+    //float diff = ndotl;
+
+    float diff = max(ndotl, 0.0);
 
     vec3 baseColor = texture2D(uTexture, fTexCoord).rgb;
     
@@ -1586,10 +1718,17 @@ float unpackDepth(vec4 rgbaDepth)
     return dot(rgbaDepth, bitShift);
 }
 
+/*
 float computePointShadow(vec3 worldPos, vec3 worldNormal)
 {
     float farPlane = 40.0;
     vec3 lightWorldPos = lightPosition.xyz;
+
+    // offset anti self-shadow per il tavolo
+    vec3 shadowWorldPos =
+    worldPos + normalize(worldNormal) * 0.06;
+
+
     vec3 dir = worldPos - lightWorldPos;
 
     int face = choosePointShadowFace(dir);
@@ -1702,6 +1841,219 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+    }
+}
+*/
+
+float computePointShadow(vec3 worldPos, vec3 worldNormal)
+{
+    float farPlane = 40.0;
+
+    vec3 lightWorldPos = lightPosition.xyz;
+
+    /*
+        Anti self-shadow:
+        sposto leggermente il punto lungo la normale.
+        Serve soprattutto per evitare macchie sopra il tavolo.
+    */
+    vec3 shadowWorldPos =
+        worldPos + normalize(worldNormal) * 0.06;
+
+    vec3 dir =
+        shadowWorldPos - lightWorldPos;
+
+    int face = choosePointShadowFace(dir);
+
+    vec4 shadowCoord;
+    float closestDepth;
+
+    vec3 fragToLight =
+        normalize(lightWorldPos - shadowWorldPos);
+
+    float ndotl =
+        max(dot(normalize(worldNormal), fragToLight), 0.0);
+
+    float bias =
+        max(
+            0.008 * (1.0 - ndotl),
+            0.0015
+        );
+
+    float currentDistance =
+        length(shadowWorldPos - lightWorldPos);
+
+    float currentDepth =
+        currentDistance / farPlane;
+
+    // ombra non completamente nera
+    float quantita_luce = 0.35;
+
+    if (face == 0) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix0 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap0, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
+    }
+
+    else if (face == 1) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix1 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap1, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
+    }
+
+    else if (face == 2) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix2 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap2, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
+    }
+
+    else if (face == 3) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix3 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap3, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
+    }
+
+    else if (face == 4) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix4 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap4, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
+    }
+
+    else {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix5 *
+            vec4(shadowWorldPos, 1.0);
+
+        vec3 projCoords =
+            shadowCoord.xyz / shadowCoord.w;
+
+        projCoords =
+            projCoords * 0.5 + 0.5;
+
+        if (
+            projCoords.x < 0.0 || projCoords.x > 1.0 ||
+            projCoords.y < 0.0 || projCoords.y > 1.0 ||
+            projCoords.z < 0.0 || projCoords.z > 1.0
+        ) {
+            return 1.0;
+        }
+
+        closestDepth =
+            unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
+
+        return (currentDepth > closestDepth + bias)
+            ? quantita_luce
+            : 1.0;
     }
 }
 
