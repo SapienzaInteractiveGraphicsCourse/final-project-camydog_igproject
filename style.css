@@ -7,8 +7,8 @@ body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
+    font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: #f2dede;
 }
 
 body {
@@ -238,13 +238,15 @@ body.game-not-started .main-layout {
 
 .control-group h3 {
     margin: 0 0 12px 0;
-    font-size: 18px;
-    color: #333;
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
     border-bottom: 1px solid #ddd;
     padding-bottom: 6px;
+    letter-spacing: 0.2px;
 }
 
-.control-row {
+/* .control-row {
     display: grid;
     grid-template-columns: 115px 120px 45px;
     align-items: center;
@@ -266,7 +268,40 @@ body.game-not-started .main-layout {
 .control-row span {
     font-size: 13px;
     text-align: right;
+} */
+.control-row {
+    display: grid;
+    grid-template-columns: 105px minmax(70px, 1fr) 50px;
+    align-items: center;
+    column-gap: 8px;
+    margin-bottom: 15px;
+    color: #555;
 }
+
+.control-row input[type="range"] {
+    width: 100%;
+    min-width: 0;
+}
+
+.control-row label {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #111;
+}
+
+.control-row span {
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+    min-width: 46px;
+    color: #111;
+}
+
 
 .collapsible-panel {
     margin-bottom: 18px;
@@ -358,7 +393,7 @@ button:active {
 /* =========================
    Smaller screens
    ========================= */
-@media (max-width: 900px) {
+/* @media (max-width: 900px) {
     .controls-panel {
         flex-basis: 280px;
         width: 280px;
@@ -371,8 +406,32 @@ button:active {
     .control-row input[type="range"] {
         width: 100px;
     }
-}
+} */
 
+@media (max-width: 900px) {
+    .controls-panel {
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+    }
+
+    .control-row {
+        grid-template-columns: 96px minmax(58px, 1fr) 48px;
+        column-gap: 6px;
+    }
+
+    .control-row input[type="range"] {
+        width: 100%;
+    }
+
+    .control-row label {
+        font-size: 15px;
+    }
+
+    .control-row span {
+        font-size: 15px;
+    }
+}
 
 #ButtonAutoSun {
     width: 70px;
