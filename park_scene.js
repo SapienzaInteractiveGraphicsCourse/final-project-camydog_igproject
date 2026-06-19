@@ -13,14 +13,14 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
     );
 
     // ===== PRATO =====
-    var modelMatrixGrass = mat4();
-    modelMatrixGrass = mult(modelMatrixGrass, translate(0.0, -2.5, 0.0));
-    modelMatrixGrass = mult(modelMatrixGrass, scalem(30.0, 0.08, 30.0));
+    var modelMatrixFloor = mat4();
+    modelMatrixFloor = mult(modelMatrixFloor, translate(0.0, -2.5, 0.0));
+    modelMatrixFloor = mult(modelMatrixFloor, scalem(14.0, 0.1, 14.0));
 
     drawObject(
         roomBoxBuffers,
-        floorTexture,        // oppure floorTexture temporaneamente
-        modelMatrixGrass,
+        grassTexture,        // oppure floorTexture temporaneamente
+        modelMatrixFloor,
         viewMatrix,
         projectionMatrix,
         true,
@@ -30,7 +30,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
         0
     );
 
-    // ===== CANE NEL PARCO =====
+    /* // ===== CANE NEL PARCO =====
     var modelMatrixParkDog = mat4();
     modelMatrixParkDog = mult(modelMatrixParkDog, translate(0.0, -2.2, 2.0));
     modelMatrixParkDog = mult(modelMatrixParkDog, rotate(-90, [1, 0, 0]));
@@ -47,5 +47,5 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
         false,
         true,
         0
-    );
+    ); */
 }

@@ -4,10 +4,10 @@
 function updateCanvasCursor() {
     if (petDogMode) {
         canvas.style.cursor =
-            "url('icons/wave.png') 16 6, pointer";
+            "url('Icons/wave.png') 16 6, pointer";
     } else if (callDogClickMode) {
         canvas.style.cursor =
-            "url('icons/hand_1.png') 12 4, pointer";
+            "url('Icons/hand_1.png') 12 4, pointer";
     } else {
         canvas.style.cursor = "move";
     }
@@ -679,7 +679,7 @@ function LoadSkyboxTexture(gl)
     return texture;
 }
 
-function LoadSkyboxTexturePark(gl)
+/* function LoadSkyboxTexturePark(gl)
 {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
@@ -754,8 +754,239 @@ function LoadSkyboxTexturePark(gl)
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     return texture;
+} */
+
+
+/* function LoadSkyboxTexturePark(gl)
+{
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    const faceInfos = [
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+            url: path_folder_skybox_park + "negx.jpg",
+            flipY
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+            url: path_folder_skybox_park + "posx.jpg",
+        },
+
+        // prova: scambio sopra/sotto
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+            url: path_folder_skybox_park + "negy.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            url: path_folder_skybox_park + "posy.jpg",
+        },
+
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+            url: path_folder_skybox_park + "posz.jpg",
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+            url: path_folder_skybox_park + "negz.jpg",
+        },
+    ];
+
+    faceInfos.forEach((faceInfo) => {
+        const { target, url } = faceInfo;
+
+        gl.texImage2D(
+            target,
+            0,
+            gl.RGBA,
+            512,
+            512,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+
+        const image = new Image();
+
+        image.onload = function () {
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
+
+            gl.texImage2D(
+                target,
+                0,
+                gl.RGBA,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                image
+            );
+        };
+
+        image.src = url;
+    });
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
+} */
+
+
+    function LoadSkyboxTexturePark(gl)
+{
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    const faceInfos = [
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+            url: path_folder_skybox_park + "negx.jpg",
+            flipY: true,
+            rotateDeg: 0
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+            url: path_folder_skybox_park + "posx.jpg",
+            flipY: true,
+            rotateDeg: 0
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+            url: path_folder_skybox_park + "posy.jpg",
+            flipY: true,
+            rotateDeg: 0
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+            url: path_folder_skybox_park + "negy.jpg",
+            flipY: false,
+            rotateDeg: -90
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+            url: path_folder_skybox_park + "posz.jpg",
+            flipY: true,
+            rotateDeg: 0
+        },
+        {
+            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+            url: path_folder_skybox_park + "negz.jpg",
+            flipY: true,
+            rotateDeg: 0
+        },
+    ];
+    faceInfos.forEach((faceInfo) => {
+        const { target, url, flipY,rotateDeg } = faceInfo;
+
+        gl.texImage2D(
+            target,
+            0,
+            gl.RGBA,
+            512,
+            512,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null
+        );
+
+        const image = new Image();
+
+        image.onload = function () {
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+            gl.pixelStorei(
+                gl.UNPACK_FLIP_Y_WEBGL,
+                flipY
+            );
+
+            uploadCubemapFace(
+                gl,
+                target,
+                image,
+                rotateDeg,
+                flipY
+            );
+
+            gl.pixelStorei(
+                gl.UNPACK_FLIP_Y_WEBGL,
+                false
+            );
+        };
+
+        image.src = url;
+    });
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
 }
 
+
+function uploadCubemapFace(gl, target, image, rotateDeg, flipY)
+{
+    if (rotateDeg === 0 && !flipY) {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+        gl.texImage2D(
+            target,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            image
+        );
+
+        return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.save();
+
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+
+    if (rotateDeg !== 0) {
+        ctx.rotate(rotateDeg * Math.PI / 180.0);
+    }
+
+    if (flipY) {
+        ctx.scale(1, -1);
+    }
+
+    ctx.drawImage(
+        image,
+        -image.width / 2,
+        -image.height / 2
+    );
+
+    ctx.restore();
+
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+    gl.texImage2D(
+        target,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        canvas
+    );
+}
 
 /* function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
 {
