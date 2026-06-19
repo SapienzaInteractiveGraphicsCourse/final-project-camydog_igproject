@@ -465,9 +465,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         lightViewMatrix = pointLightViewMatrices[i];
         lightProjectionMatrix = pointLightProjectionMatrix;
 
+        
         drawShadowObject(teapotBuffers, modelMatrix1);
         drawShadowObject(tableBuffers, modelMatrix2);
-        drawShadowObject(catBuffers, modelMatrix3);
+
+        if(okCat) drawShadowObject(catBuffers, modelMatrix3);
         //drawShadowObject(dogBuffers, modelMatrixDog);
 
 
@@ -631,7 +633,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         viewMatrix,
         projectionMatrix
     );
-    drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
+
+    if (okCat) drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
          projectionMatrix, true, false,false,true);
 
     /* drawObject(
