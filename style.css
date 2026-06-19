@@ -372,3 +372,46 @@ button:active {
         width: 100px;
     }
 }
+
+
+#ButtonAutoSun {
+    width: 70px;
+    height: 70px;
+
+    background-color: #ffffff;
+    padding: 0;
+
+    border: none;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+#ButtonAutoSun:hover {
+    background-color: #fff3c4;
+    transform: scale(1.06);
+}
+
+#ButtonAutoSun:active {
+    transform: scale(0.95);
+}
+
+#ButtonAutoSun img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#ButtonAutoSun.auto-sun-on {
+    background-color: #ffe08a;
+    box-shadow:
+        0 0 12px rgba(255, 200, 60, 0.75),
+        0 2px 5px rgba(0, 0, 0, 0.25);
+}
