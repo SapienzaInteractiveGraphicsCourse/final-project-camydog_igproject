@@ -644,24 +644,6 @@ onload = async function init() {
         gl.getUniformLocation(skinnedDogProgram, "pointLightProjectionMatrix");
 
 
-    /* skinnedDogShadowProgram = initShaders(
-        gl,
-        "skinned-dog-shadow-vertex-shader",
-        "skinned-dog-shadow-fragment-shader"
-    );
-
-    skinnedDogShadowAttribs.vPosition = gl.getAttribLocation(skinnedDogShadowProgram, "vPosition");
-    skinnedDogShadowAttribs.vJoints   = gl.getAttribLocation(skinnedDogShadowProgram, "vJoints");
-    skinnedDogShadowAttribs.vWeights  = gl.getAttribLocation(skinnedDogShadowProgram, "vWeights");
-
-    skinnedDogShadowUniforms.modelMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "modelMatrix");
-    skinnedDogShadowUniforms.lightViewMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "lightViewMatrix");
-    skinnedDogShadowUniforms.lightProjectionMatrix = gl.getUniformLocation(skinnedDogShadowProgram, "lightProjectionMatrix");
-    skinnedDogShadowUniforms.boneMatrices = gl.getUniformLocation(skinnedDogShadowProgram, "boneMatrices");
-
-    skinnedDogShadowUniforms.lightPosition = gl.getUniformLocation(skinnedDogShadowProgram, "lightPosition");
-    skinnedDogShadowUniforms.pointShadowFar = gl.getUniformLocation(skinnedDogShadowProgram, "pointShadowFar");
-    skinnedDogShadowUniforms.pointShadowPass = gl.getUniformLocation(skinnedDogShadowProgram, "pointShadowPass"); */
 
     skinnedDogDepthProgram = initShaders(
         gl,
@@ -951,6 +933,34 @@ onload = async function init() {
 
     musicButton.onclick = function () {
         toggleBackgroundMusic();
+    };
+
+
+    //ANCHOR -  For automoving sun part
+
+    autoSunButton =
+        document.getElementById("ButtonAutoSun");
+
+    autoSunButton.onclick = function () {
+            autoSunEnabled = !autoSunEnabled;
+
+            if (autoSunEnabled) {
+                autoSunButton.classList.add("auto-sun-on");
+
+                if (isNight) {
+                    autoSunButton.title = "Auto Moon: ON";
+                } else {
+                    autoSunButton.title = "Auto Sun: ON";
+                }
+            } else {
+                autoSunButton.classList.remove("auto-sun-on");
+
+                if (isNight) {
+                    autoSunButton.title = "Auto Moon: OFF";
+                } else {
+                    autoSunButton.title = "Auto Sun: OFF";
+                }
+            }
     };
 
 
@@ -1706,9 +1716,18 @@ function readGamepad() {
 function render() {
     resizeCanvasToDisplaySize();
 
+    var now = performance.now();
+    var deltaTime = (now - lastRenderTime) / 1000.0;
+    lastRenderTime = now;
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     updateFPSCounter();
+
+
+    updateAutoSun(deltaTime);
+
+    
     //controllo se è stato premuto il tasto A del gamepad per attivare/disattivare la rotazione
     readGamepad();
     clampTeapotToTable();

@@ -7,6 +7,10 @@ var showCollisionDebug = false;
 //object array
 var currentScene = "home"; // "home" or "walk"
 
+// options for showing objects
+var okTeapot=false;
+var okCat=false;
+
 // Object paths
 var modelPath_teapot = "./Objects/teapot.obj";
 var modelPath_table = "./Objects/table.obj";
@@ -50,6 +54,7 @@ var path_icon_music_off="./Icons/music_off.png"
 var path_icon_music_on="./Icons/music_on.png"
 var path_icon_sun= "./Icons/sun.png"
 var path_icon_moon ="./Icons/fullmoon.png"
+var path_icon_sun_auto= "./Icons/auto_moving_sun.png"
 
 
 //texture variables
@@ -130,6 +135,12 @@ var  lightTint_night = vec3(0.55, 0.65, 1.0);
 var lightIntensity_sun = 1.0;
 var  ambientStrength_sun = 0.28;
 var lightTint_sun = vec3(1.0, 0.92, 0.75);
+
+// auto moving sun variables 
+var autoSunEnabled = false;
+var autoSunAngle = 0.0;
+var lastRenderTime = performance.now();
+var autoSunButton;
 
 //curtain variables
 var CURTAIN_ROWS = 28;

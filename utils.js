@@ -32,6 +32,69 @@ function resizeCanvasToDisplaySize() {
         );
     }
 }
+
+////////////////////////////////////////////
+function updateAutoSun(deltaTime) {
+    if (!autoSunEnabled) {
+        return;
+    }
+
+    var speed;
+
+    if (isNight) {
+        // Luna un po' più lenta
+        speed = 0.20;
+    } else {
+        // Sole un po' più veloce
+        speed = 0.35;
+    }
+
+    autoSunAngle += deltaTime * speed;
+
+    var radiusX = 8.0;
+    var centerX = 0.0;
+
+    var minY;
+    var maxY;
+
+    if (isNight) {
+        minY = 3.5;
+        maxY = 9.0;
+    } else {
+        minY = 2.2;
+        maxY = 11.0;
+    }
+
+    var centerZ = 1.0;
+    var radiusZ = 3.0;
+
+    var x =
+        centerX + Math.cos(autoSunAngle) * radiusX;
+
+    var y =
+        minY + Math.abs(Math.sin(autoSunAngle)) * (maxY - minY);
+
+    var z =
+        centerZ + Math.sin(autoSunAngle * 0.9) * radiusZ;
+
+    lightPosition = vec4(x, y, z, 1.0);
+
+    var lightXSlider = document.getElementById("LightX");
+    var lightYSlider = document.getElementById("LightY");
+    var lightZSlider = document.getElementById("LightZ");
+
+    var lightXValue = document.getElementById("LightXValue");
+    var lightYValue = document.getElementById("LightYValue");
+    var lightZValue = document.getElementById("LightZValue");
+
+    if (lightXSlider) lightXSlider.value = x.toFixed(1);
+    if (lightYSlider) lightYSlider.value = y.toFixed(1);
+    if (lightZSlider) lightZSlider.value = z.toFixed(1);
+
+    if (lightXValue) lightXValue.textContent = x.toFixed(1);
+    if (lightYValue) lightYValue.textContent = y.toFixed(1);
+    if (lightZValue) lightZValue.textContent = z.toFixed(1);
+}
 ///////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {
