@@ -42,14 +42,15 @@
     </div>
     
 
-    <div  class="control-group">
+    <div  class="top-control-bar">
                  <div class="top-buttons">
 
                     
-                    <button id="ButtonTex">Disable Textures</button>
+                    <button hidden id="ButtonTex">Disable Textures</button>
+
                     <button id="ButtonMusic" class="music-icon-button" title="Music OFF">
-                        <img id="MusicIcon" src="./Icons/musical-note.png" alt="Music">
-                    </button
+                        <img id="MusicIcon" src="./Icons/music_on.png" alt="Music">
+                    </button>
 
                         <div class="control-row">
                             <label for="MusicVolume">Music volume:</label>
@@ -67,8 +68,8 @@
                         </div>
                         
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
-                    <button id="ButtonDogMove">Toggle Dog Walk</button>
-                    <button id="ButtonLightDir">Show Light Direction</button>
+                    <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
+                    <button hidden  id="ButtonLightDir">Show Light Direction</button>
                     <button id="ButtonCollision">Show Collisions</button>
                     <button id="ButtonCallDogMode" alt="Call Dog Mode" title="Call Dog Mode">
                         Call Dog Mode 
@@ -189,11 +190,11 @@
 
                             </div>
                             </details>
-                            <button id = "ButtonX">Rotate T. X</button>
-                            <button id = "ButtonY">Rotate T. Y</button>
-                            <button id = "ButtonZ">Rotate T. Z</button>
-                            <button id = "ButtonT">Toggle Teapot Rotation</button>
-                            <button id="ButtonTableRotation">Toggle Table Rotation</button>
+                            <button hidden id = "ButtonX">Rotate T. X</button>
+                            <button hidden id = "ButtonY">Rotate T. Y</button>
+                            <button hidden id = "ButtonZ">Rotate T. Z</button>
+                            <button hidden id = "ButtonT">Toggle Teapot Rotation</button>
+                            <button hideen id="ButtonTableRotation">Toggle Table Rotation</button>
              </div>
                         <div class="control-group">
                                 <h3>Camera views</h3>
@@ -207,7 +208,9 @@
                          <div class="control-group">
                                 <h3>Night&Day</h3>
 
-                                <button id="ButtonNightDay" class="glass-button">Night Mode</button>
+                                <button id="ButtonNightDay" class="night-day-icon-button" title="Switch to Night Mode">
+                                    <img id="NightDayIcon" src="./Icons/fullmoon.png" alt="Night / Day">
+                                </button>
                          </div>
                          <div class="control-group">
                                 <h3>Minigames</h3>
@@ -292,7 +295,7 @@
             </div>
 
 
-            <canvas id="gl-canvas" width="1800" height="900">
+            <canvas id="gl-canvas"> <!-- idth="1800" height="900"> -->
                 Oops ... your browser doesn't support the HTML5 canvas element
             </canvas>
         </div>

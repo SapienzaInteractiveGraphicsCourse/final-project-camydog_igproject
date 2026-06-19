@@ -1,11 +1,13 @@
 function drawHomeScene(gl, viewMatrix, projectionMatrix) {
-    //console.log("[function drawHomeScene]");
+   
     
 
     //curtain always present in the scene
     // & also update physics for mini-game if active
 
-    //startBackgroundMusic();
+    
+
+    resizeCanvasToDisplaySize();
 
     if (showDogHeart) {
             dogHeartTimer += deltaTime;

@@ -43,6 +43,13 @@ var path_img_ball= "./ball_color/ball_diff.jpg";
 var path_img_curtain = "./Textures/curtain_tex.png";
 var path_img_musicNote = "./Textures/hot_pink.jpg";
 var path_img_halo = "./Textures/halo.png";
+var path_img_grass="./Textures/grass_3.jpg";
+
+//icons path
+var path_icon_music_off="./Icons/music_off.png"
+var path_icon_music_on="./Icons/music_on.png"
+var path_icon_sun= "./Icons/sun.png"
+var path_icon_moon ="./Icons/fullmoon.png"
 
 
 //texture variables
@@ -69,6 +76,7 @@ var musicNoteTexture;
 var moonTexture;
 var sunTexture;
 var haloTexture;
+var grassTexture;
 
 //table specific  variables
 var tableMtlTexture = null;
@@ -114,6 +122,14 @@ var eye = vec3(0.0, 4.0, 10.0);
 var viewMatrix = lookAt(eye, at, up);
 var projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 var aspect;
+
+//light night/day
+var  lightIntensity_night = 0.45;
+var  ambientStrength_night = 0.18;
+var  lightTint_night = vec3(0.55, 0.65, 1.0);
+var lightIntensity_sun = 1.0;
+var  ambientStrength_sun = 0.28;
+var lightTint_sun = vec3(1.0, 0.92, 0.75);
 
 //curtain variables
 var CURTAIN_ROWS = 28;
@@ -217,7 +233,14 @@ var dogHeartTimer = 0.0;
 var dogHeartDuration = 2.0;
 var hideDogHeartPending = false;
 var hideDogHeartTimer = 0.0;
-var hideDogHeartDelay = 1.5;
+var hideDogHeartDelay = 1.5; 
+
+//background music variables
+var backgroundMusic; 
+var musicVolumeSlider; 
+var musicVolumeValue;
+var musicButton;
+var musicIcon; 
 
 // caress to dog variables
 var petDogMode = false;
@@ -232,7 +255,7 @@ var lastPetMouseX = 0.0;
 var lastPetMouseY = 0.0;
 var dogBreathSound = new Audio("./Audio/dog_breath.mp3");
 
-// musicNote variables
+// musicNote object variables
 var showDogMusicNote = false;
 
 

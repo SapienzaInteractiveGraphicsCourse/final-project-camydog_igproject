@@ -13,7 +13,26 @@ function updateCanvasCursor() {
     }
 }
 //////////////////////
+function resizeCanvasToDisplaySize() {
+    var displayWidth = canvas.clientWidth;
+    var displayHeight = canvas.clientHeight;
 
+    if (
+        canvas.width !== displayWidth ||
+        canvas.height !== displayHeight
+    ) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+
+        gl.viewport(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+    }
+}
+///////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {
     let tex = gl.createTexture();

@@ -397,6 +397,7 @@ onload = async function init() {
     moonTexture = loadTexture(path_img_moon, true);
     sunTexture = loadTexture(path_img_sun);
     haloTexture = loadTexture(path_img_halo);
+    grassTexture= loadTexture(path_img_grass);
 
     //halo buffers
     haloBuffers = createBuffers(
@@ -910,15 +911,27 @@ onload = async function init() {
     };
 
 
+
+    //////////////////// MUSIC PART
+
+    //ANCHOR - Music Part
+
+
     //music slider for volume
-    var backgroundMusic =
+    backgroundMusic =
         document.getElementById("backgroundMusic");
 
-    var musicVolumeSlider =
+    musicVolumeSlider =
         document.getElementById("MusicVolume");
 
-    var musicVolumeValue =
+    musicVolumeValue =
         document.getElementById("MusicVolumeValue");
+
+    musicButton =
+    document.getElementById("ButtonMusic");
+    
+    musicIcon =
+    document.getElementById("MusicIcon");
 
 
     // Volume iniziale
@@ -935,6 +948,16 @@ onload = async function init() {
             Math.round(volume * 100) + "%";
     });
 
+
+    musicButton.onclick = function () {
+        toggleBackgroundMusic();
+    };
+
+
+
+
+
+
     //park or home mode
     document.getElementById("ButtonGoOut").onclick = function () {
         currentScene = "park";
@@ -944,10 +967,7 @@ onload = async function init() {
         currentScene = "home";
     };
 
-    document.getElementById("ButtonMusic").onclick = function () {
-        toggleBackgroundMusic();
-    };
-
+  
     document.getElementById("windSlider").oninput = function () {
         currentWind = parseFloat(this.value);
 
@@ -1022,13 +1042,33 @@ onload = async function init() {
         showLightDirection = !showLightDirection;
         this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
     };
-    document.getElementById("ButtonNightDay").onclick = function () {
+    /* document.getElementById("ButtonNightDay").onclick = function () {
         isNight = !isNight;
 
         if (isNight) {
             this.textContent = "Day Mode";
         } else {
             this.textContent = "Night Mode";
+        }
+    }; */
+
+    var nightDayButton =
+    document.getElementById("ButtonNightDay");
+
+    var nightDayIcon =
+        document.getElementById("NightDayIcon");
+
+    nightDayButton.onclick = function () {
+        isNight = !isNight;
+
+        if (isNight) {
+            // Ora sei in notte: mostro il sole per tornare al giorno
+            nightDayIcon.src = path_icon_sun
+            nightDayButton.title = "Switch to Day Mode";
+        } else {
+            // Ora sei in giorno: mostro la luna per passare alla notte
+            nightDayIcon.src = path_icon_moon
+            nightDayButton.title = "Switch to Night Mode";
         }
     };
     document.getElementById("ButtonTeapotFocus").onclick = function () {
@@ -1664,6 +1704,8 @@ function readGamepad() {
 
 
 function render() {
+    resizeCanvasToDisplaySize();
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     updateFPSCounter();
@@ -1673,7 +1715,9 @@ function render() {
 
    
 
-     viewMatrix = lookAt(eye, at, up);
+    viewMatrix = lookAt(eye, at, up);
+    aspect =
+        canvas.width / canvas.height;
     projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 
 
@@ -1701,9 +1745,45 @@ function drawObject(obj,
     globalAlpha = 1.0,
     ) {
 
+    //per differenziare luce giorno/notte
+    var lightIntensity;
+    var ambientStrength;
+    var lightTint;
+
+
+    gl.useProgram(program);   
+
+    if (isNight) {
+        lightIntensity = lightIntensity_night;
+        ambientStrength = ambientStrength_night;
+        lightTint = lightTint_night; // blu lunare
+    } else {
+        lightIntensity = lightIntensity_sun;
+        ambientStrength = ambientStrength_sun;
+        lightTint = lightTint_sun; // caldo sole
+    }
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "uLightIntensity"),
+        lightIntensity
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "uAmbientStrength"),
+        ambientStrength
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(program, "uLightTint"),
+        flatten(lightTint)
+    );
+
+    ///////
+
+
 
     //  be sure to use the right shader program before setting uniforms and attributes
-    gl.useProgram(program);   
+    
 
     if (wallShadowMode === undefined) {
         wallShadowMode = 0;
