@@ -341,6 +341,36 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
 
     gl.useProgram(skinnedDogProgram);
 
+    //part for chaning light day/night
+    var dogLightIntensity;
+    var dogAmbientStrength;
+    var dogLightTint;
+
+    if (isNight) {
+        dogLightIntensity = 0.45;
+        dogAmbientStrength = 0.22;
+        dogLightTint = vec3(0.60, 0.70, 1.0);
+    } else {
+        dogLightIntensity = 1.0;
+        dogAmbientStrength = 0.35;
+        dogLightTint = vec3(1.0, 0.92, 0.78);
+    }
+
+    gl.uniform1f(
+        gl.getUniformLocation(skinnedDogProgram, "uLightIntensity"),
+        dogLightIntensity
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(skinnedDogProgram, "uAmbientStrength"),
+        dogAmbientStrength
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(skinnedDogProgram, "uLightTint"),
+        flatten(dogLightTint)
+    );
+
     var t = performance.now() * 0.001;
     var walkMove = Math.sin(t * 1.2) * 0.35;
 
