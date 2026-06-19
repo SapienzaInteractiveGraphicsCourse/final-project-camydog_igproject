@@ -16,20 +16,28 @@ function stopBackgroundMusic() {
     music.pause();
 }
 
+
 function toggleBackgroundMusic() {
-    var music = document.getElementById("backgroundMusic");
-    var button = document.getElementById("ButtonMusic");
+    if (!backgroundMusic || !musicButton || !musicIcon) {
+        return;
+    }
 
-    if (!music || !button) return;
-
-    if (music.paused) {
-        music.play().catch(function(error) {
+    if (backgroundMusic.paused) {
+        backgroundMusic.play().catch(function(error) {
             console.log("Music play blocked:", error);
         });
-        button.textContent = "Music: ON";
+
+        // Ora la musica è accesa: mostro l'icona per spegnerla
+        musicIcon.src = path_icon_music_off
+        musicButton.title = "Music ON";
+        musicButton.classList.add("music-on");
     } else {
-        music.pause();
-        button.textContent = "Music: OFF";
+        backgroundMusic.pause();
+
+        // Ora la musica è spenta: mostro l'icona per accenderla
+        musicIcon.src = path_icon_music_on;
+        musicButton.title = "Music OFF";
+        musicButton.classList.remove("music-on");
     }
 }
 
