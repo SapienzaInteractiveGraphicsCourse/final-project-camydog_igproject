@@ -40,6 +40,7 @@ function finishInitialLoading() {
     var startScreen =
         document.getElementById("startScreen");
 
+    // 1. Tolgo SEMPRE il loading
     if (loadingScreen) {
         loadingScreen.classList.add("hidden");
 
@@ -48,6 +49,7 @@ function finishInitialLoading() {
         }, 500);
     }
 
+    // 2. Poi decido se mostrare la schermata start oppure no
     if (ENABLE_START_SCREEN) {
         document.body.classList.add("game-not-started");
 
@@ -59,6 +61,7 @@ function finishInitialLoading() {
         document.body.classList.remove("game-not-started");
 
         if (startScreen) {
+            startScreen.classList.add("hidden");
             startScreen.style.display = "none";
         }
     }

@@ -1,5 +1,6 @@
 // variable to enable start screen
 var ENABLE_START_SCREEN = false; 
+var ENABLE_LOADING_SCREEN = true;
 
 // variable to enable debug mode
 var showCollisionDebug = false;

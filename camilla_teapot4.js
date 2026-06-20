@@ -314,6 +314,7 @@ onload = async function init() {
    
     var startButton = document.getElementById("ButtonStartGame");
     var startScreen = document.getElementById("startScreen");
+    var loadingScreen = document.getElementById("loadingScreen");
 
 
     //initialization for cursor
@@ -349,6 +350,11 @@ onload = async function init() {
     if (startScreen) {
         startScreen.style.display = "none";
         startScreen.classList.remove("hidden");
+    }
+
+    // se loading disattivato, lo nascondo subito
+    if (!ENABLE_LOADING_SCREEN && loadingScreen) {
+        loadingScreen.style.display = "none";
     }
 
 
@@ -1458,9 +1464,14 @@ onload = async function init() {
         dogBreathSound.currentTime = 0;
     });
 
-    setTimeout(function () {
+    if (ENABLE_LOADING_SCREEN) {
+        setTimeout(function () {
+            finishInitialLoading();
+        }, 1800);
+    } else {
         finishInitialLoading();
-    }, 1800);
+    }
+
 
 
     render();
