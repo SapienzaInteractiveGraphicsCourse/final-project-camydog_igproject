@@ -562,6 +562,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         if (curtain) {
             gl.disable(gl.CULL_FACE);
             drawShadowObject(curtain, mat4());
+            //drawShadowObject()
             gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.BACK);
         }
