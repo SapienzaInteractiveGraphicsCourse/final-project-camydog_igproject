@@ -271,9 +271,9 @@ body.game-not-started .main-layout {
 } */
 .control-row {
     display: grid;
-    grid-template-columns: 105px minmax(70px, 1fr) 50px;
+    grid-template-columns: 118px minmax(60px, 1fr) 48px;
     align-items: center;
-    column-gap: 8px;
+    column-gap: 6px;
     margin-bottom: 15px;
     color: #555;
 }
@@ -288,8 +288,8 @@ body.game-not-started .main-layout {
     font-weight: 600;
     line-height: 1.25;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
     color: #111;
 }
 
@@ -416,7 +416,7 @@ button:active {
     }
 
     .control-row {
-        grid-template-columns: 96px minmax(58px, 1fr) 48px;
+        grid-template-columns: 110px minmax(58px, 1fr) 48px;
         column-gap: 6px;
     }
 
