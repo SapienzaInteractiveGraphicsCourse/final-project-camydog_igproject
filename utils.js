@@ -32,7 +32,37 @@ function resizeCanvasToDisplaySize() {
         );
     }
 }
+//////////////////////////!SECTION
+function finishInitialLoading() {
+    var loadingScreen =
+        document.getElementById("loadingScreen");
 
+    var startScreen =
+        document.getElementById("startScreen");
+
+    if (loadingScreen) {
+        loadingScreen.classList.add("hidden");
+
+        setTimeout(function () {
+            loadingScreen.style.display = "none";
+        }, 500);
+    }
+
+    if (ENABLE_START_SCREEN) {
+        document.body.classList.add("game-not-started");
+
+        if (startScreen) {
+            startScreen.style.display = "flex";
+            startScreen.classList.remove("hidden");
+        }
+    } else {
+        document.body.classList.remove("game-not-started");
+
+        if (startScreen) {
+            startScreen.style.display = "none";
+        }
+    }
+}
 ////////////////////////////////////////////
 function updateAutoSun(deltaTime) {
     if (!autoSunEnabled) {

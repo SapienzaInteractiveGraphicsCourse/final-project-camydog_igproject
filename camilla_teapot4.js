@@ -322,7 +322,7 @@ onload = async function init() {
 
     updateCanvasCursor();
 
-    if (!ENABLE_START_SCREEN) {
+    /* if (!ENABLE_START_SCREEN) {
         document.body.classList.remove("game-not-started");
 
         if (startScreen) {
@@ -342,6 +342,28 @@ onload = async function init() {
                 }, 500);
             };
         }
+    } */
+
+    // All'inizio nascondo la start screen.
+    // Prima deve vedersi il loading.
+    if (startScreen) {
+        startScreen.style.display = "none";
+        startScreen.classList.remove("hidden");
+    }
+
+
+    // Il bottone Start serve solo se ENABLE_START_SCREEN è true.
+    // Però lo preparo subito.
+    if (startButton && startScreen) {
+        startButton.onclick = function () {
+            document.body.classList.remove("game-not-started");
+
+            startScreen.classList.add("hidden");
+
+            setTimeout(function () {
+                startScreen.style.display = "none";
+            }, 500);
+        };
     }
 
 
@@ -1435,6 +1457,12 @@ onload = async function init() {
         dogBreathSound.pause();
         dogBreathSound.currentTime = 0;
     });
+
+    setTimeout(function () {
+        finishInitialLoading();
+    }, 1800);
+
+
     render();
 };
 
@@ -1737,7 +1765,7 @@ function render() {
     viewMatrix = lookAt(eye, at, up);
     aspect =
         canvas.width / canvas.height;
-    projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
+    projectionMatrix = perspective(cameraFov, aspect, 0.1,50.0)
 
 
     if (currentScene === "home") {
