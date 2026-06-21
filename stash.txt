@@ -178,3 +178,81 @@ float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
     return currentDepth > closestDepth + bias ? 0.35 : 1.0;
 }
 */
+
+
+nel fragment shader
+/* 
+        // Normale interna teorica della parete
+        vec3 wallNormal = vec3(0.0);
+
+        if (wallShadowMode == 1) {
+            // parete posteriore
+            wallNormal = vec3(0.0, 0.0, 1.0);
+        }
+        else if (wallShadowMode == 2) {
+            // parete sinistra
+            wallNormal = vec3(1.0, 0.0, 0.0);
+        }
+        else if (wallShadowMode == 3) {
+            // parete destra
+            wallNormal = vec3(-1.0, 0.0, 0.0);
+        }
+
+        vec3 wallLightDir =
+            normalize(lightPosition.xyz - fWorldPos);
+
+        float wallDiffuse =
+            max(dot(wallNormal, wallLightDir), 0.0);
+
+        vec3 wallBaseColor = useTexture
+            ? texColor.rgb
+            : vec3(1.0);
+
+        // Luce uniforme su tutta la parete:
+        // ambient + diffuse, senza dipendere dalle normali della mesh
+        vec3 wallColor =
+            wallBaseColor * (0.18 + 0.82 * wallDiffuse);
+
+        baseColor = vec4(wallColor, 1.0);
+        */
+
+        /*
+        vec3 wallNormal = vec3(0.0);
+
+        vec3 wallLightDir =
+            normalize(lightPosition.xyz - fWorldPos);
+
+        vec3 realNormal =
+            normalize(fWorldNormal);
+
+        bool isInternalWallFace =
+            dot(realNormal, wallNormal) > 0.5;
+
+        if (wallShadowMode == 3) {
+            isInternalWallFace =
+                isInternalWallFace && !gl_FrontFacing;
+        }
+        float wallDiffuse;
+
+        if (isInternalWallFace) {
+            // faccia interna: uso la normale teorica pulita
+            wallDiffuse =
+                max(dot(wallNormal, wallLightDir), 0.0);
+        }
+        else {
+            // faccia esterna/dietro: uso la normale reale della mesh
+            // così non viene illuminata come se fosse interna
+            wallDiffuse =
+                max(dot(realNormal, wallLightDir), 0.0);
+        }
+
+        vec3 wallBaseColor = useTexture
+            ? texColor.rgb
+            : vec3(1.0);
+
+        vec3 wallColor =
+            wallBaseColor * (0.18 + 0.82 * wallDiffuse);
+
+        baseColor = vec4(wallColor, 1.0);
+
+        */

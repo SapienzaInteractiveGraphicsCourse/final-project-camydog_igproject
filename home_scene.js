@@ -785,7 +785,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
 
     drawObject(roomBoxBuffers, floorTexture, modelMatrixFloor,
-    viewMatrix, projectionMatrix, true, false, false,  true,0);
+    viewMatrix, projectionMatrix, true, false, false,  true,5);
 
     drawObject(roomBoxBuffers, wallTexture, modelMatrixBackWall,
         viewMatrix, projectionMatrix, true, false, false,  true,1);
@@ -815,7 +815,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false,  // isLightMarker
             true,   // twoSided: importante per vedere entrambi i lati della stoffa
             true,   // receiveShadow
-            0
+            4
         );
     }
     gl.enable(gl.CULL_FACE);
