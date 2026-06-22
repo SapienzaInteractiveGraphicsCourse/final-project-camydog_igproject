@@ -576,6 +576,38 @@ float unpackDepth(vec4 rgbaDepth)
 
     return dot(rgbaDepth, bitShift);
 }
+float getSoftShadow(sampler2D shadowMap, vec3 projCoords, float currentDepth, float bias, float quantita_luce) {
+    float shadowValue = 0.0;
+    
+    // QUESTO È IL VALORE MAGICO: se l'ombra è ancora netta, alza questo valore (es. 0.01, 0.02, 0.05)
+    // Se l'ombra è troppo staccata, abbassalo (es. 0.002, 0.001)
+    float spread = 0.001; 
+
+    // Array di 9 campioni distribuiti in modo irregolare (Poisson Disk)
+    vec2 poissonDisk[9];
+    poissonDisk[0] = vec2(0.0, 0.0);
+    poissonDisk[1] = vec2(0.278, 0.658);
+    poissonDisk[2] = vec2(-0.841, 0.446);
+    poissonDisk[3] = vec2(-0.468, -0.760);
+    poissonDisk[4] = vec2(0.817, -0.428);
+    poissonDisk[5] = vec2(-0.215, 0.170);
+    poissonDisk[6] = vec2(0.537, 0.111);
+    poissonDisk[7] = vec2(-0.162, -0.485);
+    poissonDisk[8] = vec2(0.258, -0.902);
+
+    for(int i = 0; i < 9; i++) {
+        // Campioniamo la texture usando i punti sparsi
+        float pcfDepth = unpackDepth(texture2D(shadowMap, projCoords.xy + poissonDisk[i] * spread));
+        
+        if (currentDepth > pcfDepth + bias) {
+            shadowValue += quantita_luce;
+        } else {
+            shadowValue += 1.0;
+        }
+    }
+    
+    return shadowValue / 9.0;
+}
 
 float computePointShadow(vec3 worldPos, vec3 worldNormal)
 {
@@ -620,7 +652,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     
 
     //attenzione su gpt
-    float quantita_luce=0.01;
+    float quantita_luce=0.5;
+
+    float blurRadius = 1.5;  
 
     if (face == 0) {
         shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix0 * vec4(worldPos, 1.0);
@@ -635,8 +669,11 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap0, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        // for aliasing
+        //closestDepth = unpackDepth(texture2D(pointShadowMap0, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+
+        return getSoftShadow(pointShadowMap0, projCoords, currentDepth, bias, quantita_luce);
     }
 
     else if (face == 1) {
@@ -650,8 +687,10 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap1, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        //closestDepth = unpackDepth(texture2D(pointShadowMap1, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+
+        return getSoftShadow(pointShadowMap1, projCoords, currentDepth, bias, quantita_luce);
     }
 
     else if (face == 2) {
@@ -665,8 +704,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap2, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        //closestDepth = unpackDepth(texture2D(pointShadowMap2, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        return getSoftShadow(pointShadowMap2, projCoords, currentDepth, bias, quantita_luce);
     }
 
     else if (face == 3) {
@@ -680,8 +720,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap3, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        //closestDepth = unpackDepth(texture2D(pointShadowMap3, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+       return getSoftShadow(pointShadowMap3, projCoords, currentDepth, bias, quantita_luce);
     }
 
     else if (face == 4) {
@@ -695,8 +736,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap4, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        //closestDepth = unpackDepth(texture2D(pointShadowMap4, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        return getSoftShadow(pointShadowMap4, projCoords, currentDepth, bias, quantita_luce);
     }
 
     else {
@@ -710,8 +752,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             return 1.0;
         }
 
-        closestDepth = unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
-        return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        //closestDepth = unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
+        //return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        return getSoftShadow(pointShadowMap5, projCoords, currentDepth, bias, quantita_luce);
     }
 }
 
@@ -835,7 +878,7 @@ void main(){
             float bias = 0.0005;
 
             float shadowSum = 0.0;
-            float texelSize = 1.0 / 2048.0;
+            float texelSize = 1.0 / 4096.0;
 
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {

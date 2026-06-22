@@ -224,6 +224,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     modelMatrixBowl= mult(modelMatrixBowl,translate(0.0,-2.25,5.0))
     modelMatrixBowl = mult(modelMatrixBowl, scalem(0.5, 0.5, 0.5));
 
+    //curtain rod
+    var modelMatrixCurtainRod= mat4();
+     modelMatrixCurtainRod = mult(modelMatrixCurtainRod, translate(6.9, 1.258, -1.28));
+    modelMatrixCurtainRod = mult(modelMatrixCurtainRod, rotate(90, [0, 1, 0]));
+    modelMatrixCurtainRod = mult(modelMatrixCurtainRod, scalem(1.5, 0.1, 0.1));
+
 
     // ===== ROOM BOX =====
 
@@ -490,12 +496,15 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
          // uso i blockers
 
-       
+       gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.FRONT);
+        
+
         drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
 
         // parete destra bucata reale
-        //gl.disable(gl.CULL_FACE);
+        
 
         drawShadowObject(
             roomBoxBuffers,
@@ -517,45 +526,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             modelMatrixRightBlockerRight
         );
 
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK); 
+        
+         //gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
 
         //perparete destra con finestra bucata
         //drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
        gl.disable(gl.CULL_FACE);
-        //drawShadowObject(rightWallWindowBuffers, modelMatrixRightWallBlocker);
-        /* drawShadowObject(rightWallWindowBuffers, modelMatrixRightWall);
-
-                
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK); */
-
-        //blocker parete con finestra???????
-
-        /* gl.disable(gl.CULL_FACE);
-
-        drawShadowObject(
-            roomBoxBuffers,
-            modelMatrixRightBlockerTop
-        );
-
-        drawShadowObject(
-            roomBoxBuffers,
-            modelMatrixRightBlockerBottom
-        );
-
-        drawShadowObject(
-            roomBoxBuffers,
-            modelMatrixRightBlockerFront
-        );
-
-        drawShadowObject(
-            roomBoxBuffers,
-            modelMatrixRightBlockerBack
-        );
-
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK); */
+        
 
 
 
@@ -572,6 +550,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             //drawShadowObject()
             gl.enable(gl.CULL_FACE);
             gl.cullFace(gl.BACK);
+
+            drawShadowObject(curtainRodBuffers,modelMatrixCurtainRod);
         }
 
         //drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, true)
@@ -806,6 +786,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             true,   // receiveShadow
             4
         );
+
+        drawObject(curtainRodBuffers,moonTexture,modelMatrixCurtainRod,viewMatrix,projectionMatrix,
+            true,
+            false,true,true);
+        
     }
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);

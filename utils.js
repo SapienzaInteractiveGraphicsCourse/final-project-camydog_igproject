@@ -128,6 +128,94 @@ function updateAutoSun(deltaTime) {
     if (lightYValue) lightYValue.textContent = y.toFixed(1);
     if (lightZValue) lightZValue.textContent = z.toFixed(1);
 }
+////////////////////////////////////////////////
+function createCurtainRodObject(gl, segments = 48) {
+    let vertices = [];
+    let normals = [];
+    let texCoords = [];
+
+    function pushVertex(x, y, z, nx, ny, nz, u, v) {
+        vertices.push(vec4(x, y, z, 1.0));
+        normals.push(vec4(nx, ny, nz, 0.0));
+        texCoords.push(vec2(u, v));
+    }
+
+    const zMin = -0.5;
+    const zMax =  0.5;
+
+    for (let i = 0; i < segments; i++) {
+        let a1 = 2.0 * Math.PI * i / segments;
+        let a2 = 2.0 * Math.PI * (i + 1) / segments;
+
+        let x1 = Math.cos(a1);
+        let y1 = Math.sin(a1);
+
+        let x2 = Math.cos(a2);
+        let y2 = Math.sin(a2);
+
+        let u1 = i / segments;
+        let u2 = (i + 1) / segments;
+
+        // lato del cilindro, primo triangolo
+        pushVertex(x1, y1, zMin, x1, y1, 0.0, u1, 0.0);
+        pushVertex(x1, y1, zMax, x1, y1, 0.0, u1, 1.0);
+        pushVertex(x2, y2, zMin, x2, y2, 0.0, u2, 0.0);
+
+        // lato del cilindro, secondo triangolo
+        pushVertex(x1, y1, zMax, x1, y1, 0.0, u1, 1.0);
+        pushVertex(x2, y2, zMax, x2, y2, 0.0, u2, 1.0);
+        pushVertex(x2, y2, zMin, x2, y2, 0.0, u2, 0.0);
+
+        // tappo sinistro
+        pushVertex(0.0, 0.0, zMin, 0.0, 0.0, -1.0, 0.5, 0.5);
+        pushVertex(x2, y2, zMin, 0.0, 0.0, -1.0, 1.0, 0.5);
+        pushVertex(x1, y1, zMin, 0.0, 0.0, -1.0, 0.0, 0.5);
+
+        // tappo destro
+        pushVertex(0.0, 0.0, zMax, 0.0, 0.0, 1.0, 0.5, 0.5);
+        pushVertex(x1, y1, zMax, 0.0, 0.0, 1.0, 0.0, 0.5);
+        pushVertex(x2, y2, zMax, 0.0, 0.0, 1.0, 1.0, 0.5);
+    }
+
+    let obj = {};
+
+    obj.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    obj.nBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.nBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
+
+    obj.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
+
+    obj.numVertices = vertices.length;
+
+    return obj;
+}
+
+
+function initCurtainRod(gl) {
+    const cyl = createCylinderVertices(32);
+
+    curtainRodBuffers = {};
+
+    curtainRodBuffers.positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, curtainRodBuffers.positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, cyl.positions, gl.STATIC_DRAW);
+
+    curtainRodBuffers.normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, curtainRodBuffers.normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, cyl.normals, gl.STATIC_DRAW);
+
+    curtainRodBuffers.indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, curtainRodBuffers.indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cyl.indices, gl.STATIC_DRAW);
+
+    curtainRodBuffers.numIndices = cyl.indices.length;
+}
 ///////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {

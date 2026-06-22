@@ -127,6 +127,9 @@ var sunBuffers = null;
 //moon buffers
 var moonBuffers;
 
+//curtain rod buffers
+var curtainRodBuffers;
+
 var bowlBuffers;
 
 
@@ -501,6 +504,15 @@ onload = async function init() {
     var bowlNormals = normalsArray.slice();
     var bowlTex = texCoordsArray.slice();
     bowlBuffers = createBuffers(bowlPoints, bowlNormals, bowlTex);
+
+    //loading curtain rod support
+    curtainRodBuffers= createCurtainRodObject(gl);
+    if(!curtainRodBuffers){
+        console.log("ERRORE");
+    }
+    else{
+        console.log("CILINDRO RIUSCITO");
+    }
 
 
 
