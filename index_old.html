@@ -577,16 +577,14 @@ float unpackDepth(vec4 rgbaDepth)
     return dot(rgbaDepth, bitShift);
 }
 
+
+
 float computePointShadow(vec3 worldPos, vec3 worldNormal)
 {
     float farPlane = 40.0;
     vec3 lightWorldPos = lightPosition.xyz;
-
     vec3 dir = worldPos - lightWorldPos;
 
-    
-
-   
     int face = choosePointShadowFace(dir);
 
     vec4 shadowCoord;
@@ -609,23 +607,21 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
             0.0015 * (1.0 - ndotl),
             0.00015
         );
-    }
+    } 
 
-    float currentDistance = length(worldPos - lightWorldPos);
     
+    float currentDistance = length(worldPos - lightWorldPos);
     float currentDepth = currentDistance / farPlane;
 
     
 
-    
-
     //attenzione su gpt
-    float quantita_luce=0.01;
+    float quantita_luce=0.15;
+    
+    
 
     if (face == 0) {
         shadowCoord = pointLightProjectionMatrix * pointLightViewMatrix0 * vec4(worldPos, 1.0);
-        
-
         vec3 projCoords = shadowCoord.xyz / shadowCoord.w;
         projCoords = projCoords * 0.5 + 0.5;
 
@@ -637,6 +633,9 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap0, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+
+       
+        
     }
 
     else if (face == 1) {
@@ -652,6 +651,8 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap1, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        
+        
     }
 
     else if (face == 2) {
@@ -667,6 +668,7 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap2, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        
     }
 
     else if (face == 3) {
@@ -682,6 +684,7 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap3, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        
     }
 
     else if (face == 4) {
@@ -697,6 +700,7 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap4, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        
     }
 
     else {
@@ -712,15 +716,13 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
 
         closestDepth = unpackDepth(texture2D(pointShadowMap5, projCoords.xy));
         return (currentDepth > closestDepth + bias) ? quantita_luce : 1.0;
+        
     }
 }
 
 void main(){
 
-    // if (isLightMarker) {
-    //    gl_FragColor = vec4(1.0, 1.0, 0.25, 1.0);
-    //    return;
-    //}
+    
 
     if (isLightMarker && isMoon) {
         vec3 p = normalize(fMoonObjectPos);
@@ -775,7 +777,7 @@ void main(){
 
     
 
-    //vec2 uv = fract(fTexCoord * 8.0);
+    
     vec4 texColor = texture2D(uTexture, fTexCoord);
 
     
@@ -805,9 +807,7 @@ void main(){
     }
     else if (wallShadowMode == 3) {
         // parete destra: faccia interna orientata verso -X
-        //REVIEW - 
-        //applyShadowOnThisFace = dot(n, vec3(-1.0, 0.0, 0.0)) > 0.5;
-        applyShadowOnThisFace = gl_FrontFacing;
+        applyShadowOnThisFace =  dot(n, vec3(-1.0, 0.0, 0.0)) > 0.5;
     }
     else if (wallShadowMode == 5) {
         // pavimento: riceve ombra solo sulla faccia superiore
@@ -825,7 +825,8 @@ void main(){
         shadow = computePointShadow(fWorldPos,fWorldNormal);
     }
     else {
-        // QUI lasci la tua shadow map vecchia pari pari
+        
+
         if (receiveShadow && 
             projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
             projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
@@ -853,8 +854,7 @@ void main(){
         }
     }
 
-    //vec4 baseColor = useTexture ? texColor * fColor : fColor;
-    //gl_FragColor = vec4(baseColor.rgb * shadow, baseColor.a);
+    
 
    vec4 baseColor;
 
@@ -876,6 +876,7 @@ void main(){
             Questo NON è come twoSided nel vertex shader:
             qui serve solo a illuminare correttamente la faccia visibile.
         */
+
         if (!gl_FrontFacing) {
             N = -N;
         }
@@ -883,18 +884,19 @@ void main(){
         vec3 lightDir =
             normalize(lightPosition.xyz - fWorldPos);
 
+    
         float directLight =
             max(dot(N, lightDir), 0.0);
 
         /*
-            Piccolo contributo minimo perché il cloth non diventi nero totale.
-            Se vuoi più scuro, metti 0.02.
+            Evito che diventi nera totale.
+            Se è troppo chiara, abbassa 0.10 a 0.06.
         */
-        float clothBackLight = 0.05;
+        float clothMinLight = 0.05;
 
         vec3 curtainColor =
-            curtainBaseColor * (uAmbientStrength * 0.45)
-            + curtainBaseColor * (directLight + clothBackLight) * uLightIntensity * uLightTint;
+            curtainBaseColor * (uAmbientStrength * 0.55)
+            + curtainBaseColor * (directLight + clothMinLight) * uLightIntensity * uLightTint;
 
         baseColor = vec4(curtainColor, texColor.a);
     }
@@ -987,8 +989,7 @@ void main(){
             }
         }
 
-       /* vec3 wallColor =
-            wallBaseColor * (0.18 + 0.82 * wallDiffuse); */
+       
 
        vec3 wallColor =
             wallBaseColor * uAmbientStrength

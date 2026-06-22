@@ -219,6 +219,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     modelMatrixDog = mult(modelMatrixDog, rotate(-90, [1, 0, 0]));
     modelMatrixDog = mult(modelMatrixDog, scalem(1.0, 1.0, 1.0));
 
+    //bowl matrix
+    var modelMatrixBowl= mat4();
+    modelMatrixBowl= mult(modelMatrixBowl,translate(0.0,-2.25,5.0))
+    modelMatrixBowl = mult(modelMatrixBowl, scalem(0.5, 0.5, 0.5));
+
 
     // ===== ROOM BOX =====
 
@@ -249,12 +254,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     // parete destra
     var modelMatrixRightWall = mat4();
-    modelMatrixRightWall = mult(modelMatrixRightWall, translate(7.0, -0.5, 0.0));
-    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.15, 4.0, 14.4));
+    modelMatrixRightWall = mult(modelMatrixRightWall, translate(6.75, -0.5, 0.0));
+    modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.5, 4.0, 14.4));
     // blocker per la parete destra
     var modelMatrixRightWallBlocker = mat4();
-    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(7.08, -0.5, 0.0));
-    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.15, 4.2, 14.6));
+    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(6.8, -0.5, 0.0));
+    modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.5, 4.2, 14.6));
 
     //parete modificata per la parte con finestra // blocker invisibili attorno alla finestra
     // La parete destra è lungo Z, quindi X rimane quasi fisso.
@@ -469,6 +474,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(teapotBuffers, modelMatrix1);
         drawShadowObject(tableBuffers, modelMatrix2);
 
+        drawShadowObject(bowlBuffers,modelMatrixBowl);
+
         if(okCat) drawShadowObject(catBuffers, modelMatrix3);
         //drawShadowObject(dogBuffers, modelMatrixDog);
 
@@ -618,6 +625,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         flatten(diffuseProduct)
     );
 
+
+    drawObject(bowlBuffers,
+         bowlTexture,
+          modelMatrixBowl,
+           viewMatrix,
+            projectionMatrix,true, 
+            false,false,true)
+
     drawObject(teapotBuffers,
          teapotTexture,
           modelMatrix1,
@@ -638,32 +653,6 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     if (okCat) drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
          projectionMatrix, true, false,false,true);
 
-    /* drawObject(
-        dogBuffers,
-        dogTexture,
-        modelMatrixDog,
-        viewMatrix,
-        projectionMatrix,
-        true,   // useTexture
-        false,  // isLightMarker
-        false,  // twoSided
-        true    // receiveShadow
-    ); */
-
-    // prova disegno rigged dog parts
-    //drawSeparatedDog(viewMatrix, projectionMatrix, performance.now());
-
-
-    // pulsazione
-    /* var t = performance.now() * 0.001;
-    var pulse = 1.0 + 0.06 * Math.sin(t * 2.5);
-    var haloInnerScale = 3.8 * pulse;
-    var haloOuterScale = 5.2 * pulse;
-
-   var haloOuterMatrix = getBillboardHaloMatrix(haloOuterScale, viewMatrix);
-    var haloInnerMatrix = getBillboardHaloMatrix(haloInnerScale, viewMatrix); 
-
-     */
 
     //prima night sun hale era quiii  !!!!!!!!!!!!
 
@@ -881,6 +870,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     drawObject(roomBoxBuffers, corniceTexture, modelMatrixFrameRight,
         viewMatrix, projectionMatrix, true, false, false, true);
+
+    //bowl
 
 
 

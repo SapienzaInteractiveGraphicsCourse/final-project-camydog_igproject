@@ -2,6 +2,9 @@
 var ENABLE_START_SCREEN = false; 
 var ENABLE_LOADING_SCREEN = false;
 
+// shadow map variables
+var SHADOW_SIZE = 2048;
+
 // variable to enable debug mode
 var showCollisionDebug = false;
 
@@ -23,6 +26,7 @@ var modelPath_heart= "./Objects/heart/heart.obj";
 var modelPath_musicNote= "./Objects/music_note_1.obj";
 var modelPath_sun = "./Objects/sun/sun.obj";
 var modelPath_moon= "./Objects/moon.obj";
+var modelPath_bowl="./Objects/dog_bowl.obj";
 
 //path folder rigged dog
 var pathFolderRiggedDog = "./Objects/dog_separated_model/";
@@ -49,7 +53,7 @@ var path_img_curtain = "./Textures/curtain_tex.png";
 var path_img_musicNote = "./Textures/hot_pink.jpg";
 var path_img_halo = "./Textures/halo.png";
 var path_img_grass="./Textures/grass_3.jpg";
-
+var path_img_steel="./Textures/steel.png";
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
 var path_icon_music_on="./Icons/music_on.png"
@@ -83,6 +87,7 @@ var moonTexture;
 var sunTexture;
 var haloTexture;
 var grassTexture;
+var bowlTexture;
 
 //table specific  variables
 var tableMtlTexture = null;

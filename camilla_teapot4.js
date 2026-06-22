@@ -77,7 +77,7 @@ var shadowFramebuffer;
 var shadowTexture;
 var shadowProgram;
 
-var SHADOW_SIZE = 2048;
+
 
 var lightViewMatrix;
 var lightProjectionMatrix;
@@ -124,8 +124,10 @@ var haloBuffers = null;
 
 //sun buffers
 var sunBuffers = null;
-
+//moon buffers
 var moonBuffers;
+
+var bowlBuffers;
 
 
 //skybox
@@ -426,6 +428,7 @@ onload = async function init() {
     sunTexture = loadTexture(path_img_sun);
     haloTexture = loadTexture(path_img_halo);
     grassTexture= loadTexture(path_img_grass);
+    bowlTexture= loadTexture(path_img_steel);
 
     //halo buffers
     haloBuffers = createBuffers(
@@ -490,6 +493,15 @@ onload = async function init() {
     var sunNormals = normalsArray.slice();
     var sunTex = texCoordsArray.slice();
     sunBuffers = createBuffers(sunPoints, sunNormals, sunTex);
+
+    //loading bowl
+    await loadOBJ(modelPath_bowl)
+    console.log("OBJ bowl loaded");
+    var bowlPoints = pointsArray.slice();
+    var bowlNormals = normalsArray.slice();
+    var bowlTex = texCoordsArray.slice();
+    bowlBuffers = createBuffers(bowlPoints, bowlNormals, bowlTex);
+
 
 
     //carico heart
