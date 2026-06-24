@@ -280,6 +280,613 @@ function segmentIntersectsTableAvoidZone(x1, z1, x2, z2) {
     return bestPath;
 }
 
+////////////////////// Bowl collider
+function createBowlCollider() {
+    var bowlShape = new CANNON.Cylinder(
+        bowlColliderRadius,
+        bowlColliderRadius,
+        bowlColliderHeight,
+        32
+    );
+
+    bowlBody = new CANNON.Body({
+        mass: 0
+    });
+    
+    bowlBody.collisionFilterGroup = GROUP_BOWL;
+    bowlBody.collisionFilterMask = -1;
+
+    bowlBody.addShape(bowlShape);
+
+    bowlBody.position.set(
+        bowlX,
+        bowlColliderY,
+        bowlZ
+    );
+
+    // stessa logica del disegno debug
+    bowlBody.quaternion.setFromEuler(Math.PI / 2, 0, 0);
+
+    physicsWorld.addBody(bowlBody);
+}
+
+
+function getBowlColliderMatrix() {
+    var m = mat4();
+
+    m = mult(m, translate(
+        bowlX,
+        bowlColliderY,
+        bowlZ
+    ));
+
+    // cilindro lungo Z -> verticale su Y
+    m = mult(m, rotate(90, [1, 0, 0]));
+
+    m = mult(m, scalem(
+        bowlColliderRadius,
+        bowlColliderRadius,
+        bowlColliderHeight
+    ));
+
+    return m;
+}
+/////////////////////////
+
+// bowl physics
+function updateWater(deltaTime) {
+    var target = waterVisible ? 1.0 : 0.0;
+
+    if (waterFillAmount < target) {
+        waterFillAmount += waterFillSpeed * deltaTime;
+
+        if (waterFillAmount > 1.0) {
+            waterFillAmount = 1.0;
+        }
+    } else if (waterFillAmount > target) {
+        waterFillAmount -= waterFillSpeed * deltaTime;
+
+        if (waterFillAmount < 0.0) {
+            waterFillAmount = 0.0;
+        }
+    }
+}
+/////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////
+// Food part -> Kibbles
+// ///////////////////////////////////////////////////
+
+
+function startKibblePour() {
+    clearKibbleParticles();
+
+    kibbleVisible = true;
+    kibbleSpawnRemaining = numKibbles;
+    kibbleSpawnTimer = 0.0;
+    kibbleSpawnIndex = 0;
+    playPouringFoodSound();
+}
+
+function updateKibbleSpawner(deltaTime) {
+    if (!kibbleVisible) return;
+    if (kibbleSpawnRemaining <= 0) return;
+
+    kibbleSpawnTimer += deltaTime;
+
+    if (kibbleSpawnTimer >= kibbleSpawnInterval) {
+        kibbleSpawnTimer = 0.0;
+
+        spawnOneKibble(kibbleSpawnIndex);
+
+        kibbleSpawnIndex++;
+        kibbleSpawnRemaining--;
+    }
+}
+
+function spawnOneKibble(index) {
+    var landing = getKibbleLandingSpot(index);
+
+    /*
+        Punto di partenza diverso per ogni croccantino.
+        Così sembrano versati, non spawnati tutti dallo stesso pixel.
+    */
+    var sourceX = bowlX - 0.18 + (index % 3) * 0.09 + (Math.random() - 0.5) * 0.04;
+    var sourceY = bowlY + 0.90 + index * 0.015 + Math.random() * 0.04;
+    var sourceZ = bowlZ - 0.20 + Math.floor(index / 3) * 0.05 + (Math.random() - 0.5) * 0.04;
+
+    var kibbleShape = new CANNON.Sphere(kibbleRadius);
+
+    var kibbleBody = new CANNON.Body({
+        mass: 0.015,
+        shape: kibbleShape,
+        position: new CANNON.Vec3(sourceX, sourceY, sourceZ)
+    });
+
+    kibbleBody.collisionFilterGroup = GROUP_KIBBLE;
+    kibbleBody.collisionFilterMask = GROUP_WORLD | GROUP_KIBBLE;
+
+    kibbleBody.linearDamping = 0.90;
+    kibbleBody.angularDamping = 0.92;
+
+    /*
+        NON verso il centro.
+        Ogni croccantino va verso il suo landing spot.
+    */
+    var dirX = landing.x - sourceX;
+    var dirZ = landing.z - sourceZ;
+
+    kibbleBody.velocity.set(
+        dirX * 0.75 + (Math.random() - 0.5) * 0.015,
+        -0.035,
+        dirZ * 0.75 + (Math.random() - 0.5) * 0.015
+    );
+
+    kibbleBody.angularVelocity.set(
+        (Math.random() - 0.5) * 0.7,
+        (Math.random() - 0.5) * 0.7,
+        (Math.random() - 0.5) * 0.7
+    );
+
+    kibbleBody.allowSleep = true;
+    kibbleBody.sleepSpeedLimit = 0.035;
+    kibbleBody.sleepTimeLimit = 0.5;
+
+    physicsWorld.addBody(kibbleBody);
+
+    kibbleParticles.push({
+        body: kibbleBody,
+        radius: kibbleRadius,
+
+        scaleX: 1.05 + Math.random() * 0.15,
+        scaleY: 0.95 + Math.random() * 0.10,
+        scaleZ: 1.00 + Math.random() * 0.15,
+
+        age: 0.0,
+        settled: false,
+
+        finalX: landing.x,
+        finalY: landing.y,
+        finalZ: landing.z,
+
+        rotX: Math.random() * 25.0,
+        rotY: Math.random() * 360.0,
+        rotZ: Math.random() * 25.0,
+
+        meshIndex: Math.floor(Math.random() * kibbleObjects.length),
+    });
+}
+
+
+function getKibbleLandingSpot(index) {
+    var spots = [
+        [ 0.00,  0.00, 0.000],
+        [ 0.09,  0.03, 0.012],
+        [-0.09,  0.02, 0.016],
+        [ 0.04, -0.08, 0.020],
+        [-0.05, -0.08, 0.024],
+        [ 0.02,  0.08, 0.030],
+        [ 0.10, -0.04, 0.036],
+        [-0.10, -0.03, 0.040],
+        [ 0.07,  0.08, 0.046],
+        [-0.07,  0.08, 0.052]
+    ];
+
+    var p = spots[index % spots.length];
+
+    return {
+        x: bowlX + p[0],
+        y: bowlY - 0.035 + p[2],
+        z: bowlZ + p[1]
+    };
+}
+
+function createKibbleCatchCollider() {
+   
+
+    var kibbleCatchShape = new CANNON.Cylinder(
+        kibbleCatchRadius,
+        kibbleCatchRadius,
+        kibbleCatchHeight,
+        32
+    );
+
+    kibbleCatchBody = new CANNON.Body({
+        mass: 0
+    });
+
+     kibbleCatchBody.collisionFilterGroup = GROUP_CATCH;
+    kibbleCatchBody.collisionFilterMask = -1;
+
+    kibbleCatchBody.addShape(kibbleCatchShape);
+
+    kibbleCatchBody.position.set(
+        bowlX,
+        bowlY +0.11,
+        bowlZ
+    );
+
+    // come per il collider della bowl: cilindro verticale su Y
+    kibbleCatchBody.quaternion.setFromEuler(Math.PI / 2, 0, 0);
+
+    physicsWorld.addBody(kibbleCatchBody);
+}
+function createKibbleBowlWalls() {
+    kibbleWallBodies = [];
+
+    var angleStep = (2.0 * Math.PI) / kibbleWallSegments;
+
+    var wallLength = (2.0 * Math.PI * kibbleWallRadius) / kibbleWallSegments;
+
+    for (var i = 0; i < kibbleWallSegments; i++) {
+        var angle = i * angleStep;
+
+        var x = bowlX + Math.cos(angle) * kibbleWallRadius;
+        var z = bowlZ + Math.sin(angle) * kibbleWallRadius;
+
+        var wallShape = new CANNON.Box(
+            new CANNON.Vec3(
+                wallLength * 0.45,          // lunghezza tangenziale
+                kibbleWallHeight * 0.5,     // altezza
+                kibbleWallThickness * 0.5   // spessore
+            )
+        );
+
+        var wallBody = new CANNON.Body({
+            mass: 0
+        });
+
+        wallBody.addShape(wallShape);
+
+        wallBody.position.set(
+            x,
+            bowlY + 0.11,
+            z
+        );
+
+        // orienta il box lungo il bordo circolare
+        wallBody.quaternion.setFromEuler(
+            0,
+            Math.PI / 2.0 - angle,
+            0
+        );
+
+        wallBody.collisionFilterGroup = GROUP_WORLD;
+        wallBody.collisionFilterMask = -1;
+
+        physicsWorld.addBody(wallBody);
+        kibbleWallBodies.push(wallBody);
+    }
+}
+
+
+function spawnKibbleParticles() {
+    clearKibbleParticles();
+
+    kibbleVisible = true;
+
+    for (var i = 0; i < numKibbles; i++) {
+        var angle = i * 2.399963 + Math.random() * 0.25;
+        var spawnRadius = Math.sqrt(Math.random()) * 0.09;
+
+        var startX = bowlX + Math.cos(angle) * spawnRadius;
+        var startZ = bowlZ + Math.sin(angle) * spawnRadius;
+        var startY = bowlY + 0.75 + Math.random() * 0.25 + i * 0.002;
+
+        var kibbleShape = new CANNON.Sphere(kibbleRadius);
+
+        var kibbleBody = new CANNON.Body({
+            mass: 0.008,
+            shape: kibbleShape,
+            position: new CANNON.Vec3(startX, startY, startZ)
+        });
+
+        kibbleBody.collisionFilterGroup = GROUP_KIBBLE;
+
+        // niente collisione tra croccantini, solo con bowl/catch/floor invisibili
+        kibbleBody.collisionFilterMask = GROUP_WORLD ; //  |  GROUP_KIBBLE      ;
+
+        kibbleBody.linearDamping = 0.94;
+        kibbleBody.angularDamping = 0.96;
+
+        kibbleBody.velocity.set(
+            (Math.random() - 0.5) * 0.002,
+            -0.01,
+            (Math.random() - 0.5) * 0.002
+        );
+
+        kibbleBody.angularVelocity.set(
+            Math.random() * 0.15,
+            Math.random() * 0.15,
+            Math.random() * 0.15
+        );
+
+        kibbleBody.allowSleep = true;
+        kibbleBody.sleepSpeedLimit = 0.03;
+        kibbleBody.sleepTimeLimit = 0.25;
+
+        physicsWorld.addBody(kibbleBody);
+
+        kibbleParticles.push({
+            body: kibbleBody,
+            radius: kibbleRadius,
+
+            scaleX: 1.0,
+            scaleY: 1.0,
+            scaleZ: 1.0,
+
+            yOffset: Math.random() * 0.03,
+            age: 0.0,
+
+            meshIndex: Math.floor(Math.random() * kibbleObjects.length)
+        });
+    }
+}
+
+function clearKibbleParticles() {
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        if (kibbleParticles[i].body) {
+            physicsWorld.removeBody(kibbleParticles[i].body);
+        }
+    }
+
+    kibbleParticles = [];
+    kibbleVisible = false;
+}
+
+
+
+
+
+/* function drawKibbleParticles(viewMatrix, projectionMatrix) {
+    if (!kibbleVisible) return;
+    if (!kibbleObjects || kibbleObjects.length === 0) return;
+
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        var kibble = kibbleParticles[i];
+
+
+        var body = kibble.body;
+
+        var modelMatrixKibble = mat4();
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            translate(
+                body.position.x,
+                body.position.y - kibbleVisualYOffset,
+                body.position.z
+            )
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotY, [0, 1, 0])
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotX, [1, 0, 0])
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotZ, [0, 0, 1])
+        );
+
+     
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            scalem(
+                kibble.radius * kibbleVisualScale * kibble.scaleX,
+                kibble.radius * kibbleVisualScale * kibble.scaleY,
+                kibble.radius * kibbleVisualScale * kibble.scaleZ
+            )
+        );
+
+        var obj = kibbleObjects[kibble.meshIndex];
+
+        drawObject(
+            obj,
+            kibbleTexture,
+            modelMatrixKibble,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            true
+        );
+    }
+}
+ */
+
+
+function drawKibbleParticles(viewMatrix, projectionMatrix) {
+    if (!kibbleVisible) return;
+    if (!kibbleObjects || kibbleObjects.length === 0) return;
+
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        var kibble = kibbleParticles[i];
+
+        var x, y, z;
+
+        if (kibble.settled) {
+            x = kibble.finalX;
+            y = kibble.finalY;
+            z = kibble.finalZ;
+        } else {
+            if (!kibble.body) continue;
+
+            x = kibble.body.position.x;
+            y = kibble.body.position.y;
+            z = kibble.body.position.z;
+        }
+
+        var modelMatrixKibble = mat4();
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            translate(x, y, z)
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotY, [0, 1, 0])
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotX, [1, 0, 0])
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            rotate(kibble.rotZ, [0, 0, 1])
+        );
+
+        modelMatrixKibble = mult(
+            modelMatrixKibble,
+            scalem(
+                kibble.radius * kibbleVisualScale * kibble.scaleX,
+                kibble.radius * kibbleVisualScale * kibble.scaleY,
+                kibble.radius * kibbleVisualScale * kibble.scaleZ
+            )
+        );
+
+        var obj = kibbleObjects[kibble.meshIndex];
+
+        drawObject(
+            obj,
+            kibbleTexture,
+            modelMatrixKibble,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            true
+        );
+    }
+}
+
+function keepKibblesInsideBowl() {
+    if (!kibbleVisible) return;
+
+    var minY = bowlY + 0.0;
+
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        var body = kibbleParticles[i].body;
+
+        if (body.position.y < minY) {
+            body.position.y = minY;
+
+            body.velocity.set(0.0, 0.0, 0.0);
+            body.angularVelocity.set(0.0, 0.0, 0.0);
+
+            body.sleep();
+        }
+    }
+}
+
+
+/* function updateKibbles(deltaTime) {
+    if (!kibbleVisible) return;
+
+    var baseMinY = bowlY -0.05;
+    var maxBowlRadius = 0.23;
+
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        var kibble = kibbleParticles[i];
+        var body = kibble.body;
+
+        kibble.age += deltaTime;
+
+        // caduta più lenta
+        if (body.velocity.y < -kibbleMaxFallSpeed) {
+            body.velocity.y = -kibbleMaxFallSpeed;
+        }
+
+        // anti-sprofondamento
+        var minY = baseMinY + kibble.yOffset;
+
+        if (body.position.y < minY) {
+            body.position.y = minY;
+
+            if (body.velocity.y < 0.0) {
+                body.velocity.y = 0.0;
+            }
+        }
+
+        // contenimento dentro bowl
+        var dx = body.position.x - bowlX;
+        var dz = body.position.z - bowlZ;
+        var dist = Math.sqrt(dx * dx + dz * dz);
+
+        if (dist > maxBowlRadius) {
+            var nx = dx / dist;
+            var nz = dz / dist;
+
+            body.position.x = bowlX + nx * maxBowlRadius;
+            body.position.z = bowlZ + nz * maxBowlRadius;
+
+            var outwardSpeed = body.velocity.x * nx + body.velocity.z * nz;
+
+            if (outwardSpeed > 0.0) {
+                body.velocity.x -= outwardSpeed * nx;
+                body.velocity.z -= outwardSpeed * nz;
+            }
+
+            body.velocity.x *= 0.35;
+            body.velocity.z *= 0.35;
+        }
+
+        var speed = Math.sqrt(
+            body.velocity.x * body.velocity.x +
+            body.velocity.y * body.velocity.y +
+            body.velocity.z * body.velocity.z
+        );
+
+        if (kibble.age > 1.0 && speed < 0.025) {
+            body.sleep();
+        }
+    }
+} */
+
+function updateKibbles(deltaTime) {
+    if (!kibbleVisible) return;
+
+    for (var i = 0; i < kibbleParticles.length; i++) {
+        var kibble = kibbleParticles[i];
+
+        if (kibble.settled) {
+            continue;
+        }
+
+        var body = kibble.body;
+        if (!body) continue;
+
+        kibble.age += deltaTime;
+
+        if (body.velocity.y < -kibbleMaxFallSpeed) {
+            body.velocity.y = -kibbleMaxFallSpeed;
+        }
+
+        // quando entra nella bowl, lo "congelo"
+        if (kibble.age > 0.45 && body.position.y < bowlY + 0.12) {
+            kibble.settled = true;
+
+            // rimuovo il body da Cannon: da ora è statico visivamente
+            physicsWorld.removeBody(body);
+            kibble.body = null;
+        }
+    }
+}
+
+
+
+///////////////////////////////////
+
 
 function createTableCompoundCollider() {
     tableBody = new CANNON.Body({
@@ -366,6 +973,9 @@ function initPhysics() {
         material: floorMaterial
     });
 
+    floorBody.collisionFilterGroup = GROUP_WORLD;
+    floorBody.collisionFilterMask = -1;
+
     floorBody.addShape(floorShape);
 
     // Il Plane di Cannon di default è verticale: lo ruotiamo orizzontale
@@ -430,6 +1040,13 @@ function initPhysics() {
     */
     // collider table
     createTableCompoundCollider();
+
+    //collider for bowl
+    createBowlCollider();
+
+    // collider for kibbles
+    createKibbleCatchCollider();
+
     // Pallina fisica
     var ballShape = new CANNON.Sphere(ballRadius);
 
@@ -812,6 +1429,12 @@ function startSkinnedDogFetchBall() {
     if (!ballBody) return;
 
 
+     if (!dogHappySoundPlayed) {
+        playDogHappySound();
+        dogHappySoundPlayed = true;
+    }
+
+
     showDogMusicNote = true;
 
     // RESET stato precedente del cane
@@ -883,6 +1506,8 @@ function updateSkinnedDogFetchBall(deltaTime) {
             dogHasBall = true;
             //crouching starts
             showDogMusicNote = false;
+
+            dogHappySoundPlayed=false;
 
             dogCrouchActive = true;
             

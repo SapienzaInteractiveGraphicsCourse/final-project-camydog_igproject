@@ -19,9 +19,25 @@
 <audio id="dogBarkSound">
     <source src="./Audio/dog_bark.mp3" type="audio/mpeg">
 </audio>
-<audio id="dogBreathSound" loop>
+<audio id="dogBreathSound" >
     <source src="./Audio/dog_breath.mp3" type="audio/mpeg">
 </audio>
+<audio id="waterSound" >
+    <source src="./Audio/water.mp3" type="audio/mpeg">
+</audio>
+<audio id="notificationSound" loop>
+    <source src="./Audio/notification.mp3" type="audio/mpeg">
+</audio>
+<audio id="dogKibbleSound" loop>
+    <source src="./Audio/dog_kibble.mp3" type="audio/mpeg">
+</audio>
+<audio id="pouringFoodSound" >
+    <source src="./Audio/pouring_food_1.mp3" type="audio/mpeg">
+</audio>
+
+
+
+
 
 <body  class="game-not-started">
         <div id="loadingScreen">
@@ -80,9 +96,18 @@
                             <span id="MusicVolumeValue">10%</span>
                         </div>
 
-                    <button id="ButtonAutoSun" class="auto-sun-button" title="Auto Sun: OFF">
-                        <img id="AutoSunIcon" src="./Icons/auto_moving_sun.png" alt="Auto Sun">
+                   
+                    
+                    <button id="ButtonWater" class="water-button" title="Give water">
+                        <img id="WaterIcon" src="./Icons/dog_water.png" alt="Water">
                     </button>
+
+                    <button id="ButtonFood" class="water-button" title="Give Food">
+                        <img id="FoodIcon" src="./Icons/dog_food.png" alt="Food">
+                    </button>
+
+
+
                         
                     <button id="ButtonCatMove">Toggle Cat Walk</button>
                     <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
@@ -141,14 +166,14 @@
 
                           <div class="control-row">
                             <label for="CameraHeight">Camera height:</label>
-                            <input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="0.5">
-                            <span id="CameraHeightValue">0.5</span>
+                            <input id="CameraHeight" type="range" min="-10" max="12" step="0.1" value="-0.7">
+                            <span id="CameraHeightValue">-0.7</span>
                           </div>
 
                           <div class="control-row">
                             <label for="CameraDistance">Zoom:</label>
-                            <input id="CameraDistance" type="range" min="0.0" max="25" step="0.1" value="10">
-                            <span id="CameraDistanceValue">10.0</span>
+                            <input id="CameraDistance" type="range" min="0.0" max="25" step="0.1" value="12">
+                            <span id="CameraDistanceValue">12.0</span>
                           </div>
             </div>
             <div class="control-group">
@@ -220,6 +245,8 @@
                                     Focus Teapot
                                 </button>
                                 <button id="ButtonFocusCurtain">Focus Curtain</button>
+                                 <button id="ButtonFocusDog">Focus Dog</button>
+                                
                                 <button id="ButtonResetCamera">Reset Camera</button>
                          </div>
                          <div class="control-group">
@@ -227,6 +254,10 @@
 
                                 <button id="ButtonNightDay" class="night-day-icon-button" title="Switch to Night Mode">
                                     <img id="NightDayIcon" src="./Icons/fullmoon.png" alt="Night / Day">
+                                </button>
+
+                                 <button id="ButtonAutoSun" class="auto-sun-button" title="Auto Sun: OFF">
+                                    <img id="AutoSunIcon" src="./Icons/auto_moving_sun.png" alt="Auto Sun">
                                 </button>
                          </div>
                          <div class="control-group">

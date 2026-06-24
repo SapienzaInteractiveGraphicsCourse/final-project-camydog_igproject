@@ -54,6 +54,7 @@ var path_img_musicNote = "./Textures/hot_pink.jpg";
 var path_img_halo = "./Textures/halo.png";
 var path_img_grass="./Textures/grass_3.jpg";
 var path_img_steel="./Textures/steel.png";
+var path_img_blue="./Textures/blue_navy.jpg";
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
 var path_icon_music_on="./Icons/music_on.png"
@@ -88,6 +89,10 @@ var sunTexture;
 var haloTexture;
 var grassTexture;
 var bowlTexture;
+var waterDiskTexture;
+var waterHighlightTexture;
+var curtainTexture = null;
+var kibbleTexture ;
 
 //table specific  variables
 var tableMtlTexture = null;
@@ -105,13 +110,68 @@ var ballMtlTexture = null;
 //heart specific variables
 var heartMtlTexture = null;
 
+
+//****************************************************** */
+/*              BUFFERS                                  */
+//****************************************************** */
+
+//Cloth buffers
+var curtain = null;
+
+var waterDiskBuffers;
+
+// room buffers
+var roomPlaneBuffers;
+var roomBoxBuffers;
+
+//right wall buffers
+var rightWallWindowBuffers;
+
+//ball buffers
+var ballBuffers = null;
+var ballTexture = null;
+
+//heart buffers
+var heartBuffers = null;
+
+//musicNote buffers
+var musicNoteBuffers = null;
+
+// halo buffer
+var haloBuffers = null;
+
+//sun buffers
+var sunBuffers = null;
+//moon buffers
+var moonBuffers;
+
+//curtain rod buffers
+var curtainRodBuffers;
+//bowl buffers
+var bowlBuffers;
+
+// kibble buffers
+var kibbleBuffers;
+
+
+//skybox
+var skyboxProgram;
+var skyboxBuffer;
+
+var skyboxPosLoc;
+var skyboxMvpLoc;
+var skyboxSamplerLoc;
+
+
 // Camera variables
 var camAngle = 0.0;
 var camPitch = 0.0;
 var camRadius = 8.0;
 
 var cameraTarget =  vec3(0.0, 0.5, 0.0);
-var cameraFov = 80.0;
+//var cameraFov = 80.0;
+var cameraFov = 58.0;
+
 var cameraAngle = 35.0;
 var cameraHeight = 4.0;
 var cameraDistance = 10.0;   // questo è lo zoom
@@ -158,6 +218,19 @@ var CURTAIN_HEIGHT = 2.2;
 var CURTAIN_ORIGIN_X = 6.92;
 var CURTAIN_ORIGIN_Y = 1.25;
 var CURTAIN_ORIGIN_Z = -1.28;
+
+//water specular variables
+var waterX = 0.0;
+var waterY = -2.15;  // usa il valore che ti funziona ora
+var waterZ = 5.0;
+
+var waterScale=0.3;
+
+//bowl variables
+var bowlX=5.0;
+var bowlY=-2.25;
+var bowlZ=5.0;
+var bowlBody = null;
 
 
 //skinned dog variables
@@ -270,11 +343,73 @@ var dogPetTargetPitch = 0.0;
 
 var lastPetMouseX = 0.0;
 var lastPetMouseY = 0.0;
-var dogBreathSound = new Audio("./Audio/dog_breath.mp3");
+var dogBreathSound ;
+
+var dogPetAudioPlayed = false;
+var dogIsBeingPetted = false;
 
 // musicNote object variables
 var showDogMusicNote = false;
+var dogHappySound= new Audio("./Audio/notification.mp3");
+dogHappySound.volume = 0.6;
+var dogHappySoundPlayed = false;
 
 
+//halo vairables
 var haloProgram;
 var isSunHalo=false;
+
+//bowl with water variables
+var waterVisible = false;
+var waterFillAmount = 0.0;
+var waterFillSpeed = 1.8;
+var waterSound = new Audio("./Audio/water.mp3");
+ waterSound.volume = 0.6;
+
+//bowl with food variables
+
+
+var radius = Math.random() * 0.18;
+var GROUP_WORLD  = 1;
+var GROUP_KIBBLE = 2;
+var GROUP_BOWL   = 4;
+var GROUP_CATCH  = 8;
+
+var kibbleWallBodies = [];
+var kibbleParticles = [];
+var kibbleVisible = false;
+
+var kibbleCatchRadius = 0.04;
+var kibbleCatchHeight = 0.08;
+
+var numKibbles = 30;
+var kibbleRadius = 0.035;
+
+// piano invisibile dove atterrano i croccantini
+//var kibbleSound= new Audio("./Audio/pouring_food.mp3");
+var pouringFoodSound;
+var kibbleCatchBody = null;
+
+var kibbleWallRadius = 0.26;
+var kibbleWallHeight = 0.35;
+var kibbleWallThickness = 0.08;
+var kibbleWallSegments = 24;
+
+var kibbleSpawnRemaining = 0;
+var kibbleSpawnTimer = 0.0;
+var kibbleSpawnInterval = 0.14; // cadono uno alla volta, più realistico
+var kibbleSpawnIndex = 0;
+
+
+var kibbleObjects = [];
+var kibbleMaxFallSpeed = 3.0; // più basso = cadono più lentamente
+
+var kibbleVisualScale = 2.0;     // grandezza visiva
+var kibbleVisualYOffset = 0.005;
+
+//****************************************************** */
+//             Colliders                                  */
+//****************************************************** */
+var bowlColliderRadius = 0.5;
+var bowlColliderHeight = 0.35;
+var bowlColliderY = bowlY + 0.05;

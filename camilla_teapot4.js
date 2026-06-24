@@ -46,10 +46,6 @@ var tz = 0.0;
 
 
 
-// ===============Cloth variables================
-
-var curtain = null;
-var curtainTexture = null;
 
 
 // ===== BALL MINI-GAME / CANNON PHYSICS =====
@@ -102,44 +98,7 @@ var dogWalkTime = 0.0;
 var dogWalkSpeed = 0.025;
 var dogWalkRange = 2.0;
 
-// room buffers
-var roomPlaneBuffers;
-var roomBoxBuffers;
 
-//right wall buffers
-var rightWallWindowBuffers;
-
-//ball buffers
-var ballBuffers = null;
-var ballTexture = null;
-
-//heart buffers
-var heartBuffers = null;
-
-//musicNote buffers
-var musicNoteBuffers = null;
-
-// halo buffer
-var haloBuffers = null;
-
-//sun buffers
-var sunBuffers = null;
-//moon buffers
-var moonBuffers;
-
-//curtain rod buffers
-var curtainRodBuffers;
-
-var bowlBuffers;
-
-
-//skybox
-var skyboxProgram;
-var skyboxBuffer;
-
-var skyboxPosLoc;
-var skyboxMvpLoc;
-var skyboxSamplerLoc;
 
 
 var isNight = false;
@@ -328,28 +287,6 @@ onload = async function init() {
 
     updateCanvasCursor();
 
-    /* if (!ENABLE_START_SCREEN) {
-        document.body.classList.remove("game-not-started");
-
-        if (startScreen) {
-            startScreen.style.display = "none";
-        }
-    } else {
-        document.body.classList.add("game-not-started");
-
-        if (startButton && startScreen) {
-            startButton.onclick = function () {
-                document.body.classList.remove("game-not-started");
-
-                startScreen.classList.add("hidden");
-
-                setTimeout(function () {
-                    startScreen.style.display = "none";
-                }, 500);
-            };
-        }
-    } */
-
     // All'inizio nascondo la start screen.
     // Prima deve vedersi il loading.
     if (startScreen) {
@@ -431,7 +368,13 @@ onload = async function init() {
     sunTexture = loadTexture(path_img_sun);
     haloTexture = loadTexture(path_img_halo);
     grassTexture= loadTexture(path_img_grass);
-    bowlTexture= loadTexture(path_img_steel);
+    //bowlTexture= loadTexture(path_img_blue);
+    bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
+    waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
+    waterHighlightTexture = createSolidColorTexture(gl, 255, 255, 255, 180);
+    //kibbleTexture = createSolidColorTexture(gl, 115, 70, 30, 255);
+    kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
+
 
     //halo buffers
     haloBuffers = createBuffers(
@@ -479,6 +422,27 @@ onload = async function init() {
         "halo-vertex-shader",
         "halo-fragment-shader"
     );
+
+    // loading water disk 
+    waterDiskBuffers = createWaterDiskObject(gl, 64);
+
+    //loading kibbles
+    /* var kibbleSphere = createSphere(1.0, 16,15);
+    kibbleBuffers = createBuffers(
+        kibbleSphere.points,
+        kibbleSphere.normals,
+        kibbleSphere.texCoords
+    ); */
+
+    kibbleObjects = [
+        createKibbleObject(gl, 1.0, 8, 10, 1),
+        createKibbleObject(gl, 1.0, 8, 10, 2),
+        createKibbleObject(gl, 1.0, 8, 10, 3)
+    ];
+
+    
+    
+    
 
     //carico moon
     await loadOBJ(modelPath_moon);
@@ -866,37 +830,40 @@ onload = async function init() {
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
+
+    //Sound to pet dog
+    dogBreathSound = document.getElementById("dogBreathSound");
+    dogBreathSound.loop = false;
+
+    dogBreathSound.addEventListener("ended", function () {
+        dogPetAudioPlayed = false;
+    });
+
     //button for petting the dog
     var petDogButton = document.getElementById("ButtonPetDogMode");
-
-    /* petDogButton.onclick = function () {
+    petDogButton.onclick = function () {
         petDogMode = !petDogMode;
-
-        var breathSound = document.getElementById("dogBreathSound");
 
         if (petDogMode) {
             callDogClickMode = false;
             callDogButton.textContent = "Call Dog: OFF";
 
-            // Sblocca l'audio tramite il click dell'utente
-            if (breathSound) {
-                breathSound.volume = 0.8;
+            dogPetAudioPlayed = false;
+            dogIsBeingPetted = false;
 
-                breathSound.play()
-                    .then(function () {
-                        breathSound.pause();
-                        breathSound.currentTime = 0;
-                        console.log("Dog breath audio unlocked");
-                    })
-                    .catch(function (error) {
-                        console.log("Audio unlock error:", error);
-                    });
-            }
+            dogBreathSound.pause();
+            dogBreathSound.currentTime = 0;
+            dogBreathSound.loop = false;
+
         } else {
             dogPetHeadYaw = 0.0;
             dogPetHeadPitch = 0.0;
 
-            stopDogBreathSound();
+            dogPetAudioPlayed = false;
+             dogIsBeingPetted = false;
+
+            dogBreathSound.pause();
+            dogBreathSound.currentTime = 0;
         }
 
         this.textContent = petDogMode
@@ -905,29 +872,63 @@ onload = async function init() {
 
         isDraggingCamera = false;
         updateCanvasCursor();
-    }; */
-    petDogButton.onclick = function () {
-    petDogMode = !petDogMode;
+    };
 
-    if (petDogMode) {
-        callDogClickMode = false;
-        callDogButton.textContent = "Call Dog: OFF";
-    } else {
-        dogPetHeadYaw = 0.0;
-        dogPetHeadPitch = 0.0;
+    //button water dog
+    var waterButton = document.getElementById("ButtonWater");
 
-        dogBreathSound.pause();
-        dogBreathSound.currentTime = 0;
-    }
+     waterButton.addEventListener("click", function () {
+            waterVisible = !waterVisible;
 
-    this.textContent = petDogMode
-        ? "Pet Dog: ON"
-        : "Pet Dog: OFF";
+           
 
-    isDraggingCamera = false;
-    updateCanvasCursor();
-};
+            if (waterVisible) {
+                 if (waterSound) {
+                    waterSound.currentTime = 0;
 
+                    waterSound.play().catch(function(error) {
+                        console.log("Water sound could not be played:", error);
+                    });
+                }
+                waterButton.classList.add("active");
+                waterButton.title = "Remove water";
+            } else {
+                waterButton.classList.remove("active");
+                waterButton.title = "Give water";
+            }
+        });
+
+    //sound for pouring the bowl with kibbles
+    pouringFoodSound = document.getElementById("pouringFoodSound");
+    pouringFoodSound.volume = 0.6;
+    
+    // button kibbles/food
+    var foodButton = document.getElementById("ButtonFood");
+
+    foodButton.addEventListener("click", function () {
+        if (!kibbleVisible) {
+            startKibblePour();
+
+            foodButton.classList.add("active");
+            foodButton.title = "Remove Food";
+        } else {
+            clearKibbleParticles();
+
+            kibbleSpawnRemaining = 0;
+
+
+            if (pouringFoodSound) {
+                pouringFoodSound.pause();
+                pouringFoodSound.currentTime = 0;
+            }
+
+            foodButton.classList.remove("active");
+            foodButton.title = "Give Food";
+        }
+    });
+
+    
+     
     // button for calling dog mode
     var callDogButton = document.getElementById("ButtonCallDogMode");
 
@@ -1374,7 +1375,7 @@ onload = async function init() {
 
 
 
-    canvas.addEventListener("wheel", function(event) {
+    /* canvas.addEventListener("wheel", function(event) {
         event.preventDefault();
 
         cameraFov += event.deltaY * 0.015;
@@ -1387,7 +1388,31 @@ onload = async function init() {
         if (cameraFov > 120.0) {
             cameraFov = 120.0;
         }
-    });
+    }); */
+
+
+    canvas.addEventListener("wheel", function(event) {
+    event.preventDefault();
+
+    var zoomSpeed = 0.01;
+
+    var currentDistance = parseFloat(cameraDistanceSlider.value);
+
+    currentDistance += event.deltaY * zoomSpeed;
+
+    var minDistance = 5.0;
+    var maxDistance = parseFloat(cameraDistanceSlider.max);
+
+    currentDistance = Math.max(
+        minDistance,
+        Math.min(maxDistance, currentDistance)
+    );
+
+    cameraDistanceSlider.value = currentDistance.toFixed(1);
+
+    updateOrbitCameraFromSliders();
+
+}, { passive: false });
    /* canvas.addEventListener("mousemove", function(event) {
         if (!petDogMode) return;
 
@@ -1454,16 +1479,25 @@ onload = async function init() {
             dogPetHeadYaw = 0.0;
             dogPetHeadPitch = 0.0;
 
-            if (!dogBreathSound.paused) {
-                dogBreathSound.pause();
-                dogBreathSound.currentTime = 0;
-            }
+            dogIsBeingPetted = false;
 
+            /*
+                Non fermiamo l'audio qui.
+                Altrimenti, appena la mano esce e rientra dal raggio,
+                l'audio riparte da capo.
+            */
             return;
         }
 
         // La mano è vicina alla testa
-        if (dogBreathSound.paused) {
+        dogIsBeingPetted = true;
+
+        if (!dogPetAudioPlayed) {
+            dogPetAudioPlayed = true;
+
+            dogBreathSound.currentTime = 0;
+            dogBreathSound.loop = false;
+
             dogBreathSound.play().catch(function(error) {
                 console.log("Dog breath error:", error);
             });
@@ -2132,7 +2166,7 @@ function resetCameraView() {
     cameraAngle = 35.0;
     cameraHeight = 4.0;
     cameraDistance = 10.0;
-    cameraFov = 80.0;
+    cameraFov = 58.0;
 
     if (cameraAngleSlider) cameraAngleSlider.value = cameraAngle;
     if (cameraHeightSlider) cameraHeightSlider.value = cameraHeight;

@@ -341,7 +341,7 @@ button:active {
 /* Button colors */
 #ButtonTex { background-color: #4CAF50; }
 #ButtonX, #ButtonY, #ButtonZ { background-color: #4FC3F7; }
-#ButtonT, #ButtonFocusCurtain, #ButtonMiniGame { background-color: #E91E63; }
+#ButtonT, #ButtonFocusCurtain, #ButtonMiniGame, #ButtonFocusDog { background-color: #E91E63; }
 #ButtonTableRotation { background-color: #ff8c00; }
 #ButtonCatMove { background-color: #8E44AD; }
 #ButtonDogMove, #ButtonPetDogMode { background-color: #6D4C41; }
@@ -570,4 +570,36 @@ button:active {
     to {
         width: 100%;
     }
+}
+
+
+.water-button {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(248, 243, 243, 0.45);
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px;
+    backdrop-filter: blur(4px);
+}
+
+.water-button img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+}
+
+.water-button:hover {
+    background: rgba(179, 209, 238, 0.65);
+    transform: scale(1.05);
+}
+
+.water-button.active {
+    background: rgba(208, 241, 241, 0.75);
 }

@@ -40,7 +40,7 @@ function toggleBackgroundMusic() {
         musicButton.classList.remove("music-on");
     }
 }
-
+//////////////////////////////////////////////
 
 function playBallThrowSound() {
     var sound = document.getElementById("ballThrowSound");
@@ -54,7 +54,7 @@ function playBallThrowSound() {
         console.log("Ball throw sound blocked:", error);
     });
 }
-
+///////////////////////////////////////////////////////
 function updateWindSound(windValue) {
     var windSound = document.getElementById("windSound");
     if (!windSound) return;
@@ -79,7 +79,27 @@ function updateWindSound(windValue) {
         windSound.currentTime = 0;
     }
 }
+////////////////////////////////////
+function playDogHappySound() {
+    if (!dogHappySound) return;
 
+    dogHappySound.currentTime = 0;
+
+    dogHappySound.play().catch(function(error) {
+        console.log("Dog happy sound could not be played:", error);
+    });
+}
+////////////////////////////////////////
+function playPouringFoodSound() {
+    if (!pouringFoodSound) return;
+
+    pouringFoodSound.currentTime = 0;
+
+    pouringFoodSound.play().catch(function(error) {
+        console.log("Pouring food sound could not be played:", error);
+    });
+}
+///////////////////////////////////////////////
 function playDogBarkSound() {
     var barkSound = document.getElementById("dogBarkSound");
 

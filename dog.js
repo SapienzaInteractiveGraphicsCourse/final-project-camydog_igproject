@@ -1,4 +1,4 @@
-function getDogTargetNearCamera() {
+function getDogTargetNearCamera_old() {
     //var eye = cameraPosition; // posizione della telecamera
     var at = cameraTarget;    // punto guardato dalla telecamera
 
@@ -30,6 +30,73 @@ function getDogTargetNearCamera() {
         z: corrected.z
     };
 
+}
+
+
+function getDogTargetNearCamera() {
+    var at = cameraTarget;
+
+    var dirX = at[0] - eye[0];
+    var dirZ = at[2] - eye[2];
+
+    var len = Math.sqrt(dirX * dirX + dirZ * dirZ);
+
+    if (len < 0.0001) {
+        dirX = 0.0;
+        dirZ = -1.0;
+        len = 1.0;
+    }
+
+    dirX /= len;
+    dirZ /= len;
+
+    // Si ferma davanti alla camera, non dentro la camera
+    var stopDistance = 3.5;
+
+    var targetX = eye[0] + dirX * stopDistance;
+    var targetZ = eye[2] + dirZ * stopDistance;
+
+    /*
+        Limite interno della stanza.
+        Uso un margine perché il cane non deve attaccarsi esattamente al muro.
+    */
+    var dogRoomMargin = 0.85;
+
+    targetX = clamp(
+        targetX,
+        ROOM_MIN_X + dogRoomMargin,
+        ROOM_MAX_X - dogRoomMargin
+    );
+
+    targetZ = clamp(
+        targetZ,
+        ROOM_MIN_Z + dogRoomMargin,
+        ROOM_MAX_Z - dogRoomMargin
+    );
+
+    // Evita di scegliere un punto dentro il tavolo
+    var corrected = keepDogOutsideTable(targetX, targetZ);
+
+    /*
+        Riclampo anche dopo il tavolo, perché keepDogOutsideTable
+        potrebbe spostarlo leggermente.
+    */
+    corrected.x = clamp(
+        corrected.x,
+        ROOM_MIN_X + dogRoomMargin,
+        ROOM_MAX_X - dogRoomMargin
+    );
+
+    corrected.z = clamp(
+        corrected.z,
+        ROOM_MIN_Z + dogRoomMargin,
+        ROOM_MAX_Z - dogRoomMargin
+    );
+
+    return {
+        x: corrected.x,
+        z: corrected.z
+    };
 }
 
 function callSkinnedDogToCamera() {
@@ -90,8 +157,23 @@ function updateSkinnedDogCall(deltaTime) {
 
         var corrected = keepDogOutsideTable(nextX, nextZ);
 
-        dogFetchX = corrected.x;
-        dogFetchZ = corrected.z;
+        /* dogFetchX = corrected.x;
+        dogFetchZ = corrected.z; 
+        */
+
+        var dogRoomMargin = 0.85;
+
+        dogFetchX = clamp(
+            corrected.x,
+            ROOM_MIN_X + dogRoomMargin,
+            ROOM_MAX_X - dogRoomMargin
+        );
+
+        dogFetchZ = clamp(
+            corrected.z,
+            ROOM_MIN_Z + dogRoomMargin,
+            ROOM_MAX_Z - dogRoomMargin
+        );
 
         // Serve anche per orientare il cane
         dogFetchTarget = {
@@ -150,7 +232,7 @@ function getDogHeartModelMatrix() {
         translate(heartX, heartY, heartZ)
     );
 
-    
+
 
     // corregge il cuore capovolto
     heartMatrix = mult(

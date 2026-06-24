@@ -54,7 +54,9 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             curtain.applyWind(now);
         }
 
-        physicsWorld.step(fixedTimeStep, deltaTime, 5);
+        physicsWorld.step(fixedTimeStep, deltaTime, 3);
+        updateKibbleSpawner(deltaTime);
+        updateKibbles(deltaTime);
         
 
         if (miniGameActive) {
@@ -77,6 +79,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         updateSkinnedDogCall(deltaTime);
         updateDogPetAnimation(deltaTime);
+        updateWater(deltaTime);
 
 
         
@@ -221,8 +224,65 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     //bowl matrix
     var modelMatrixBowl= mat4();
-    modelMatrixBowl= mult(modelMatrixBowl,translate(0.0,-2.25,5.0))
+    modelMatrixBowl= mult(modelMatrixBowl,translate(5.0,-2.25,5.0));
     modelMatrixBowl = mult(modelMatrixBowl, scalem(0.5, 0.5, 0.5));
+
+    //bowl collider matrix
+    var modelMatrixBowlCollider = mat4();
+
+    modelMatrixBowlCollider = mult(
+        modelMatrixBowlCollider,
+        translate(bowlX, bowlY, bowlZ)
+    );
+
+    // cilindro lungo Z -> lo ruotiamo per farlo verticale su Y
+    modelMatrixBowlCollider = mult(
+        modelMatrixBowlCollider,
+        rotate(90, [1, 0, 0])
+    );
+
+    modelMatrixBowlCollider = mult(
+        modelMatrixBowlCollider,
+        scalem(
+            bowlColliderRadius,  // radius X
+            bowlColliderRadius,  // radius Z dopo rotazione
+            bowlColliderHeight   // altezza del cilindro
+        )
+    );
+
+    //water disk matrix
+    /*  var modelMatrixWaterDisk = mat4();
+
+    modelMatrixWaterDisk = mult(
+        modelMatrixWaterDisk,
+        translate(5.0, -2.15, 5.0)
+    );
+
+    modelMatrixWaterDisk = mult(
+        modelMatrixWaterDisk,
+        scalem(0.3, 0.3, 0.3)
+    );  */
+
+    var modelMatrixWaterDisk = mat4();
+
+    modelMatrixWaterDisk = mult(
+        modelMatrixWaterDisk,
+        translate(bowlX, bowlY + 0.07, bowlZ)
+    );
+
+    modelMatrixWaterDisk = mult(
+        modelMatrixWaterDisk,
+        scalem(
+            0.3 * waterFillAmount,
+            0.3,
+            0.3 * waterFillAmount
+        )
+    );
+
+
+
+
+
 
     //curtain rod
     var modelMatrixCurtainRod= mat4();
@@ -613,12 +673,72 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             projectionMatrix,true, 
             false,false,true)
 
+
+    //drawKibbleParticles(viewMatrix, projectionMatrix);
+    drawKibbleParticles(viewMatrix, projectionMatrix);
+
+
+    if (waterFillAmount > 0.001) {
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+
+        
+
+        /* drawObject(
+            waterDiskBuffers,
+            waterDiskTexture,
+            modelMatrixWaterDisk,
+            viewMatrix,
+            projectionMatrix,
+            true,   // useTexture
+            false,  // isLightMarker
+            true,   // twoSided
+            true,  // receiveShadow
+            false,  // wallShadowMode
+            false,
+            0.25  // isSunHalo   // globalAlpha
+
+
+            
+        ); */
+
+          drawObject(
+            waterDiskBuffers,
+            waterDiskTexture,
+            modelMatrixWaterDisk,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            0.40 * waterFillAmount
+        );
+
+
+
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+
+    }
+
+
+
+
     drawObject(teapotBuffers,
          teapotTexture,
           modelMatrix1,
            viewMatrix,
             projectionMatrix,useTexture_teapot, 
             false,false,true);
+
+
+        
 
     /* drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
          projectionMatrix, useTexture_table, false,false,true); */
@@ -837,6 +957,38 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             viewMatrix, projectionMatrix,
             false, false, false, false, 0
         );
+
+        //bowl debug collider
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+
+        // opzionale: per debug lo vedi anche se una faccia è girata male
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.CULL_FACE);
+        
+
+        drawObject(
+            curtainRodBuffers,              // cilindro che hai già
+            null,       // texture rossa/verde/blu
+            modelMatrixBowlCollider,
+            viewMatrix,
+            projectionMatrix,
+            true,   // useTexture
+            false,  // isLightMarker
+            true,   // twoSided
+            false,  // receiveShadow
+            false,  // wallShadowMode
+            false,  // isSunHalo
+            0.35    // alpha trasparente
+        );
+
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+
     }
 
     //painting part

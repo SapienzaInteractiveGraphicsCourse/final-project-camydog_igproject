@@ -216,7 +216,85 @@ function initCurtainRod(gl) {
 
     curtainRodBuffers.numIndices = cyl.indices.length;
 }
-///////////////////////////////////////////////////
+/////////////////////////////////////////////////
+function createWaterDiskObject(gl, segments = 64) {
+    let vertices = [];
+    let normals = [];
+    let texCoords = [];
+
+    function pushVertex(x, y, z, u, v) {
+        vertices.push(vec4(x, y, z, 1.0));
+
+        // normale verso l'alto, perché Y è verticale
+        normals.push(vec4(0.0, 1.0, 0.0, 0.0));
+
+        texCoords.push(vec2(u, v));
+    }
+
+    // disco sul piano XZ, con centro in (0,0,0)
+    for (let i = 0; i < segments; i++) {
+        let a1 = 2.0 * Math.PI * i / segments;
+        let a2 = 2.0 * Math.PI * (i + 1) / segments;
+
+        let x1 = Math.cos(a1);
+        let z1 = Math.sin(a1);
+
+        let x2 = Math.cos(a2);
+        let z2 = Math.sin(a2);
+
+        pushVertex(0.0, 0.0, 0.0, 0.5, 0.5);
+        pushVertex(x2, 0.0, z2, 0.5 + x2 * 0.5, 0.5 + z2 * 0.5);
+        pushVertex(x1, 0.0, z1, 0.5 + x1 * 0.5, 0.5 + z1 * 0.5);
+    }
+
+    let obj = {};
+
+    obj.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+
+    obj.nBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.nBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
+
+    obj.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
+
+    obj.numVertices = vertices.length;
+
+    return obj;
+}
+
+
+function createSolidColorTexture(gl, r, g, b, a = 255) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    const pixel = new Uint8Array([r, g, b, a]);
+
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        1,
+        1,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        pixel
+    );
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    return texture;
+}
+
+
+////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {
     let tex = gl.createTexture();
@@ -441,6 +519,110 @@ function createSphere(radius, latBands, longBands) {
         texCoords: sphereTexCoords
     };
 }
+
+
+function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed = 1) {
+    var points = [];
+    var normals = [];
+    var texCoords = [];
+
+    function pseudoRandom(n) {
+        return fract(Math.sin(n * 12.9898 + seed * 78.233) * 43758.5453);
+    }
+
+    function fract(x) {
+        return x - Math.floor(x);
+    }
+
+    for (var lat = 0; lat <= latBands; lat++) {
+        var theta = lat * Math.PI / latBands;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        for (var lon = 0; lon <= longBands; lon++) {
+            var phi = lon * 2.0 * Math.PI / longBands;
+            var sinPhi = Math.sin(phi);
+            var cosPhi = Math.cos(phi);
+
+            var x = cosPhi * sinTheta;
+            var y = cosTheta;
+            var z = sinPhi * sinTheta;
+
+            // piccola irregolarità sulla superficie
+            var noise = pseudoRandom(lat * 31.0 + lon * 17.0);
+            var bump = 0.88 + noise * 0.24;
+
+            // forma più da croccantino: ovale, non sfera perfetta
+            var px = radius * x * 1.25 * bump;
+            var py = radius * y * 0.75 * bump;
+            var pz = radius * z * 1.05 * bump;
+
+            points.push(vec4(px, py, pz, 1.0));
+
+            // normale approssimata
+            normals.push(vec4(x, y, z, 0.0));
+
+            texCoords.push(vec2(lon / longBands, lat / latBands));
+        }
+    }
+
+    var kibblePoints = [];
+    var kibbleNormals = [];
+    var kibbleTexCoords = [];
+
+    for (var lat = 0; lat < latBands; lat++) {
+        for (var lon = 0; lon < longBands; lon++) {
+            var first = lat * (longBands + 1) + lon;
+            var second = first + longBands + 1;
+
+            // triangolo 1
+            kibblePoints.push(points[first]);
+            kibbleNormals.push(normals[first]);
+            kibbleTexCoords.push(texCoords[first]);
+
+            kibblePoints.push(points[second]);
+            kibbleNormals.push(normals[second]);
+            kibbleTexCoords.push(texCoords[second]);
+
+            kibblePoints.push(points[first + 1]);
+            kibbleNormals.push(normals[first + 1]);
+            kibbleTexCoords.push(texCoords[first + 1]);
+
+            // triangolo 2
+            kibblePoints.push(points[second]);
+            kibbleNormals.push(normals[second]);
+            kibbleTexCoords.push(texCoords[second]);
+
+            kibblePoints.push(points[second + 1]);
+            kibbleNormals.push(normals[second + 1]);
+            kibbleTexCoords.push(texCoords[second + 1]);
+
+            kibblePoints.push(points[first + 1]);
+            kibbleNormals.push(normals[first + 1]);
+            kibbleTexCoords.push(texCoords[first + 1]);
+        }
+    }
+
+    var obj = {};
+
+    obj.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(kibblePoints), gl.STATIC_DRAW);
+
+    obj.nBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.nBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(kibbleNormals), gl.STATIC_DRAW);
+
+    obj.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(kibbleTexCoords), gl.STATIC_DRAW);
+
+    obj.numVertices = kibblePoints.length;
+
+    return obj;
+}
+
+
 function inverseMat4(m) {
     var a = flatten(m);
 
