@@ -492,7 +492,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
-    gl.viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+    gl.viewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

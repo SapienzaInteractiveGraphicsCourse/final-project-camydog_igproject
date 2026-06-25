@@ -603,3 +603,286 @@ button:active {
 .water-button.active {
     background: rgba(208, 241, 241, 0.75);
 }
+
+/* =========================
+   Music volume slider
+   ========================= */
+
+.music-volume-control {
+    height: 54px;
+    min-width: 250px;
+
+    padding: 0 14px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(180, 180, 220, 0.35);
+
+    box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.music-volume-control label {
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    color: #0f0fea !important;
+}
+
+.music-volume-control span {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #0f0fea !important;
+    min-width: 42px;
+}
+
+/* slider base */
+#MusicVolume {
+    --music-progress: 10%;
+
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 140px;
+    height: 10px;
+
+    border-radius: 999px;
+    outline: none;
+    cursor: pointer;
+
+    background:
+        linear-gradient(
+            90deg,
+            #8d8cff 0%,
+            #ff5fa2 var(--music-progress),
+            rgba(205, 208, 225, 0.75) var(--music-progress),
+            rgba(205, 208, 225, 0.75) 100%
+        );
+
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.18),
+        0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* thumb Chrome / Edge / Safari */
+#MusicVolume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 22px;
+    height: 22px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+    border: 4px solid #ff5fa2;
+
+    box-shadow:
+        0 4px 12px rgba(255, 95, 162, 0.45),
+        0 1px 3px rgba(0, 0, 0, 0.25);
+
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+#MusicVolume::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+    box-shadow:
+        0 6px 16px rgba(255, 95, 162, 0.55),
+        0 1px 4px rgba(0, 0, 0, 0.28);
+}
+
+/* thumb Firefox */
+#MusicVolume::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+    border: 4px solid #ff5fa2;
+
+    box-shadow:
+        0 4px 12px rgba(255, 95, 162, 0.45),
+        0 1px 3px rgba(0, 0, 0, 0.25);
+
+    cursor: pointer;
+}
+
+#MusicVolume::-moz-range-track {
+    height: 10px;
+    border-radius: 999px;
+    background: transparent;
+}
+
+
+.disabled-button {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+    filter: grayscale(0.6);
+}
+
+.disabled-button:hover {
+    transform: none !important;
+    filter: grayscale(0.6);
+}
+
+
+
+/* =========================
+   Ball icon button
+   ========================= */
+
+#ButtonMiniGame.minigame-icon-button {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+
+    padding: 6px;
+    box-sizing: border-box;
+
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+
+    background: rgba(248, 243, 243, 0.45);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+#ButtonMiniGame.minigame-icon-button img {
+    width: 100%;
+    height: 100%;
+
+    max-width: 56px;
+    max-height: 56px;
+
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#ButtonMiniGame.minigame-icon-button:hover {
+    background: rgba(255, 150, 209, 0.75);
+    transform: scale(1.05);
+}
+
+#ButtonMiniGame.minigame-icon-button.active {
+    background: rgba(224, 74, 177, 0.75);
+
+    box-shadow:
+        0 0 12px rgba(160, 230, 230, 0.70),
+        0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+
+/**********************************************************/
+/*      TRANSITION SCREEN STYLES                            */
+/*************************************************************/
+/* =========================
+   Scene transition screen
+   ========================= */
+
+.scene-transition-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(circle at top, rgba(255,255,255,0.45), transparent 36%),
+        linear-gradient(135deg, rgba(90, 120, 150, 0.86), rgba(240, 210, 225, 0.92));
+
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+
+    transition: opacity 0.35s ease;
+}
+
+.scene-transition-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.scene-transition-card {
+    min-width: 300px;
+    padding: 30px 38px;
+
+    border-radius: 26px;
+
+    background: rgba(255, 255, 255, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.48);
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+
+    text-align: center;
+    color: #1f1f1f;
+}
+
+.scene-transition-icon {
+    font-size: 44px;
+    margin-bottom: 12px;
+
+    animation: pawBounce 0.75s ease-in-out infinite;
+}
+
+.scene-transition-card h2 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+}
+
+.scene-transition-card p {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(30, 30, 30, 0.72);
+}
+
+@keyframes pawBounce {
+    0% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-8px) scale(1.08);
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.frisbee-icon-button {
+    width: 70px;
+    height: 70px;
+    background: rgba(248, 243, 243, 0.45);
+}
+
+.frisbee-icon-button:hover {
+    background: rgba(255, 220, 150, 0.75);
+    transform: scale(1.05);
+}
+
+.frisbee-icon-button.active {
+    background: rgba(208, 241, 241, 0.75);
+
+    box-shadow:
+        0 0 12px rgba(160, 230, 230, 0.70),
+        0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.frisbee-icon-button img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    pointer-events: none;
+}

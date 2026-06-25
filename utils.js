@@ -2,12 +2,16 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 function updateCanvasCursor() {
-    if (petDogMode) {
+    if (frisbeeThrowMode) {
         canvas.style.cursor =
-            "url('Icons/wave.png') 16 6, pointer";
+            "url('./Icons/hand_frisbee_4.png') 16 6, pointer";
+    } 
+    else if (petDogMode) {
+        canvas.style.cursor =
+            "url('./Icons/wave.png') 16 6, pointer";
     } else if (callDogClickMode) {
         canvas.style.cursor =
-            "url('Icons/hand_1.png') 12 4, pointer";
+            "url('./Icons/hand_1.png') 12 4, pointer";
     } else {
         canvas.style.cursor = "move";
     }
@@ -217,6 +221,113 @@ function initCurtainRod(gl) {
     curtainRodBuffers.numIndices = cyl.indices.length;
 }
 /////////////////////////////////////////////////
+function updateMiniGameButtonAvailability() {
+    var miniGameButton = document.getElementById("ButtonMiniGame");
+
+    if (!miniGameButton) return;
+
+    if (currentScene === "park") {
+        miniGameButton.disabled = true;
+        miniGameButton.title = "Ball game available only at home";
+        miniGameButton.classList.add("disabled-button");
+    } else {
+        miniGameButton.disabled = false;
+        miniGameButton.title = "Start Ball";
+        miniGameButton.classList.remove("disabled-button");
+    }
+}
+
+function updateSceneButtonsVisibility() {
+    var isHome = currentScene === "home";
+
+    var isPark = currentScene === "park";
+
+    var waterButton = document.getElementById("ButtonWater");
+    var foodButton = document.getElementById("ButtonFood");
+    var miniGameButton = document.getElementById("ButtonMiniGame");
+    var frisbeeButton = document.getElementById("ButtonFrisbee");
+
+    if (waterButton) {
+        waterButton.style.display = isHome ? "flex" : "none";
+    }
+
+    if (foodButton) {
+        foodButton.style.display = isHome ? "flex" : "none";
+    }
+
+    if (miniGameButton) {
+        miniGameButton.style.display = isHome ? "inline-block" : "none";
+    }
+
+    if (frisbeeButton) {
+        frisbeeButton.style.display = isPark ? "flex" : "none";
+    }
+}
+///////////////////////////////////////
+function showSceneTransition(title, text) {
+    var screen = document.getElementById("sceneTransitionScreen");
+    var titleElement = document.getElementById("SceneTransitionTitle");
+    var textElement = document.getElementById("SceneTransitionText");
+
+    if (!screen) return;
+
+    if (titleElement) {
+        titleElement.textContent = title;
+    }
+
+    if (textElement) {
+        textElement.textContent = text;
+    }
+
+    screen.classList.add("active");
+}
+
+function hideSceneTransition() {
+    var screen = document.getElementById("sceneTransitionScreen");
+
+    if (!screen) return;
+
+    screen.classList.remove("active");
+}
+
+function switchSceneWithTransition(targetScene, title, text, beforeSceneChange) {
+    if (sceneTransitionActive) return;
+
+    sceneTransitionActive = true;
+
+    if (ENABLE_SCREEN_TRANSITION) {
+        showSceneTransition(title, text);
+    }
+
+    var delayBeforeChange = ENABLE_SCREEN_TRANSITION ? 650 : 0;
+    var delayAfterChange = ENABLE_SCREEN_TRANSITION ? 500 : 0;
+
+    setTimeout(function () {
+        if (beforeSceneChange) {
+            beforeSceneChange();
+        }
+
+        currentScene = targetScene;
+
+        updateSceneButtonsVisibility();
+
+        if (musicButton && musicButton.classList.contains("music-on")) {
+            startBackgroundMusic();
+        }
+
+        clearOldShadowMaps();
+
+        setTimeout(function () {
+            if (ENABLE_SCREEN_TRANSITION) {
+                hideSceneTransition();
+            }
+
+            sceneTransitionActive = false;
+        }, delayAfterChange);
+
+    }, delayBeforeChange);
+}
+/////////////////////////////////////////
 function createWaterDiskObject(gl, segments = 64) {
     let vertices = [];
     let normals = [];
@@ -293,7 +404,50 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
     return texture;
 }
 
+////////////////////////////////////////////////
+function clearOldShadowMaps() {
+    /*
+        Bianco = profondità lontana = nessun oggetto davanti alla luce.
+        Quindi è come dire: "non c'è nessuna ombra vecchia".
+    */
 
+    var oldViewport = gl.getParameter(gl.VIEWPORT);
+
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+
+    // ===== clear point shadow maps =====
+    if (pointShadowFramebuffers && pointShadowFramebuffers.length > 0) {
+        gl.viewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+
+        for (var i = 0; i < pointShadowFramebuffers.length; i++) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, pointShadowFramebuffers[i]);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+    }
+
+    // ===== clear old directional shadow map, se la usi ancora =====
+    if (shadowFramebuffer) {
+        var directionalShadowSize = 4096;
+
+        gl.viewport(0, 0, directionalShadowSize, directionalShadowSize);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
+    // torna al framebuffer normale
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // ripristina viewport canvas
+    gl.viewport(
+        oldViewport[0],
+        oldViewport[1],
+        oldViewport[2],
+        oldViewport[3]
+    );
+
+    // ripristina il clear color della scena normale
+    gl.clearColor(0.7, 0.9, 0.7, 1.0);
+}
 ////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {
@@ -341,94 +495,7 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
     return tex;
 } 
 
-/* function loadTexture(path, isMoon = false) {
-    let tex = gl.createTexture();
 
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-
-    gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        1,
-        1,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        new Uint8Array([255, 255, 255, 255])
-    );
-
-    let image = new Image();
-
-    image.onload = function () {
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-
-        gl.pixelStorei(
-            gl.UNPACK_FLIP_Y_WEBGL,
-            true
-        );
-
-        gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            image
-        );
-
-        gl.texParameteri(
-            gl.TEXTURE_2D,
-            gl.TEXTURE_MIN_FILTER,
-            gl.LINEAR
-        );
-
-        gl.texParameteri(
-            gl.TEXTURE_2D,
-            gl.TEXTURE_MAG_FILTER,
-            gl.LINEAR
-        );
-
-        if (isMoon) {
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_S,
-                gl.REPEAT
-            );
-
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_T,
-                gl.CLAMP_TO_EDGE
-            );
-        } else {
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_S,
-                gl.CLAMP_TO_EDGE
-            );
-
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_T,
-                gl.CLAMP_TO_EDGE
-            );
-        }
-
-        gl.pixelStorei(
-            gl.UNPACK_FLIP_Y_WEBGL,
-            false
-        );
-    };
-
-    image.onerror = function () {
-        console.log("texture failed:", path);
-    };
-
-    image.src = path;
-
-    return tex;
-} */
 
 function createBuffers(points, normals, texCoords) {
     let obj = {};
@@ -621,8 +688,41 @@ function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed
 
     return obj;
 }
+////////////////////////////////////////
 
+function deactivateWater() {
+    waterVisible = false;
 
+    if (waterButton) {
+        waterButton.classList.remove("active");
+        waterButton.title = "Give water";
+    }
+
+    if (waterSound) {
+        waterSound.pause();
+        waterSound.currentTime = 0;
+    }
+}
+
+function deactivateFood() {
+    clearKibbleParticles();
+
+    kibbleSpawnRemaining = 0;
+    kibbleSpawnTimer = 0.0;
+    kibbleSpawnIndex = 0;
+
+    if (foodButton) {
+        foodButton.classList.remove("active");
+        foodButton.title = "Give Food";
+    }
+
+    if (pouringFoodSound) {
+        pouringFoodSound.pause();
+        pouringFoodSound.currentTime = 0;
+    }
+}
+
+////////////////////////////////
 function inverseMat4(m) {
     var a = flatten(m);
 
@@ -1064,167 +1164,9 @@ function LoadSkyboxTexture(gl)
     return texture;
 }
 
-/* function LoadSkyboxTexturePark(gl)
-{
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-
-    const faceInfos = [
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-            url: path_folder_skybox_park + "negx.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-            url: path_folder_skybox_park + "posx.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-            url: path_folder_skybox_park + "posy.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-            url: path_folder_skybox_park + "negy.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-            url: path_folder_skybox_park + "posz.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-            url: path_folder_skybox_park + "negz.jpg",
-        },
-    ];
-
-    faceInfos.forEach((faceInfo) => {
-        const { target, url } = faceInfo;
-
-        gl.texImage2D(
-            target,
-            0,
-            gl.RGBA,
-            512,
-            512,
-            0,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            null
-        );
-
-        const image = new Image();
-
-        image.onload = function () {
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-
-           
-
-            gl.texImage2D(
-                target,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                image
-            );
-
-           
-        };
-
-        image.src = url;
-    });
-
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    return texture;
-} */
 
 
-/* function LoadSkyboxTexturePark(gl)
-{
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-
-    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-    const faceInfos = [
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-            url: path_folder_skybox_park + "negx.jpg",
-            flipY
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-            url: path_folder_skybox_park + "posx.jpg",
-        },
-
-        // prova: scambio sopra/sotto
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-            url: path_folder_skybox_park + "negy.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-            url: path_folder_skybox_park + "posy.jpg",
-        },
-
-        {
-            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-            url: path_folder_skybox_park + "posz.jpg",
-        },
-        {
-            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-            url: path_folder_skybox_park + "negz.jpg",
-        },
-    ];
-
-    faceInfos.forEach((faceInfo) => {
-        const { target, url } = faceInfo;
-
-        gl.texImage2D(
-            target,
-            0,
-            gl.RGBA,
-            512,
-            512,
-            0,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            null
-        );
-
-        const image = new Image();
-
-        image.onload = function () {
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
-
-            gl.texImage2D(
-                target,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                image
-            );
-        };
-
-        image.src = url;
-    });
-
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    return texture;
-} */
-
-
-    function LoadSkyboxTexturePark(gl)
+function LoadSkyboxTexturePark(gl)
 {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
@@ -1766,8 +1708,8 @@ function initShadowMap() {
         gl.TEXTURE_2D,
         0,
         gl.RGBA,
-        SHADOW_SIZE,
-        SHADOW_SIZE,
+        POINT_SHADOW_SIZE,
+        POINT_SHADOW_SIZE,
         0,
         gl.RGBA,
         gl.UNSIGNED_BYTE,
@@ -1781,7 +1723,7 @@ function initShadowMap() {
 
     var depthBuffer = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, SHADOW_SIZE, SHADOW_SIZE);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
 
     gl.framebufferTexture2D(
         gl.FRAMEBUFFER,

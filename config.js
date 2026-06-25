@@ -2,14 +2,20 @@
 var ENABLE_START_SCREEN = false; 
 var ENABLE_LOADING_SCREEN = false;
 
+//current Scene either "home" or "park"
+var currentScene = "home"; 
+var sceneTransitionActive = false;
+var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
+
+//current time of day either "day" or "night"
+var isNight = false;
+
 // shadow map variables
-var SHADOW_SIZE = 2048;
+var POINT_SHADOW_SIZE = 4096;
 
 // variable to enable debug mode
 var showCollisionDebug = false;
 
-//object array
-var currentScene = "home"; // "home" or "walk"
 
 // options for showing objects
 var okTeapot=false;
@@ -27,6 +33,10 @@ var modelPath_musicNote= "./Objects/music_note_1.obj";
 var modelPath_sun = "./Objects/sun/sun.obj";
 var modelPath_moon= "./Objects/moon.obj";
 var modelPath_bowl="./Objects/dog_bowl.obj";
+var modelPath_bench="./Objects/bench.obj";
+var modelPath_frisbee="./Objects/frisbee.obj";
+var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Green_Tall.obj";
+
 
 //path folder rigged dog
 var pathFolderRiggedDog = "./Objects/dog_separated_model/";
@@ -45,7 +55,7 @@ var path_img_skybox_day=  "./Skyboxes/Cubemap/cubemap_sky_day.png";
 var path_img_skybox_night = "./Skyboxes/Cubemap/cubemap_sky_night_2.png";
 var path_folder_skybox_park="./Skyboxes/Park2/";
 var path_img_moon = "./Textures/moon_2.png";
-var path_img_sun= "./Textures/sun.png";
+var path_img_sun= "./Textures/sun_1.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
 var path_img_ball= "./ball_color/ball_diff.jpg";
@@ -55,12 +65,17 @@ var path_img_halo = "./Textures/halo.png";
 var path_img_grass="./Textures/grass_3.jpg";
 var path_img_steel="./Textures/steel.png";
 var path_img_blue="./Textures/blue_navy.jpg";
+var path_img_frisbee= "./Textures/frisbee_2.png";
+var path_img_bench= "./Textures/textures_bench/bench_BaseColor.png";
+var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Strands_color.jpg";
+
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
 var path_icon_music_on="./Icons/music_on.png"
 var path_icon_sun= "./Icons/sun.png"
 var path_icon_moon ="./Icons/fullmoon.png"
 var path_icon_sun_auto= "./Icons/auto_moving_sun.png"
+var path_icon_ball="./Icons/ball.png"
 
 
 //texture variables
@@ -76,6 +91,14 @@ var catTexture;
 var wallTexture;
 var floorTexture;
 var dogBuffers;
+var benchBuffers;
+var frisbeeBuffers;
+var grassBlockBuffers;
+
+
+var daySkyboxTexture;
+var nightSkyboxTexture;
+var parkSkyboxTexture;
 var dogTexture;
 var skyboxTexture;
 var paintingTexture;
@@ -93,6 +116,9 @@ var waterDiskTexture;
 var waterHighlightTexture;
 var curtainTexture = null;
 var kibbleTexture ;
+var benchTexture;
+var frisbeeTexture;
+var grassBlockTexture;
 
 //table specific  variables
 var tableMtlTexture = null;
@@ -225,6 +251,7 @@ var waterY = -2.15;  // usa il valore che ti funziona ora
 var waterZ = 5.0;
 
 var waterScale=0.3;
+var waterButton;
 
 //bowl variables
 var bowlX=5.0;
@@ -407,9 +434,36 @@ var kibbleMaxFallSpeed = 3.0; // più basso = cadono più lentamente
 var kibbleVisualScale = 2.0;     // grandezza visiva
 var kibbleVisualYOffset = 0.005;
 
+var foodButton;
+
 //****************************************************** */
 //             Colliders                                  */
 //****************************************************** */
 var bowlColliderRadius = 0.5;
 var bowlColliderHeight = 0.35;
 var bowlColliderY = bowlY + 0.05;
+
+
+//throwing frisbee variables
+var frisbeeFlying = false;
+var frisbeeLanded = false;
+
+var frisbeePreparingThrow = false;
+var frisbeeAttachedToHand = false;
+
+var frisbeeStartTime = 0;
+var frisbeeDuration = 1600;
+
+var frisbeeStartPos = { x: 0, y: 0, z: 0 };
+var frisbeeEndPos   = { x: 3.2, y: -2.25, z: -3.2 };
+
+var frisbeeSpin = 0.0;
+
+var frisbeeThrowMode= false;
+
+
+
+//****************************************************** */
+//             Global variables for grass                */
+//****************************************************** */
+var grassPatchInstances = [];

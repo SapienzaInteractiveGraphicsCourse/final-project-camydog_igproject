@@ -1,43 +1,87 @@
+function getCurrentBackgroundMusic() {
+    if (currentScene === "park") {
+        return document.getElementById("parkBackgroundMusic");
+    }
+
+    return document.getElementById("backgroundMusic");
+}
+
+function stopEveryBackgroundMusic() {
+    var homeMusic = document.getElementById("backgroundMusic");
+    var parkMusic = document.getElementById("parkBackgroundMusic");
+
+    if (homeMusic) {
+        homeMusic.pause();
+    }
+
+    if (parkMusic) {
+        parkMusic.pause();
+    }
+}
+
+
 function startBackgroundMusic() {
-    var music = document.getElementById("backgroundMusic");
+    var music = getCurrentBackgroundMusic();
+
     if (!music) return;
 
-    music.volume = 0.01;
+    stopEveryBackgroundMusic();
+
+    var volumeSlider = document.getElementById("MusicVolume");
+
+    if (volumeSlider) {
+        music.volume = parseFloat(volumeSlider.value);
+    } else {
+        music.volume = 0.10;
+    }
 
     music.play().catch(function(error) {
         console.log("Music play blocked:", error);
     });
 }
-
 function stopBackgroundMusic() {
-    var music = document.getElementById("backgroundMusic");
-    if (!music) return;
-
-    music.pause();
+    stopEveryBackgroundMusic();
 }
 
 
 function toggleBackgroundMusic() {
-    if (!backgroundMusic || !musicButton || !musicIcon) {
+    if (!musicButton || !musicIcon) {
         return;
     }
 
-    if (backgroundMusic.paused) {
-        backgroundMusic.play().catch(function(error) {
-            console.log("Music play blocked:", error);
-        });
+    var currentMusic = getCurrentBackgroundMusic();
 
-        // Ora la musica è accesa: mostro l'icona per spegnerla
-        musicIcon.src = path_icon_music_off
+    if (!currentMusic) return;
+
+    if (currentMusic.paused) {
+        startBackgroundMusic();
+
+        musicIcon.src = path_icon_music_off;
         musicButton.title = "Music ON";
         musicButton.classList.add("music-on");
-    } else {
-        backgroundMusic.pause();
 
-        // Ora la musica è spenta: mostro l'icona per accenderla
+    } else {
+        stopBackgroundMusic();
+
         musicIcon.src = path_icon_music_on;
         musicButton.title = "Music OFF";
         musicButton.classList.remove("music-on");
+    }
+}
+
+///////////////////////////////////////////
+function updateMusicSliderStyle() {
+    var slider = document.getElementById("MusicVolume");
+    var valueText = document.getElementById("MusicVolumeValue");
+
+    if (!slider) return;
+
+    var percent = Math.round(parseFloat(slider.value) * 100);
+
+    slider.style.setProperty("--music-progress", percent + "%");
+
+    if (valueText) {
+        valueText.textContent = percent + "%";
     }
 }
 //////////////////////////////////////////////

@@ -1,3 +1,11 @@
+function initDogPositionIfNeeded() {
+    if (dogCurrentX === null || dogCurrentZ === null) {
+        dogCurrentX = dogBasePos[0];
+        dogCurrentZ = dogBasePos[2];
+    }
+}
+
+
 function getDogTargetNearCamera_old() {
     //var eye = cameraPosition; // posizione della telecamera
     var at = cameraTarget;    // punto guardato dalla telecamera

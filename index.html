@@ -25,22 +25,24 @@
 <audio id="waterSound" >
     <source src="./Audio/water.mp3" type="audio/mpeg">
 </audio>
-<audio id="notificationSound" loop>
+<audio id="notificationSound" >
     <source src="./Audio/notification.mp3" type="audio/mpeg">
 </audio>
-<audio id="dogKibbleSound" loop>
+<audio id="dogKibbleSound" >
     <source src="./Audio/dog_kibble.mp3" type="audio/mpeg">
 </audio>
 <audio id="pouringFoodSound" >
     <source src="./Audio/pouring_food_1.mp3" type="audio/mpeg">
 </audio>
-
+<audio id="parkBackgroundMusic" loop>
+    <source src="./Audio/park_background.mp3" type="audio/mpeg">
+</audio>
 
 
 
 
 <body  class="game-not-started">
-        <div id="loadingScreen">
+    <div id="loadingScreen">
         <div class="loading-card">
             <img src="./Textures/nintendogs_logo.jpg" class="loading-logo" alt="Logo">
 
@@ -51,6 +53,14 @@
             </div>
 
             <p>Preparing room, pets, lights and shadows...</p>
+        </div>
+    </div>
+
+    <div id="sceneTransitionScreen" class="scene-transition-screen">
+        <div class="scene-transition-card">
+            <div class="scene-transition-icon">🐾</div>
+            <h2 id="SceneTransitionTitle">Going out...</h2>
+            <p id="SceneTransitionText">Loading scene...</p>
         </div>
     </div>
     
@@ -81,7 +91,7 @@
                         <img id="MusicIcon" src="./Icons/music_on.png" alt="Music">
                     </button>
 
-                        <div class="control-row">
+                        <div class="control-row music-volume-control">
                             <label for="MusicVolume">Music volume:</label>
 
                             <input
@@ -263,7 +273,13 @@
                          <div class="control-group">
                                 <h3>Minigames</h3>
 
-                                <button id="ButtonMiniGame">Start Ball</button>
+                                <button id="ButtonMiniGame" class="water-button minigame-icon-button" title="Start Ball">
+                                    <img id="MiniGameIcon" src="./Icons/ball.png" alt="Start Ball">
+                                </button>
+
+                                <button id="ButtonFrisbee" class="water-button frisbee-icon-button" title="Throw Frisbee">
+                                    <img id="FrisbeeIcon" src="./Icons/frisbee.png" alt="Throw Frisbee">
+                                </button>
 
                                 <details class="control-group collapsible-panel">
                                         <summary>Throwing ball settings</summary>
@@ -2149,6 +2165,8 @@ void main()
 
 <script type="text/javascript" src="config.js"></script>
 <script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="utils_park.js"></script>
+<script type="text/javascript" src="frisbee.js"></script>
 <script type="text/javascript" src="sounds.js"></script>
 <script type="text/javascript" src="dog.js"></script>
 <script type="text/javascript" src="physics.js"></script>

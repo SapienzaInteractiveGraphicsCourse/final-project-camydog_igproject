@@ -30,16 +30,58 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
         0
     );
 
-    /* // ===== CANE NEL PARCO =====
-    var modelMatrixParkDog = mat4();
-    modelMatrixParkDog = mult(modelMatrixParkDog, translate(0.0, -2.2, 2.0));
-    modelMatrixParkDog = mult(modelMatrixParkDog, rotate(-90, [1, 0, 0]));
-    modelMatrixParkDog = mult(modelMatrixParkDog, scalem(1.0, 1.0, 1.0));
+
+    var modelMatrixBench = mat4();
+
+    modelMatrixBench = mult(modelMatrixBench, translate(-5.0, -1.5, -2.8));
+
+    // prova scala iniziale, poi la aggiustiamo
+    modelMatrixBench = mult(modelMatrixBench, rotate(90, [0, 1, 0]));
+    modelMatrixBench = mult(modelMatrixBench, scalem(2.0, 2.0, 2.0));
 
     drawObject(
-        dogBuffers,
-        dogTexture,
-        modelMatrixParkDog,
+        benchBuffers,
+        benchTexture,  // benchTexture
+        modelMatrixBench,
+        viewMatrix,
+        projectionMatrix,
+        true,   // useTexture
+        false,  // isLightMarker
+        false,  // twoSided
+        true,   // receiveShadow
+        0
+    );
+
+    var modelMatrixFrisbee = getFrisbeeModelMatrix();
+
+    gl.disable(gl.CULL_FACE); // Disabilita il backface culling per il frisbee
+
+    drawObject(
+        frisbeeBuffers,
+        frisbeeTexture,  // frisbeeTexture
+        modelMatrixFrisbee,
+        viewMatrix,
+        projectionMatrix,
+        true,   // useTexture
+        false,  // isLightMarker
+        true,  // twoSided
+        true,   // receiveShadow
+        0
+    );
+
+
+
+
+    gl.enable(gl.CULL_FACE);
+
+    /* var modelMatrixGrassBlock = mat4();
+    modelMatrixGrassBlock = mult(modelMatrixGrassBlock, translate(0.0, +1, 0.0));
+    modelMatrixGrassBlock = mult(modelMatrixGrassBlock, scalem(3.0, 3.0, 3.0));
+
+    drawObject(
+        grassBlockBuffers,
+        grassBlockTexture,        // oppure floorTexture temporaneamente
+        modelMatrixGrassBlock,
         viewMatrix,
         projectionMatrix,
         true,
@@ -48,4 +90,10 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
         true,
         0
     ); */
+
+    drawParkGrassPatches(viewMatrix, projectionMatrix);
+
+    /************DOG*****************/
+   
+    drawSkinnedDog(viewMatrix, projectionMatrix);
 }

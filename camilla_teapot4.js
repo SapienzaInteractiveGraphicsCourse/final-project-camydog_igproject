@@ -100,13 +100,6 @@ var dogWalkRange = 2.0;
 
 
 
-
-var isNight = false;
-var daySkyboxTexture;
-var nightSkyboxTexture;
-var parkSkyboxTexture;
-
-
 //focus teapot button
 var teapotFocus = false;
 
@@ -129,7 +122,6 @@ var POINT_SHADOW_FAR = 40.0;
 
 var usePointShadowMap = true;
 
-var POINT_SHADOW_SIZE = 2048;
 
 var pointShadowFramebuffers = [];
 var pointShadowTextures = [];
@@ -179,13 +171,6 @@ var dogAngleToBall = 0.0;
 
 var ballStoppedTimer = 0.0;
 var ballAlreadyTargeted = false;
-
-function initDogPositionIfNeeded() {
-    if (dogCurrentX === null || dogCurrentZ === null) {
-        dogCurrentX = dogBasePos[0];
-        dogCurrentZ = dogBasePos[2];
-    }
-}
 
 
 
@@ -374,7 +359,11 @@ onload = async function init() {
     waterHighlightTexture = createSolidColorTexture(gl, 255, 255, 255, 180);
     //kibbleTexture = createSolidColorTexture(gl, 115, 70, 30, 255);
     kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
-
+    //benchTexture = createSolidColorTexture(gl, 185, 155, 115, 255);
+    benchTexture = loadTexture(path_img_bench);
+    frisbeeTexture= loadTexture(path_img_frisbee);
+    //frisbeeTexture = createSolidColorTexture(gl, 230, 20, 35, 255);
+    grassBlockTexture = loadTexture(path_img_grass_block);
 
     //halo buffers
     haloBuffers = createBuffers(
@@ -564,6 +553,29 @@ onload = async function init() {
     var ballTex = texCoordsArray.slice();
 
     ballBuffers = createBuffers(ballPoints, ballNormals, ballTex);
+
+    //green block Loading
+    await loadOBJ(modelPath_grassBlock);
+    var grassBlockPoints = pointsArray.slice();
+    var grassBlockNormals = normalsArray.slice();
+    var grassBlockTex = texCoordsArray.slice();
+    grassBlockBuffers = createBuffers(grassBlockPoints, grassBlockNormals, grassBlockTex);
+
+    createParkGrassPatchInstances();
+
+    //bench loading
+    await loadOBJ(modelPath_bench);
+    var benchPoints = pointsArray.slice();
+    var benchNormals = normalsArray.slice();
+    var benchTex = texCoordsArray.slice();
+    benchBuffers = createBuffers(benchPoints, benchNormals, benchTex);
+
+    //frisbee loading
+    await loadOBJ(modelPath_frisbee);
+    var frisbeePoints = pointsArray.slice();
+    var frisbeeNormals = normalsArray.slice();
+    var frisbeeTex = texCoordsArray.slice();
+    frisbeeBuffers = createBuffers(frisbeePoints, frisbeeNormals, frisbeeTex);
 
 
     //   SKYBOXX    //////////////////
@@ -875,55 +887,52 @@ onload = async function init() {
     };
 
     //button water dog
-    var waterButton = document.getElementById("ButtonWater");
+    waterButton = document.getElementById("ButtonWater");
 
-     waterButton.addEventListener("click", function () {
-            waterVisible = !waterVisible;
-
-           
-
-            if (waterVisible) {
-                 if (waterSound) {
-                    waterSound.currentTime = 0;
-
-                    waterSound.play().catch(function(error) {
-                        console.log("Water sound could not be played:", error);
-                    });
-                }
-                waterButton.classList.add("active");
-                waterButton.title = "Remove water";
-            } else {
-                waterButton.classList.remove("active");
-                waterButton.title = "Give water";
+    waterButton.addEventListener("click", function () {
+        if (!waterVisible) {
+            // se il cibo è attivo, lo spengo
+            if (kibbleVisible) {
+                deactivateFood();
             }
-        });
 
+            waterVisible = true;
+
+            if (waterSound) {
+                waterSound.currentTime = 0;
+                waterSound.play().catch(function(error) {
+                    console.log("Water sound could not be played:", error);
+                });
+            }
+
+            waterButton.classList.add("active");
+            waterButton.title = "Remove water";
+
+        } else {
+            deactivateWater();
+        }
+    });
     //sound for pouring the bowl with kibbles
     pouringFoodSound = document.getElementById("pouringFoodSound");
     pouringFoodSound.volume = 0.6;
     
     // button kibbles/food
-    var foodButton = document.getElementById("ButtonFood");
+    foodButton = document.getElementById("ButtonFood");
 
     foodButton.addEventListener("click", function () {
         if (!kibbleVisible) {
+            // se l'acqua è attiva, la spengo
+            if (waterVisible) {
+                deactivateWater();
+            }
+
             startKibblePour();
 
             foodButton.classList.add("active");
             foodButton.title = "Remove Food";
+
         } else {
-            clearKibbleParticles();
-
-            kibbleSpawnRemaining = 0;
-
-
-            if (pouringFoodSound) {
-                pouringFoodSound.pause();
-                pouringFoodSound.currentTime = 0;
-            }
-
-            foodButton.classList.remove("active");
-            foodButton.title = "Give Food";
+            deactivateFood();
         }
     });
 
@@ -953,7 +962,7 @@ onload = async function init() {
 
 
     //music slider for volume
-    backgroundMusic =
+    /* backgroundMusic =
         document.getElementById("backgroundMusic");
 
     musicVolumeSlider =
@@ -981,12 +990,81 @@ onload = async function init() {
 
         musicVolumeValue.textContent =
             Math.round(volume * 100) + "%";
+    }); */
+
+
+    /* musicButton.onclick = function () {
+        toggleBackgroundMusic();
+    }; */
+
+
+    //ANCHOR - Music Part
+
+    backgroundMusic =
+        document.getElementById("backgroundMusic");
+
+    var parkBackgroundMusic =
+        document.getElementById("parkBackgroundMusic");
+
+    musicVolumeSlider =
+        document.getElementById("MusicVolume");
+
+    musicVolumeValue =
+        document.getElementById("MusicVolumeValue");
+
+    musicButton =
+        document.getElementById("ButtonMusic");
+
+    musicIcon =
+        document.getElementById("MusicIcon");
+
+
+    function updateMusicSliderStyle() {
+        if (!musicVolumeSlider) return;
+
+        var volume = parseFloat(musicVolumeSlider.value);
+        var percent = Math.round(volume * 100);
+
+        musicVolumeSlider.style.setProperty(
+            "--music-progress",
+            percent + "%"
+        );
+
+        if (musicVolumeValue) {
+            musicVolumeValue.textContent = percent + "%";
+        }
+    }
+
+
+    function setAllBackgroundMusicVolume(volume) {
+        if (backgroundMusic) {
+            backgroundMusic.volume = volume;
+        }
+
+        if (parkBackgroundMusic) {
+            parkBackgroundMusic.volume = volume;
+        }
+    }
+
+
+    // Volume iniziale
+    var initialMusicVolume = parseFloat(musicVolumeSlider.value);
+
+    setAllBackgroundMusicVolume(initialMusicVolume);
+    updateMusicSliderStyle();
+
+
+    musicVolumeSlider.addEventListener("input", function () {
+        var volume = parseFloat(this.value);
+
+        setAllBackgroundMusicVolume(volume);
+        updateMusicSliderStyle();
     });
 
 
     musicButton.onclick = function () {
         toggleBackgroundMusic();
-    };
+};
 
 
     //ANCHOR -  For automoving sun part
@@ -1016,18 +1094,88 @@ onload = async function init() {
             }
     };
 
+    //frisbee button
 
+    var buttonFrisbee = document.getElementById("ButtonFrisbee");
 
+   
+    buttonFrisbee.onclick = function () {
+                if (currentScene !== "park") {
+                    return;
+                }
 
+                frisbeeThrowMode = true;
+                updateCanvasCursor();
 
-
-    //park or home mode
-    document.getElementById("ButtonGoOut").onclick = function () {
-        currentScene = "park";
+                this.classList.add("active");
+                this.title = "Click on the park to throw";
     };
+        
+    
+
+
+    document.getElementById("ButtonGoOut").onclick = function () {
+
+             if (currentScene === "park") {
+                return;
+            }
+
+            switchSceneWithTransition(
+                "park",
+                "Going out...",
+                "Loading the park...",
+                function () {
+                    // Prima di uscire dalla home, chiudo il minigame della palla
+                    miniGameActive = false;
+
+                    stopBallMiniGame();
+
+                    resetSkinnedDogFetchState();
+                    resetSkinnedDogBallInteraction();
+
+                    dogHasBall = false;
+                    skinnedDogAlreadyTargeted = false;
+
+                    // Reset visuale del bottone della palla
+                    var miniGameButton = document.getElementById("ButtonMiniGame");
+                    var miniGameIcon = document.getElementById("MiniGameIcon");
+
+                    if (miniGameButton) {
+                        miniGameButton.classList.remove("active");
+                        miniGameButton.title = "Start Ball";
+                    }
+
+                    if (miniGameIcon) {
+                        miniGameIcon.src = path_icon_ball;
+                        miniGameIcon.alt = "Start Ball";
+                    }
+                }
+            );
+        };
+
+   
 
     document.getElementById("ButtonGoHome").onclick = function () {
-        currentScene = "home";
+          
+        if (currentScene === "home") {
+                return;
+        }
+
+        switchSceneWithTransition(
+            "home",
+            "Going home...",
+            "Loading the room...",
+            function () {
+                 currentScene = "home";
+
+                updateSceneButtonsVisibility();
+
+                if (musicButton && musicButton.classList.contains("music-on")) {
+                    startBackgroundMusic();
+                }
+                clearOldShadowMaps();
+                    }
+            );
     };
 
   
@@ -1039,10 +1187,23 @@ onload = async function init() {
 
     //minigame settings buttons
     document.getElementById("ButtonMiniGame").onclick = function () {
+
+        //if I am not at home, I cannot throw the ball
+        if(currentScene == "park") return;
+
+
         miniGameActive = !miniGameActive;
 
+        var miniGameIcon = document.getElementById("MiniGameIcon");
+
         if (miniGameActive) {
-                this.textContent = "Stop Ball ";
+                this.title = "Stop Ball ";
+                 this.classList.add("active");
+
+
+                if (miniGameIcon) {
+                    miniGameIcon.alt = "Stop Ball";
+                }
 
                 setTimeout(function () {
                     showDogHeart = false;
@@ -1064,7 +1225,13 @@ onload = async function init() {
                 skinnedDogAlreadyTargeted = false;
         } 
         else {
-                this.textContent = "Start Ball ";
+                this.title = "Start Ball ";
+                this.classList.remove("active");
+
+                 if (miniGameIcon) {
+                    miniGameIcon.alt = "Start Ball";
+                }
+
                 stopBallMiniGame();
 
                 resetSkinnedDogBallInteraction();
@@ -1300,16 +1467,39 @@ onload = async function init() {
 
 
     canvas.addEventListener("click", function(event) {
-        if (!callDogClickMode) {
+
+        // 1) Se sono in modalità frisbee, il click lancia il frisbee
+        if (frisbeeThrowMode) {
+            if (currentScene !== "park") {
+                return;
+            }
+
+            frisbeeThrowMode = false;
+            updateCanvasCursor();
+
+            var buttonFrisbee = document.getElementById("ButtonFrisbee");
+
+            if (buttonFrisbee) {
+                buttonFrisbee.classList.remove("active");
+                buttonFrisbee.title = "Throw Frisbee";
+            }
+
+            startFrisbeeThrowSequence();
+
             return;
         }
 
-        playDogBarkSound();
-        callSkinnedDogToCamera();
+        // 2) Se sono in modalità "call dog", il click chiama il cane
+        if (callDogClickMode) {
+            playDogBarkSound();
+            callSkinnedDogToCamera();
 
-        // La modalità resta ON, quindi la manina resta visibile
-        updateCanvasCursor();
-    });
+            // La modalità resta ON, quindi la manina resta visibile
+            updateCanvasCursor();
+
+            return;
+        }
+});
 
    canvas.addEventListener("mousedown", function(event) {
         // In modalità Call Dog non iniziare la rotazione
@@ -1530,7 +1720,7 @@ onload = async function init() {
         finishInitialLoading();
     }
 
-
+    updateSceneButtonsVisibility();
 
     render();
 };

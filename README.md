@@ -81,6 +81,9 @@ FPS shown on the canvas
 -heart
 - music note
 - sun model => CG trader -> https://www.cgtrader.com/items/5092264/download-page
+- bench model => Buying model CG trader
+- bench texture: model folder
+- frisbee model => Buying model CG trader
 
 
 # Sounds
