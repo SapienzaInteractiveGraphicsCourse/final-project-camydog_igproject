@@ -447,21 +447,77 @@ var bowlColliderY = bowlY + 0.05;
 //throwing frisbee variables
 var frisbeeFlying = false;
 var frisbeeLanded = false;
-
 var frisbeePreparingThrow = false;
 var frisbeeAttachedToHand = false;
 
 var frisbeeStartTime = 0;
-var frisbeeDuration = 1600;
+var frisbeeDuration = 1400;
 
-var frisbeeStartPos = { x: 0, y: 0, z: 0 };
-var frisbeeEndPos   = { x: 3.2, y: -2.25, z: -3.2 };
+var frisbeeStartPos = vec3(-1.2, -1.1, 4.0);
+var frisbeeEndPos   = vec3(3.2, -2.25, -3.2);
 
 var frisbeeSpin = 0.0;
 
 var frisbeeThrowMode= false;
 
 
+/* var frisbeeHandPos = vec3(-1.2, -1.1, 4.0);
+var frisbeeHandPlaneY = -1.1;
+var frisbeeHandFixedZ = 6.0; */
+
+var frisbeeHandPos = vec3(-1.2, -1.1, 4.8);
+var frisbeeHandTargetPos = vec3(-1.2, -1.1, 4.8);
+
+var frisbeeHandFixedZ = 4.8;
+
+// posizione verticale "naturale" della mano
+var frisbeeHandBaseY = -1.1;
+
+// limiti verticali: così non va troppo in alto o troppo in basso
+var frisbeeHandMinY = -1.7;
+var frisbeeHandMaxY = -0.2;
+
+// più è basso, meno segue verticalmente il mouse
+var frisbeeHandVerticalSensitivity = 1.0;
+
+// smoothing: più basso = più morbido/lento
+var frisbeeHandSmoothing = 0.7;
+
+
+var frisbeeLastMouseX = null;
+var frisbeeLastMouseY = null;
+
+var frisbeeHandXSpeed = 0.012;
+var frisbeeHandYSpeed = 0.008;
+
+var frisbeeHandMinX = -8.0;
+var frisbeeHandMaxX = 8.0;
+
+var frisbeeHandMinY = -2.0;
+var frisbeeHandMaxY = 1.0;
+
+var frisbeeHasMousePosition = false;
+
+
+/*
+    Più basso = frisbee più vicino alla camera/manina.
+    Prova 3.2 / 3.5 / 4.0.
+*/
+var frisbeeHandDistanceFromCamera = 3.6;
+
+/*
+    Offset nel palmo.
+    X positivo = più a destra.
+    Y positivo = più in alto.
+*/
+var frisbeeHandPalmOffsetX = 0.25;
+var frisbeeHandPalmOffsetY = -0.15;
+
+/*
+    Più alto = segue di più la mano.
+    Se lo vedi in ritardo, aumenta.
+*/
+var frisbeeHandSmoothing = 0.35;
 
 //****************************************************** */
 //             Global variables for grass                */

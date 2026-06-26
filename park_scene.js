@@ -74,23 +74,6 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
 
     gl.enable(gl.CULL_FACE);
 
-    /* var modelMatrixGrassBlock = mat4();
-    modelMatrixGrassBlock = mult(modelMatrixGrassBlock, translate(0.0, +1, 0.0));
-    modelMatrixGrassBlock = mult(modelMatrixGrassBlock, scalem(3.0, 3.0, 3.0));
-
-    drawObject(
-        grassBlockBuffers,
-        grassBlockTexture,        // oppure floorTexture temporaneamente
-        modelMatrixGrassBlock,
-        viewMatrix,
-        projectionMatrix,
-        true,
-        false,
-        false,
-        true,
-        0
-    ); */
-
     drawParkGrassPatches(viewMatrix, projectionMatrix);
 
     /************DOG*****************/

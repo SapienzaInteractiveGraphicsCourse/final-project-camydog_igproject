@@ -1105,6 +1105,21 @@ onload = async function init() {
                 }
 
                 frisbeeThrowMode = true;
+                frisbeeAttachedToHand = true;
+
+                frisbeeFlying = false;
+                frisbeeLanded = false;
+
+               /*  frisbeeLastMouseX = null;
+                frisbeeLastMouseY = null;
+
+                
+ */             frisbeeHasMousePosition = false;
+
+              /*   frisbeeHandPos = vec3(-1.2, -1.1, frisbeeHandFixedZ);
+                frisbeeHandTargetPos = vec3(-1.2, -1.1, frisbeeHandFixedZ);
+ */
+
                 updateCanvasCursor();
 
                 this.classList.add("active");
@@ -1468,13 +1483,22 @@ onload = async function init() {
 
     canvas.addEventListener("click", function(event) {
 
-        // 1) Se sono in modalità frisbee, il click lancia il frisbee
+        // 1) frisbee mode -> click to throw frisbee
         if (frisbeeThrowMode) {
             if (currentScene !== "park") {
                 return;
             }
 
+            updateFrisbeeHandPositionFromMouse(event);
+
+              frisbeeStartPos = vec3(
+                frisbeeHandPos[0],
+                frisbeeHandPos[1],
+                frisbeeHandPos[2]
+            );
+
             frisbeeThrowMode = false;
+            frisbeeAttachedToHand = false;
             updateCanvasCursor();
 
             var buttonFrisbee = document.getElementById("ButtonFrisbee");
@@ -1489,7 +1513,7 @@ onload = async function init() {
             return;
         }
 
-        // 2) Se sono in modalità "call dog", il click chiama il cane
+        // 2)call dog mode -> click to call the dog
         if (callDogClickMode) {
             playDogBarkSound();
             callSkinnedDogToCamera();
@@ -1622,6 +1646,22 @@ onload = async function init() {
  */
 
     canvas.addEventListener("mousemove", function(event) {
+
+
+         // =========================
+        // FRISBEE IN MANO
+        // =========================
+        if (frisbeeThrowMode) {
+            updateFrisbeeHandPositionFromMouse(event);
+
+            // mentre sto mirando col frisbee, non faccio anche la carezza al cane
+                return;
+         }
+
+        // =========================
+        // PET DOG MODE
+        // =========================
+
         if (!petDogMode) {
             return;
         }
@@ -2022,9 +2062,11 @@ function render() {
    
 
     viewMatrix = lookAt(eye, at, up);
-    aspect =
-        canvas.width / canvas.height;
+    aspect = canvas.width / canvas.height;
     projectionMatrix = perspective(cameraFov, aspect, 0.1,50.0)
+
+    //REVIEW -  rivedi per far iniziare con park mode
+    //updateLightMatricesForCurrentFrame();
 
 
     if (currentScene === "home") {
