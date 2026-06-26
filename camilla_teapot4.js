@@ -1121,6 +1121,7 @@ onload = async function init() {
  */
 
                 updateCanvasCursor();
+                //showFrisbeeReleaseCursor();
 
                 this.classList.add("active");
                 this.title = "Click on the park to throw";
@@ -1499,7 +1500,9 @@ onload = async function init() {
 
             frisbeeThrowMode = false;
             frisbeeAttachedToHand = false;
-            updateCanvasCursor();
+            //updateCanvasCursor();
+
+            showFrisbeeReleaseCursor();
 
             var buttonFrisbee = document.getElementById("ButtonFrisbee");
 

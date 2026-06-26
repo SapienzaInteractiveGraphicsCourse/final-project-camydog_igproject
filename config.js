@@ -519,6 +519,9 @@ var frisbeeHandPalmOffsetY = -0.15;
 */
 var frisbeeHandSmoothing = 0.35;
 
+var frisbeeReleaseCursorActive = false;
+var frisbeeReleaseCursorTimer = null;
+
 //****************************************************** */
 //             Global variables for grass                */
 //****************************************************** */

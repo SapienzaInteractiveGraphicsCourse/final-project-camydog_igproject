@@ -1,8 +1,51 @@
+function updateLightMatricesForCurrentFrame() {
+    var lightPos = vec3(
+        lightPosition[0],
+        lightPosition[1],
+        lightPosition[2]
+    );
+
+    lightViewMatrix = lookAt(
+        lightPos,
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0)
+    );
+
+    lightProjectionMatrix = ortho(
+        -20.0, 20.0,
+        -20.0, 20.0,
+        -20.0, 50.0
+    );
+
+    pointLightProjectionMatrix = perspective(
+        90.0,
+        1.0,
+        0.1,
+        POINT_SHADOW_FAR
+    );
+
+    for (var i = 0; i < 6; i++) {
+        var target = add(
+            lightPos,
+            pointShadowDirections[i]
+        );
+
+        pointLightViewMatrices[i] = lookAt(
+            lightPos,
+            target,
+            pointShadowUps[i]
+        );
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
 function updateCanvasCursor() {
-    if (frisbeeThrowMode) {
+     if (frisbeeReleaseCursorActive) {
+        canvas.style.cursor =  "url('./Icons/open_hand.png') 16 6, pointer";;
+    }
+    else if (frisbeeThrowMode) {
         canvas.style.cursor =
             "url('./Icons/hand_frisbee_4.png') 16 6, pointer";
     } 

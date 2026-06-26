@@ -505,3 +505,17 @@ function updateFrisbeeHandSmoothPosition() {
             (frisbeeHandTargetPos[2] - frisbeeHandPos[2]) * frisbeeHandSmoothing
     );
 }
+
+function showFrisbeeReleaseCursor() {
+    frisbeeReleaseCursorActive = true;
+    updateCanvasCursor();
+
+    if (frisbeeReleaseCursorTimer) {
+        clearTimeout(frisbeeReleaseCursorTimer);
+    }
+
+    frisbeeReleaseCursorTimer = setTimeout(function () {
+        frisbeeReleaseCursorActive = false;
+        updateCanvasCursor();
+    }, 1600);
+}
