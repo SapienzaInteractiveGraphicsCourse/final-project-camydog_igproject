@@ -189,3 +189,26 @@ function stopDogBreathSound() {
     breathSound.pause();
     breathSound.currentTime = 0;
 }
+
+//////////////////////////////////////////
+function playWooshFrisbeeSound() {
+    if (!wooshFrisbeeSound) {
+        wooshFrisbeeSound = document.getElementById("wooshFrisbeeSound");
+    }
+
+    if (!wooshFrisbeeSound) {
+        console.log("wooshFrisbeeSound not found");
+        return;
+    }
+    
+    var startTime = 0.3;
+
+    wooshFrisbeeSound.pause();
+    wooshFrisbeeSound.currentTime = startTime;
+    wooshFrisbeeSound.volume = 0.6;
+
+    wooshFrisbeeSound.play().catch(function(error) {
+        console.log("Frisbee woosh sound blocked:", error);
+    });
+}
+//////////////////////////////////////////////
