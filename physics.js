@@ -1427,6 +1427,7 @@ function checkBallStoppedAndSendDog(deltaTime) {
 */
 function startSkinnedDogFetchBall() {
     if (!ballBody) return;
+    dogFetchObjectType = "ball";
 
 
      if (!dogHappySoundPlayed) {
@@ -1498,40 +1499,105 @@ function startSkinnedDogFetchBall() {
     console.log("Skinned dog path:", dogPath);
 }
 function updateSkinnedDogFetchBall(deltaTime) {
-    // IMPORTANTISSIMO: deve stare prima del return
-    if (dogFetchLoweringActive) {
+   /*  if (dogFetchLoweringActive) {
         dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
 
-        if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
-            dogHasBall = true;
-            //crouching starts
-            showDogMusicNote = false;
 
-            dogHappySoundPlayed=false;
+            if (dogFetchLowerAmount > 0.85) {
 
-            dogCrouchActive = true;
-            
-            ballVisible = true;
-            ballIdleBounceActive = false;
+                if (dogFetchObjectType === "frisbee" && !dogHasFrisbee) {
+                    dogHasFrisbee = true;
 
-            if (ballBody) {
-                ballBody.velocity.set(0, 0, 0);
-                ballBody.angularVelocity.set(0, 0, 0);
-                ballBody.force.set(0, 0, 0);
-                ballBody.torque.set(0, 0, 0);
-                ballBody.sleep();
+                    showDogMusicNote = false;
+                    dogHappySoundPlayed = false;
+                    dogCrouchActive = true;
+
+                    console.log("Dog picked up the frisbee!");
+                }
+
+                else if (dogFetchObjectType === "ball" && !dogHasBall) {
+                    dogHasBall = true;
+
+                    // crouching starts
+                    showDogMusicNote = false;
+                    dogHappySoundPlayed = false;
+
+                    dogCrouchActive = true;
+
+                    ballVisible = true;
+                    ballIdleBounceActive = false;
+
+                    if (ballBody) {
+                        ballBody.velocity.set(0, 0, 0);
+                        ballBody.angularVelocity.set(0, 0, 0);
+                        ballBody.force.set(0, 0, 0);
+                        ballBody.torque.set(0, 0, 0);
+                        ballBody.sleep();
+                    }
+
+                    console.log("Dog picked up the ball!");
+                }
             }
+    }
+ */
 
-            console.log("Dog picked up the ball!");
+    if (dogFetchLoweringActive) {
+
+        if (dogFetchObjectType === "frisbee") {
+            /*
+                Per il frisbee il cane si abbassa poco,
+                non come quando prende la palla.
+            */
+            dogFetchLowerAmount += (0.28 - dogFetchLowerAmount) * 0.12;
+
+            if (dogFetchLowerAmount > 0.22 && !dogHasFrisbee) {
+                dogHasFrisbee = true;
+
+                showDogMusicNote = false;
+                dogHappySoundPlayed = false;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                console.log("Dog picked up the frisbee!");
+
+                startSkinnedDogReturnFrisbeeToCamera();
+            }
+        }
+
+        else {
+            /*
+                Comportamento vecchio della palla:
+                qui lasciamo l'abbassamento più marcato.
+            */
+            dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
+
+            if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
+                dogHasBall = true;
+
+                showDogMusicNote = false;
+                dogHappySoundPlayed = false;
+
+                dogCrouchActive = true;
+
+                ballVisible = true;
+                ballIdleBounceActive = false;
+
+                if (ballBody) {
+                    ballBody.velocity.set(0, 0, 0);
+                    ballBody.angularVelocity.set(0, 0, 0);
+                    ballBody.force.set(0, 0, 0);
+                    ballBody.torque.set(0, 0, 0);
+                    ballBody.sleep();
+                }
+
+                console.log("Dog picked up the ball!");
+            }
         }
     }
-
-    // crouch/accucciamento dopo che prende la palla
-    /* if (dogHasBall) {
-        dogCrouchAmount += (1.0 - dogCrouchAmount) * 0.04;
-    } else {
-        dogCrouchAmount += (0.0 - dogCrouchAmount) * 0.08;
-    } */
 
     if (dogCrouchActive) {
         dogCrouchAmount += (1.0 - dogCrouchAmount) * 0.08;
@@ -1554,12 +1620,18 @@ function updateSkinnedDogFetchBall(deltaTime) {
         var nextX = dogFetchX + (dx / dist) * speed;
         var nextZ = dogFetchZ + (dz / dist) * speed;
 
-        // safety: non far entrare il cane nella zona del tavolo
+        // safety: keep the dog outside the table area, even if the path is wrong
+        if(currentScene === "home") {
         var corrected = keepDogOutsideTable(nextX, nextZ);
 
         dogFetchX = corrected.x;
         dogFetchZ = corrected.z;
-
+        }
+        else{
+            dogFetchX = nextX;
+             dogFetchZ = nextZ;
+        }
+        
         dogFetchTarget = {
             x: target.x,
             z: target.z
@@ -1567,23 +1639,63 @@ function updateSkinnedDogFetchBall(deltaTime) {
     } else {
         dogPathIndex++;
 
-        if (dogPathIndex >= dogPath.length) {
+        /* if (dogPathIndex >= dogPath.length) {
             dogPathIndex = dogPath.length - 1;
             dogFetchBallMode = false;
             dogFetchLoweringActive = true;
 
-            // arrivato: guarda la palla vera
+            // dog is arrived at the ball, now it looks at the ball position
             dogFetchTarget = {
                 x: dogLookAtBallX,
                 z: dogLookAtBallZ
             };
 
             console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
-        } else {
+        } 
+        else {
             dogFetchTarget = {
                 x: dogPath[dogPathIndex].x,
                 z: dogPath[dogPathIndex].z
             };
+        } */
+
+        if (dogPathIndex >= dogPath.length) {
+            dogPathIndex = dogPath.length - 1;
+            dogFetchBallMode = false;
+
+            if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
+                /*
+                    Il cane è tornato verso la camera con il frisbee.
+                    Non deve abbassarsi di nuovo.
+                */
+                dogReturningWithFrisbee = false;
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchTarget = {
+                    x: eye[0],
+                    z: eye[2]
+                };
+
+                console.log("Dog returned with the frisbee!");
+            } 
+            else {
+                /*
+                    Primo arrivo: cane arrivato all'oggetto.
+                    Qui parte il pickup.
+                */
+                dogFetchLoweringActive = true;
+
+                dogFetchTarget = {
+                    x: dogLookAtBallX,
+                    z: dogLookAtBallZ
+                };
+
+                console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
+            }
         }
     }
 }

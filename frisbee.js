@@ -1,46 +1,3 @@
-function getFrisbeeModelMatrix_old() {
-    var m = mat4();
-
-    /*
-        Primo test: appoggiato sul prato.
-        Il top del prato è circa -2.45, quindi metto il frisbee poco sopra.
-    */
-
-    //per stare per  terra -2.4
-    m = mult(m, translate(0.8, 1.0, 5.0));
-
-    /*
-        Se il modello nasce verticale, questa rotazione lo mette piatto.
-        Se invece appare già piatto ma ruotato male, togli questa riga.
-    */
-   m = mult(m, rotate(90, [0, 1, 0]));
-
-    /*
-        Scala iniziale.
-        Se è enorme, prova 0.1.
-        Se è microscopico, prova 1.0 o 2.0.
-    */
-    m = mult(m, scalem(0.5, 0.5, 0.5));
-
-    return m;
-}
-
-function startFrisbeeThrowSequence_old() {
-    if (currentScene !== "park") {
-        return;
-    }
-
-    if (frisbeeFlying || frisbeePreparingThrow) {
-        return;
-    }
-
-    frisbeePreparingThrow = true;
-    frisbeeAttachedToHand = true;
-
-    setTimeout(function () {
-        launchFrisbee();
-    }, 250);
-}
 
 
 function startFrisbeeThrowSequence() {
@@ -65,13 +22,61 @@ function launchFrisbee() {
     frisbeeFlying = true;
     frisbeeLanded = false;
 
+
+    frisbeeAlreadyTargeted = false;
+
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogFetchObjectType = null;
+
     frisbeeStartTime = performance.now();
     frisbeeSpin = 0.0;
 
     // NON resetto frisbeeStartPos qui:
     // deve partire dalla posizione della manina/cursore
+    // i DON'T WANT  the same end position every time, so I randomize it a bit
+   // frisbeeEndPos = vec3(3.0, -2.2, -3.2);
 
-    frisbeeEndPos = vec3(3.0, -2.2, -3.2);
+    var groundY = -2.2;
+
+    // direzione dalla camera verso il frisbee in mano
+    var dir = normalize(subtract(frisbeeStartPos, eye));
+
+    // fallback se il raggio è quasi parallelo al terreno
+    if (Math.abs(dir[1]) < 0.001) {
+        frisbeeEndPos = vec3(
+            frisbeeStartPos[0],
+            groundY,
+            frisbeeStartPos[2] - 5.0
+        );
+    } else {
+        var t = (groundY - eye[1]) / dir[1];
+
+        // se t viene negativo o troppo piccolo, uso una distanza standard
+        if (t < 1.0) {
+            t = 7.0;
+        }
+
+        // aumento la distanza del lancio
+        var throwPower = 1.8;
+
+        var endX = eye[0] + dir[0] * t * throwPower;
+        var endZ = eye[2] + dir[2] * t * throwPower;
+
+        // limiti del parco
+        endX = Math.max(-7.0, Math.min(7.0, endX));
+        endZ = Math.max(-7.0, Math.min(7.0, endZ));
+
+        frisbeeEndPos = vec3(endX, groundY, endZ);
+
+    }
 }
 
 function smoothFrisbeeStep(t) {
@@ -81,6 +86,9 @@ function smoothFrisbeeStep(t) {
 
 function getFrisbeeModelMatrix() {
     var modelMatrixFrisbee = mat4();
+
+    var frisbeeScale = 0.4
+
 
     if (frisbeeThrowMode && frisbeeAttachedToHand && !frisbeeFlying) {
         updateFrisbeeHandSmoothPosition();
@@ -101,12 +109,65 @@ function getFrisbeeModelMatrix() {
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            scalem(0.7, 0.7, 0.7)
+            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
         );
 
         return modelMatrixFrisbee;
     }
 
+
+    if (dogHasFrisbee) {
+        var rad = dogCurrentAngle * Math.PI / 180.0;
+
+        var forwardX = Math.sin(rad);
+        var forwardZ = Math.cos(rad);
+
+        // un po' più avanti rispetto al muso
+        var mouthForwardOffset = 1.5;
+
+        // un po' più in alto
+        var mouthY = -0.90;
+
+        // leggermente spostato a lato, così non taglia il muso in mezzo
+        var sideOffset = 0.12;
+        var sideX = Math.cos(rad) * sideOffset;
+        var sideZ = -Math.sin(rad) * sideOffset;
+
+        var mouthX = dogFetchX + forwardX * mouthForwardOffset + sideX;
+        var mouthZ = dogFetchZ + forwardZ * mouthForwardOffset + sideZ;
+
+        modelMatrixFrisbee = mult(
+            modelMatrixFrisbee,
+            translate(mouthX, mouthY, mouthZ)
+        );
+
+        // orientamento del cane
+        modelMatrixFrisbee = mult(
+            modelMatrixFrisbee,
+            rotate(dogCurrentAngle, [0, 1, 0])
+        );
+
+        // orienta il frisbee in modo più naturale in bocca
+        modelMatrixFrisbee = mult(
+            modelMatrixFrisbee,
+            rotate(90, [0, 1, 0])
+        );
+
+        // piccola inclinazione, così non resta perfettamente "piatto"
+        modelMatrixFrisbee = mult(
+            modelMatrixFrisbee,
+            rotate(18, [0, 0, 1])
+        );
+
+        modelMatrixFrisbee = mult(
+            modelMatrixFrisbee,
+            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
+        );
+
+        return modelMatrixFrisbee;
+    }
+
+    
     // 1) Frisbee "in mano", appena prima del lancio
     if (frisbeeAttachedToHand) {
         modelMatrixFrisbee = mult(
@@ -121,7 +182,7 @@ function getFrisbeeModelMatrix() {
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            scalem(0.7, 0.7, 0.7)
+            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
         );
 
         return modelMatrixFrisbee;
@@ -141,7 +202,7 @@ function getFrisbeeModelMatrix() {
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            scalem(0.7, 0.7, 0.7)
+            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
         );
 
         return modelMatrixFrisbee;
@@ -161,7 +222,7 @@ function getFrisbeeModelMatrix() {
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            scalem(0.7, 0.7, 0.7)
+            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
         );
 
         return modelMatrixFrisbee;
@@ -207,7 +268,7 @@ function getFrisbeeModelMatrix() {
 
     modelMatrixFrisbee = mult(
         modelMatrixFrisbee,
-        scalem(0.7, 0.7, 0.7)
+        scalem(frisbeeScale, frisbeeScale, frisbeeScale)
     );
 
     return modelMatrixFrisbee;
@@ -518,4 +579,149 @@ function showFrisbeeReleaseCursor() {
         frisbeeReleaseCursorActive = false;
         updateCanvasCursor();
     }, 1600);
+}
+
+
+function checkFrisbeeLandedAndSendDog() {
+    if (currentScene !== "park") {
+        return;
+    }
+
+    if (!frisbeeLanded) {
+        return;
+    }
+
+    if (frisbeeFlying) {
+        return;
+    }
+
+    if (frisbeeAlreadyTargeted) {
+        return;
+    }
+
+    if (dogHasFrisbee) {
+        return;
+    }
+
+    startSkinnedDogFetchFrisbee();
+    frisbeeAlreadyTargeted = true;
+}
+
+
+
+function startSkinnedDogFetchFrisbee() {
+    if (currentScene !== "park") {
+        return;
+    }
+
+    if (!frisbeeLanded || frisbeeFlying) {
+        return;
+    }
+
+    if (!dogHappySoundPlayed) {
+        playDogHappySound();
+        dogHappySoundPlayed = true;
+    }
+
+    showDogMusicNote = true;
+
+    dogFetchObjectType = "frisbee";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogHasFrisbee = false;
+    dogHasBall = false;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    var targetX = frisbeeEndPos[0];
+    var targetZ = frisbeeEndPos[2];
+
+    dogLookAtBallX = targetX;
+    dogLookAtBallZ = targetZ;
+
+    /*
+        Nel parco non vogliamo clampare alla stanza/tavolo.
+        Però teniamo un margine per non farlo arrivare esattamente sopra il frisbee.
+    */
+    var dx = targetX - dogFetchX;
+    var dz = targetZ - dogFetchZ;
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var bodyStopOffset = 1.10;
+
+    var bodyTargetX = targetX;
+    var bodyTargetZ = targetZ;
+
+    if (dist > 0.001) {
+        bodyTargetX = targetX - (dx / dist) * bodyStopOffset;
+        bodyTargetZ = targetZ - (dz / dist) * bodyStopOffset;
+    }
+
+    /*
+        Per ora percorso diretto.
+        Nel parco non abbiamo il tavolo da evitare.
+    */
+    dogPath = [
+        {
+            x: bodyTargetX,
+            z: bodyTargetZ
+        }
+    ];
+
+    dogPathIndex = 0;
+    dogFetchBallMode = true;
+
+    dogFetchTarget = {
+        x: targetX,
+        z: targetZ
+    };
+
+    console.log("Skinned dog goes to frisbee:", dogPath);
+}
+
+
+function startSkinnedDogReturnFrisbeeToCamera() {
+    dogReturningWithFrisbee = true;
+    dogFetchObjectType = "frisbee";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    /*
+        Punto vicino alla camera, ma proiettato sul prato.
+        Non uso eye direttamente perché la camera sta in alto.
+    */
+    var forward = normalize(subtract(at, eye));
+
+    var targetX = eye[0] + forward[0] * 3.0;
+    var targetZ = eye[2] + forward[2] * 3.0;
+
+    // limiti del parco
+    targetX = Math.max(-6.0, Math.min(6.0, targetX));
+    targetZ = Math.max(-6.0, Math.min(6.0, targetZ));
+
+    dogPath = [
+        {
+            x: targetX,
+            z: targetZ
+        }
+    ];
+
+    dogFetchBallMode = true;
+
+    dogFetchTarget = {
+        x: targetX,
+        z: targetZ
+    };
+
+    console.log("Dog returns frisbee to camera:", dogPath);
 }

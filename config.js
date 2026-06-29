@@ -3,7 +3,7 @@ var ENABLE_START_SCREEN = false;
 var ENABLE_LOADING_SCREEN = false;
 
 //current Scene either "home" or "park"
-var currentScene = "home"; 
+var currentScene = "park"; 
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 
@@ -498,11 +498,7 @@ var frisbeeHandMaxY = 1.0;
 
 var frisbeeHasMousePosition = false;
 
-
-/*
-    Più basso = frisbee più vicino alla camera/manina.
-    Prova 3.2 / 3.5 / 4.0.
-*/
+// try 3.4-3.8
 var frisbeeHandDistanceFromCamera = 3.6;
 
 /*
@@ -521,6 +517,18 @@ var frisbeeHandSmoothing = 0.35;
 
 var frisbeeReleaseCursorActive = false;
 var frisbeeReleaseCursorTimer = null;
+
+
+// dog + frisbee fetch
+var dogHasFrisbee = false;
+var frisbeeAlreadyTargeted = false;
+
+var wooshFrisbeeSound;
+
+// either "ball" or "frisbee" based on what the dog is fetching
+var dogFetchObjectType = null;
+
+var dogReturningWithFrisbee = false;
 
 //****************************************************** */
 //             Global variables for grass                */

@@ -315,6 +315,11 @@ function updateSceneButtonsVisibility() {
     var frisbeeButton = document.getElementById("ButtonFrisbee");
     var focusCurtainButton = document.getElementById("ButtonFocusCurtain");
     var focusTeapotButton = document.getElementById("ButtonTeapotFocus");
+    //var windSlider = document.getElementById("windSlider");
+    var bounceBallButton =document.getElementById("ButtonBounceBall");
+    var ballSettingsPanel = document.getElementById("BallSettingsPanel");
+
+    var curtainSettingsPanel = document.getElementById("CurtainSettingsPanel");
 
     if (waterButton) {
         waterButton.style.display = isHome ? "flex" : "none";
@@ -338,6 +343,18 @@ function updateSceneButtonsVisibility() {
 
     if (focusTeapotButton) {
         focusTeapotButton.style.display = isHome ? "inline-block" : "none";
+    }
+
+   
+    if( bounceBallButton){
+        bounceBallButton.style.display = isHome ? "flex" : "none";
+    }
+    if (ballSettingsPanel) {
+        ballSettingsPanel.style.display = isHome ? "block" : "none";
+    }
+    
+    if (curtainSettingsPanel) {
+        curtainSettingsPanel.style.display = isHome ? "block" : "none";
     }
 }
 ///////////////////////////////////////

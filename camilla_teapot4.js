@@ -1109,6 +1109,16 @@ onload = async function init() {
                 if (currentScene !== "park") {
                     return;
                 }
+                dogHasFrisbee = false;
+                dogReturningWithFrisbee = false;
+                dogFetchObjectType = null;
+
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
 
                 frisbeeThrowMode = true;
                 frisbeeAttachedToHand = true;
@@ -1133,6 +1143,12 @@ onload = async function init() {
                 this.title = "Click on the park to throw";
     };
         
+    //frisbee sound
+    wooshFrisbeeSound = document.getElementById("wooshFrisbeeSound");
+
+    if (wooshFrisbeeSound) {
+        wooshFrisbeeSound.volume = 0.6;
+    }
     
 
 
@@ -1509,6 +1525,8 @@ onload = async function init() {
             //updateCanvasCursor();
 
             showFrisbeeReleaseCursor();
+
+            playWooshFrisbeeSound();
 
             var buttonFrisbee = document.getElementById("ButtonFrisbee");
 
@@ -2057,7 +2075,7 @@ function render() {
     aspect = canvas.width / canvas.height;
     projectionMatrix = perspective(cameraFov, aspect, 0.1,50.0)
 
-    //REVIEW -  rivedi per far iniziare con park mode
+    
     ensureLightMatricesExist();
 
     if (currentScene === "home") {
@@ -2084,7 +2102,7 @@ function drawObject(obj,
     globalAlpha = 1.0,
     ) {
 
-    //per differenziare luce giorno/notte
+    //to differentiate between day and night lighting
     var lightIntensity;
     var ambientStrength;
     var lightTint;
@@ -2400,7 +2418,7 @@ function resetCameraView() {
 
 
 function focusCurtainCamera() {
-    // Punto centrale circa della tenda
+    // central point of the curtain in world space
     cameraTarget = vec3(
         CURTAIN_ORIGIN_X,
         CURTAIN_ORIGIN_Y - CURTAIN_HEIGHT / 2.0,
@@ -2412,7 +2430,7 @@ function focusCurtainCamera() {
     cameraDistance = 4.0;
     cameraFov = 45.0;
 
-    // Aggiorna sliders
+    // sliders update
     if (cameraAngleSlider) cameraAngleSlider.value = cameraAngle;
     if (cameraHeightSlider) cameraHeightSlider.value = cameraHeight;
     if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
@@ -2449,7 +2467,7 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
     gl.bindTexture(gl.TEXTURE_2D, tableAOTexture);
     gl.uniform1i(tableMaterialUniforms.aoMap, 2);
 
-    // SHADOW MAPS PRIMA DEL DRAW
+    // SHADOW MAPS BEFORE DRAW
     if (usePointShadowMap) {
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
@@ -2501,105 +2519,16 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
     gl.vertexAttribPointer(tableMaterialAttribs.vTexCoord, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(tableMaterialAttribs.vTexCoord);
 
-    // DRAW ALLA FINE
+    // DRAW at the end
     gl.drawArrays(gl.TRIANGLES, 0, tableObj.numVertices);
 }
 
-/* function getBillboardHaloMatrix(scale, viewMatrix) {
-    var haloMatrix = mat4();
 
-    haloMatrix = mult(
-        haloMatrix,
-        translate(
-            lightPosition[0],
-            lightPosition[1]-0.2,
-            lightPosition[2]
-        )
-    );
-
-    // billboard verso camera
-    haloMatrix[0][0] = viewMatrix[0][0];
-    haloMatrix[0][1] = viewMatrix[1][0];
-    haloMatrix[0][2] = viewMatrix[2][0];
-
-    haloMatrix[1][0] = viewMatrix[0][1];
-    haloMatrix[1][1] = viewMatrix[1][1];
-    haloMatrix[1][2] = viewMatrix[2][1];
-
-    haloMatrix[2][0] = viewMatrix[0][2];
-    haloMatrix[2][1] = viewMatrix[1][2];
-    haloMatrix[2][2] = viewMatrix[2][2];
-
-    haloMatrix = mult(haloMatrix, scalem(scale*1.6, scale*0.95, 1.0));
-
-    return haloMatrix;
-} */
-/* function getBillboardHaloMatrix(scale, viewMatrix) {
-    // Direzione dalla luce verso la camera
-    var dx = eye[0] - lightPosition[0];
-    var dy = eye[1] - lightPosition[1];
-    var dz = eye[2] - lightPosition[2];
-
-    var len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-    if (len > 0.0001) {
-        dx /= len;
-        dy /= len;
-        dz /= len;
-    }
-
-    // Piccolissimo offset verso la camera:
-    // evita che il sole copra il quad.
-    var offset = 0.06;
-
-    var haloX = lightPosition[0] + dx * offset;
-    var haloY = lightPosition[1] + dy * offset;
-    var haloZ = lightPosition[2] + dz * offset;
-
-    // Rotazione billboard
-    var billboardRotation = mat4();
-
-    billboardRotation[0][0] = viewMatrix[0][0];
-    billboardRotation[0][1] = viewMatrix[1][0];
-    billboardRotation[0][2] = viewMatrix[2][0];
-
-    billboardRotation[1][0] = viewMatrix[0][1];
-    billboardRotation[1][1] = viewMatrix[1][1];
-    billboardRotation[1][2] = viewMatrix[2][1];
-
-    billboardRotation[2][0] = viewMatrix[0][2];
-    billboardRotation[2][1] = viewMatrix[1][2];
-    billboardRotation[2][2] = viewMatrix[2][2];
-
-    var haloMatrix = mat4();
-
-    haloMatrix = mult(
-        haloMatrix,
-        translate(haloX, haloY, haloZ)
-    );
-
-    haloMatrix = mult(
-        haloMatrix,
-        billboardRotation
-    );
-
-    // Mantengo esattamente la forma che avevi scelto
-    haloMatrix = mult(
-        haloMatrix,
-        scalem(
-            scale * 1.6,
-            scale * 0.95,
-            1.0
-        )
-    );
-
-    return haloMatrix;
-} */
 
 function getBillboardHaloMatrix(scale, viewMatrix) {
     var haloMatrix = mat4();
 
-    // direzione dal sole verso la camera
+    // direction of the sun relative to the camera
     var dx = eye[0] - lightPosition[0];
     var dy = eye[1] - lightPosition[1];
     var dz = eye[2] - lightPosition[2];
@@ -2611,8 +2540,8 @@ function getBillboardHaloMatrix(scale, viewMatrix) {
     dy /= len;
     dz /= len;
 
-    // piccolo offset verso la camera
-    var haloOffset = 0.05;   // prova 0.10, 0.15, 0.18
+    // small offset towards the camera
+    var haloOffset = 0.05;   // try 0.10, 0.15, 0.18
 
     var haloX = lightPosition[0] + dx * haloOffset;
     var haloY = lightPosition[1] + dy * haloOffset;
@@ -2623,7 +2552,7 @@ function getBillboardHaloMatrix(scale, viewMatrix) {
         translate(haloX, haloY, haloZ)
     );
 
-    // billboard verso la camera
+    // billboard towards camera
     haloMatrix[0][0] = viewMatrix[0][0];
     haloMatrix[0][1] = viewMatrix[1][0];
     haloMatrix[0][2] = viewMatrix[2][0];
@@ -2636,7 +2565,7 @@ function getBillboardHaloMatrix(scale, viewMatrix) {
     haloMatrix[2][1] = viewMatrix[1][2];
     haloMatrix[2][2] = viewMatrix[2][2];
 
-    // più tondo
+    // more rounded
     haloMatrix = mult(
         haloMatrix,
         scalem(scale, scale, 1.0)

@@ -608,10 +608,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             gl.disable(gl.CULL_FACE);
             drawShadowObject(curtain, mat4());
             //drawShadowObject()
-            gl.enable(gl.CULL_FACE);
-            gl.cullFace(gl.BACK);
+           
 
             drawShadowObject(curtainRodBuffers,modelMatrixCurtainRod);
+
+             gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
         }
 
         //drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, true)
@@ -909,7 +911,9 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         drawObject(curtainRodBuffers,moonTexture,modelMatrixCurtainRod,viewMatrix,projectionMatrix,
             true,
-            false,true,true);
+            false,
+            true,
+            true);
         
     }
     gl.enable(gl.CULL_FACE);

@@ -76,7 +76,28 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
 
     drawParkGrassPatches(viewMatrix, projectionMatrix);
 
+    /************DOG + FRISBEE FETCH*****************/
+    var parkDeltaTime = 0.016;
+
+    if (typeof deltaTime !== "undefined") {
+        parkDeltaTime = deltaTime;
+    }
+
+    // check if frisbee has landed and send dog to fetch it
+    checkFrisbeeLandedAndSendDog();
+
+    // update dog animation and position
+    updateSkinnedDogFetchBall(parkDeltaTime);
+
     /************DOG*****************/
    
     drawSkinnedDog(viewMatrix, projectionMatrix);
+
+
+
+
+    //************************************* *
+    //            SHADOW PASS              // 
+    /************************************* */
+    
 }
