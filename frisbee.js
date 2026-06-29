@@ -44,7 +44,7 @@ function launchFrisbee() {
     // i DON'T WANT  the same end position every time, so I randomize it a bit
    // frisbeeEndPos = vec3(3.0, -2.2, -3.2);
 
-    var groundY = -2.2;
+    var groundY = -2.32;
 
     // direzione dalla camera verso il frisbee in mano
     var dir = normalize(subtract(frisbeeStartPos, eye));
@@ -74,7 +74,14 @@ function launchFrisbee() {
         endX = Math.max(-7.0, Math.min(7.0, endX));
         endZ = Math.max(-7.0, Math.min(7.0, endZ));
 
-        frisbeeEndPos = vec3(endX, groundY, endZ);
+        //frisbeeEndPos = vec3(endX, groundY, endZ);
+        var safeLanding = pushFrisbeeOutsideBenchCollider(endX, endZ);
+
+        frisbeeEndPos = vec3(
+            safeLanding.x,
+            groundY,
+            safeLanding.z
+        );
 
     }
 }
@@ -274,222 +281,48 @@ function getFrisbeeModelMatrix() {
     return modelMatrixFrisbee;
 }
 
-function updateFrisbeeHandPositionFromMouse_old(event) {
-    if (!canvas || !viewMatrix || !projectionMatrix) {
-        return;
-    }
-
-    var rect = canvas.getBoundingClientRect();
-
-    // coordinate mouse rispetto al canvas
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
-
-    // piccolo offset per farlo stare vicino alla manina, non esattamente sotto la punta
-    mouseX += 25;
-    mouseY += 18;
-
-    var x = (mouseX / rect.width) * 2.0 - 1.0;
-    var y = 1.0 - (mouseY / rect.height) * 2.0;
-
-    var viewProjection = mult(projectionMatrix, viewMatrix);
-    var inverseViewProjection = inverseMat4(viewProjection);
-
-    var nearPoint = mult(inverseViewProjection, vec4(x, y, -1.0, 1.0));
-    var farPoint  = mult(inverseViewProjection, vec4(x, y,  1.0, 1.0));
-
-    nearPoint = vec3(
-        nearPoint[0] / nearPoint[3],
-        nearPoint[1] / nearPoint[3],
-        nearPoint[2] / nearPoint[3]
-    );
-
-    farPoint = vec3(
-        farPoint[0] / farPoint[3],
-        farPoint[1] / farPoint[3],
-        farPoint[2] / farPoint[3]
-    );
-
-    var rayDir = subtract(farPoint, nearPoint);
-
-    if (Math.abs(rayDir[1]) < 0.0001) {
-        return;
-    }
-
-    var t = (frisbeeHandPlaneY - nearPoint[1]) / rayDir[1];
-
-    frisbeeHandPos = vec3(
-        nearPoint[0] + rayDir[0] * t,
-        frisbeeHandPlaneY,
-        frisbeeHandFixedZ //nearPoint[2] + rayDir[2] * t
-    );
-}
-
-function updateFrisbeeHandPositionFromMouse_old_old(event) {
-    if (!canvas || !viewMatrix || !projectionMatrix) {
-        return;
-    }
-
-    var rect = canvas.getBoundingClientRect();
-
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
-
-    // offset per tenerlo vicino alla manina
-    mouseX += 25;
-    mouseY += 18;
-
-    var x = (mouseX / rect.width) * 2.0 - 1.0;
-    var y = 1.0 - (mouseY / rect.height) * 2.0;
-
-    var viewProjection = mult(projectionMatrix, viewMatrix);
-    var inverseViewProjection = inverseMat4(viewProjection);
-
-    var nearPoint = mult(
-        inverseViewProjection,
-        vec4(x, y, -1.0, 1.0)
-    );
-
-    var farPoint = mult(
-        inverseViewProjection,
-        vec4(x, y, 1.0, 1.0)
-    );
-
-    nearPoint = vec3(
-        nearPoint[0] / nearPoint[3],
-        nearPoint[1] / nearPoint[3],
-        nearPoint[2] / nearPoint[3]
-    );
-
-    farPoint = vec3(
-        farPoint[0] / farPoint[3],
-        farPoint[1] / farPoint[3],
-        farPoint[2] / farPoint[3]
-    );
-
-    var rayDir = subtract(farPoint, nearPoint);
-
-    // adesso interseco con un piano Z fisso
-    if (Math.abs(rayDir[2]) < 0.0001) {
-        return;
-    }
-
-    var t = (frisbeeHandFixedZ - nearPoint[2]) / rayDir[2];
-
-    var rawX = nearPoint[0] + rayDir[0] * t;
-    var rawY = nearPoint[1] + rayDir[1] * t;
-
-    // riduco la sensibilità verticale rispetto alla posizione base
-    var newY =
-        frisbeeHandBaseY +
-        (rawY - frisbeeHandBaseY) * frisbeeHandVerticalSensitivity;
-
-    // limito quanto può salire/scendere
-    newY = Math.max(
-        frisbeeHandMinY,
-        Math.min(frisbeeHandMaxY, newY)
-    );
-
-    // NON aggiorno direttamente frisbeeHandPos,
-    // aggiorno solo il target
-    frisbeeHandTargetPos = vec3(
-        rawX,
-        newY,
-        frisbeeHandFixedZ
-    );
-}
-
-function updateFrisbeeHandPositionFromMouse_old_old_old(event) {
-    var rect = canvas.getBoundingClientRect();
-
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
-
-    // Primo movimento: salvo la posizione iniziale e basta
-    if (frisbeeLastMouseX === null || frisbeeLastMouseY === null) {
-        frisbeeLastMouseX = mouseX;
-        frisbeeLastMouseY = mouseY;
-        return;
-    }
-
-    var dx = mouseX - frisbeeLastMouseX;
-    var dy = mouseY - frisbeeLastMouseY;
-
-    frisbeeLastMouseX = mouseX;
-    frisbeeLastMouseY = mouseY;
-
-    var newX = frisbeeHandTargetPos[0] + dx * frisbeeHandXSpeed;
-
-    // dy positivo = mouse va giù, quindi nel mondo Y deve scendere
-    var newY = frisbeeHandTargetPos[1] - dy * frisbeeHandYSpeed;
-
-    newX = Math.max(
-        frisbeeHandMinX,
-        Math.min(frisbeeHandMaxX, newX)
-    );
-
-    newY = Math.max(
-        frisbeeHandMinY,
-        Math.min(frisbeeHandMaxY, newY)
-    );
-
-    frisbeeHandTargetPos = vec3(
-        newX,
-        newY,
-        frisbeeHandFixedZ
-    );
-}
-
-function updateFrisbeeHandPositionFromMouse_stra_old(event) {
-    if (!canvas) {
-        return;
-    }
-
-    var rect = canvas.getBoundingClientRect();
-
-    var mouseX = event.clientX - rect.left;
-    var mouseY = event.clientY - rect.top;
-
-    // normalizzo tra 0 e 1
-    var nx = mouseX / rect.width;
-    var ny = mouseY / rect.height;
-
-    // clamp, per sicurezza
-    nx = Math.max(0.0, Math.min(1.0, nx));
-    ny = Math.max(0.0, Math.min(1.0, ny));
-
-    // mapping controllato: mouse sinistra/destra -> X del frisbee
-    var newX =
-        frisbeeHandMinX +
-        nx * (frisbeeHandMaxX - frisbeeHandMinX);
-
-    // mouse alto -> Y alta, mouse basso -> Y bassa
-    var newY =
-        frisbeeHandMaxY +
-        ny * (frisbeeHandMinY - frisbeeHandMaxY);
-
-    frisbeeHandTargetPos = vec3(
-        newX,
-        newY,
-        frisbeeHandFixedZ
-    );
-
+function pushFrisbeeOutsideBenchCollider(x, z) {
     /*
-        La prima volta non faccio smoothing:
-        piazzo subito il disco sotto la manina.
-        Dopo invece userò lo smoothing normale.
+        Usiamo la stessa zona della panchina,
+        ma con un piccolo margine extra per non far atterrare
+        il frisbee proprio attaccato al bordo.
     */
-    if (!frisbeeHasMousePosition) {
-        frisbeeHandPos = vec3(
-            newX,
-            newY,
-            frisbeeHandFixedZ
-        );
 
-        frisbeeHasMousePosition = true;
+    var extra = 0.35;
+
+    var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN + extra;
+    var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN + extra;
+
+    var minX = BENCH_COLLIDER_X - halfX;
+    var maxX = BENCH_COLLIDER_X + halfX;
+
+    var minZ = BENCH_COLLIDER_Z - halfZ;
+    var maxZ = BENCH_COLLIDER_Z + halfZ;
+
+    if (x > minX && x < maxX && z > minZ && z < maxZ) {
+        var distLeft  = Math.abs(x - minX);
+        var distRight = Math.abs(x - maxX);
+        var distBack  = Math.abs(z - minZ);
+        var distFront = Math.abs(z - maxZ);
+
+        var minDist = Math.min(distLeft, distRight, distBack, distFront);
+
+        if (minDist === distLeft) {
+            x = minX;
+        } else if (minDist === distRight) {
+            x = maxX;
+        } else if (minDist === distBack) {
+            z = minZ;
+        } else {
+            z = maxZ;
+        }
     }
-}
 
+    return {
+        x: x,
+        z: z
+    };
+}
 
 
 function updateFrisbeeHandPositionFromMouse(event) {
@@ -650,7 +483,7 @@ function startSkinnedDogFetchFrisbee() {
     var dz = targetZ - dogFetchZ;
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    var bodyStopOffset = 1.10;
+    /* var bodyStopOffset = 1.10;
 
     var bodyTargetX = targetX;
     var bodyTargetZ = targetZ;
@@ -660,16 +493,34 @@ function startSkinnedDogFetchFrisbee() {
         bodyTargetZ = targetZ - (dz / dist) * bodyStopOffset;
     }
 
-    /*
-        Per ora percorso diretto.
-        Nel parco non abbiamo il tavolo da evitare.
-    */
+    
     dogPath = [
         {
             x: bodyTargetX,
             z: bodyTargetZ
         }
+    ]; */
+
+    var approachTarget = getSafeFrisbeeApproachTarget(
+        dogFetchX,
+        dogFetchZ,
+        targetX,
+        targetZ
+    );
+
+   /*  dogPath = [
+        {
+            x: approachTarget.x,
+            z: approachTarget.z
+        }
     ];
+ */
+    dogPath = computeDogPathAroundBench(
+        dogFetchX,
+        dogFetchZ,
+        approachTarget.x,
+        approachTarget.z
+    );
 
     dogPathIndex = 0;
     dogFetchBallMode = true;
@@ -769,4 +620,158 @@ function startSkinnedDogReturnFrisbeeToCamera() {
     };
 
     console.log("Dog returns frisbee to saved target:", dogPath);
+}
+
+function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
+    /*
+        Target normale: il cane si ferma un po' prima del frisbee,
+        così non mette il corpo sopra al disco.
+    */
+    var dx = frisbeeX - dogX;
+    var dz = frisbeeZ - dogZ;
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var bodyStopOffset = 0.70;
+
+    var directX = frisbeeX;
+    var directZ = frisbeeZ;
+
+    if (dist > 0.001) {
+        directX = frisbeeX - (dx / dist) * bodyStopOffset;
+        directZ = frisbeeZ - (dz / dist) * bodyStopOffset;
+    }
+
+    /*
+        Rettangolo reale della panchina usato dal cane.
+        Deve essere coerente con keepDogOutsideParkObstacles.
+    */
+    var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN;
+    var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN;
+
+    var minX = BENCH_COLLIDER_X - halfX;
+    var maxX = BENCH_COLLIDER_X + halfX;
+
+    var minZ = BENCH_COLLIDER_Z - halfZ;
+    var maxZ = BENCH_COLLIDER_Z + halfZ;
+
+    function pointInsideBench(x, z) {
+        return (
+            x > minX &&
+            x < maxX &&
+            z > minZ &&
+            z < maxZ
+        );
+    }
+
+    function segmentHitsBench(x1, z1, x2, z2) {
+        var steps = 30;
+
+        for (var i = 0; i <= steps; i++) {
+            var t = i / steps;
+
+            var x = x1 + (x2 - x1) * t;
+            var z = z1 + (z2 - z1) * t;
+
+            if (pointInsideBench(x, z)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /*
+        Se il target diretto è raggiungibile, uso quello.
+    */
+    if (
+        !pointInsideBench(directX, directZ) &&
+        !segmentHitsBench(dogX, dogZ, directX, directZ)
+    ) {
+        return {
+            x: directX,
+            z: directZ
+        };
+    }
+
+    /*
+        Caso problematico:
+        il frisbee è vicino/dietro la panchina.
+        Provo 4 punti intorno al collider e scelgo quello più comodo.
+    */
+    var extra = 0.05;
+
+    var candidates = [
+        // lato sinistro del collider
+        {
+            x: minX - extra,
+            z: frisbeeZ
+        },
+
+        // lato destro del collider
+        {
+            x: maxX + extra,
+            z: frisbeeZ
+        },
+
+        // lato dietro
+        {
+            x: frisbeeX,
+            z: minZ - extra
+        },
+
+        // lato davanti
+        {
+            x: frisbeeX,
+            z: maxZ + extra
+        }
+    ];
+
+    var best = null;
+    var bestScore = 999999.0;
+
+    for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+
+        if (pointInsideBench(c.x, c.z)) {
+            continue;
+        }
+
+        if (segmentHitsBench(dogX, dogZ, c.x, c.z)) {
+            continue;
+        }
+
+        var dDogX = c.x - dogX;
+        var dDogZ = c.z - dogZ;
+        var distDog = Math.sqrt(dDogX * dDogX + dDogZ * dDogZ);
+
+        var dFrisbeeX = c.x - frisbeeX;
+        var dFrisbeeZ = c.z - frisbeeZ;
+        var distFrisbee = Math.sqrt(dFrisbeeX * dFrisbeeX + dFrisbeeZ * dFrisbeeZ);
+
+        /*
+            Preferisco punti vicini al frisbee,
+            ma comunque raggiungibili dal cane.
+        */
+        var score = distFrisbee * 2.0 + distDog;
+
+        if (score < bestScore) {
+            bestScore = score;
+            best = c;
+        }
+    }
+
+    if (best) {
+        return best;
+    }
+
+    /*
+        Fallback: se proprio non trova nulla,
+        almeno non mando il cane dentro la panchina.
+    */
+    var corrected = keepDogOutsideParkObstacles(directX, directZ);
+
+    return {
+        x: corrected.x,
+        z: corrected.z
+    };
 }

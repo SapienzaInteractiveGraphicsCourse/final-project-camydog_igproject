@@ -332,6 +332,36 @@ function getBowlColliderMatrix() {
     return m;
 }
 /////////////////////////
+//Bench collider
+function getBenchColliderDebugMatrix() {
+    var m = mat4();
+
+    m = mult(
+        m,
+        translate(
+            BENCH_COLLIDER_X,
+            BENCH_COLLIDER_Y,
+            BENCH_COLLIDER_Z
+        )
+    );
+
+    // stessa rotazione della panchina
+    m = mult(
+        m,
+        rotate(BENCH_COLLIDER_ROT_Y, [0, 1, 0])
+    );
+
+    m = mult(
+        m,
+        scalem(
+            BENCH_COLLIDER_WIDTH,
+            BENCH_COLLIDER_HEIGHT,
+            BENCH_COLLIDER_DEPTH
+        )
+    );
+
+    return m;
+}
 
 // bowl physics
 function updateWater(deltaTime) {
@@ -1231,6 +1261,151 @@ function clamp(value, minValue, maxValue) {
     return Math.max(minValue, Math.min(maxValue, value));
 }
 
+function keepDogOutsideParkObstacles(x, z) {
+    /*
+        Questa funzione usa gli stessi valori del box debug.
+        Quindi quello che vedi è quello che blocca il cane.
+    */
+
+    var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN;
+    var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN;
+
+    var minX = BENCH_COLLIDER_X - halfX;
+    var maxX = BENCH_COLLIDER_X + halfX;
+
+    var minZ = BENCH_COLLIDER_Z - halfZ;
+    var maxZ = BENCH_COLLIDER_Z + halfZ;
+
+    if (x > minX && x < maxX && z > minZ && z < maxZ) {
+        var distLeft  = Math.abs(x - minX);
+        var distRight = Math.abs(x - maxX);
+        var distBack  = Math.abs(z - minZ);
+        var distFront = Math.abs(z - maxZ);
+
+        var minDist = Math.min(
+            distLeft,
+            distRight,
+            distBack,
+            distFront
+        );
+
+        if (minDist === distLeft) {
+            x = minX;
+        } else if (minDist === distRight) {
+            x = maxX;
+        } else if (minDist === distBack) {
+            z = minZ;
+        } else {
+            z = maxZ;
+        }
+    }
+
+    return {
+        x: x,
+        z: z
+    };
+}
+function segmentIntersectsBenchCollider(x1, z1, x2, z2) {
+    var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN;
+    var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN;
+
+    var minX = BENCH_COLLIDER_X - halfX;
+    var maxX = BENCH_COLLIDER_X + halfX;
+    var minZ = BENCH_COLLIDER_Z - halfZ;
+    var maxZ = BENCH_COLLIDER_Z + halfZ;
+
+    var steps = 40;
+
+    for (var i = 0; i <= steps; i++) {
+        var t = i / steps;
+
+        var x = x1 + (x2 - x1) * t;
+        var z = z1 + (z2 - z1) * t;
+
+        if (x > minX && x < maxX && z > minZ && z < maxZ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function computeDogPathAroundBench(startX, startZ, targetX, targetZ) {
+    /*
+        Se il percorso diretto non attraversa la panchina,
+        il cane va direttamente al target.
+    */
+    if (!segmentIntersectsBenchCollider(startX, startZ, targetX, targetZ)) {
+        return [
+            {
+                x: targetX,
+                z: targetZ
+            }
+        ];
+    }
+
+    /*
+        Altrimenti passo da uno degli angoli esterni della zona panchina.
+    */
+    var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN;
+    var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN;
+
+    var minX = BENCH_COLLIDER_X - halfX;
+    var maxX = BENCH_COLLIDER_X + halfX;
+    var minZ = BENCH_COLLIDER_Z - halfZ;
+    var maxZ = BENCH_COLLIDER_Z + halfZ;
+
+    var extra = 0.45;
+
+    var candidates = [
+        { x: minX - extra, z: minZ - extra },
+        { x: minX - extra, z: maxZ + extra },
+        { x: maxX + extra, z: minZ - extra },
+        { x: maxX + extra, z: maxZ + extra }
+    ];
+
+    var best = candidates[0];
+    var bestScore = 999999.0;
+
+    for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+
+        /*
+            Voglio un angolo raggiungibile dal cane
+            e da cui poi si possa arrivare al frisbee.
+        */
+        if (segmentIntersectsBenchCollider(startX, startZ, c.x, c.z)) {
+            continue;
+        }
+
+        if (segmentIntersectsBenchCollider(c.x, c.z, targetX, targetZ)) {
+            continue;
+        }
+
+        var d1 = dist2D(startX, startZ, c.x, c.z);
+        var d2 = dist2D(c.x, c.z, targetX, targetZ);
+
+        var score = d1 + d2;
+
+        if (score < bestScore) {
+            bestScore = score;
+            best = c;
+        }
+    }
+
+    return [
+        {
+            x: best.x,
+            z: best.z
+        },
+        {
+            x: targetX,
+            z: targetZ
+        }
+    ];
+}
+
+
 function keepDogOutsideTable(x, z) {
     var halfW = TABLE_TOP_WIDTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
     var halfD = TABLE_TOP_DEPTH / 2.0 + DOG_TABLE_AVOID_MARGIN;
@@ -1263,6 +1438,8 @@ function keepDogOutsideTable(x, z) {
 
     return { x: x, z: z };
 }
+
+
 
 function updateDogMovementToBall1(deltaTime) {
     if (!dogMovingToBall) return;
@@ -1627,11 +1804,17 @@ function updateSkinnedDogFetchBall(deltaTime) {
         dogFetchX = corrected.x;
         dogFetchZ = corrected.z;
         }
-        else{
+        else{ //park mode
+            /* 
             dogFetchX = nextX;
-             dogFetchZ = nextZ;
+             dogFetchZ = nextZ; */
+              var correctedPark = keepDogOutsideParkObstacles(nextX, nextZ);
+
+            dogFetchX = correctedPark.x;
+            dogFetchZ = correctedPark.z;
+
         }
-        
+
         dogFetchTarget = {
             x: target.x,
             z: target.z
@@ -1684,9 +1867,78 @@ function updateSkinnedDogFetchBall(deltaTime) {
             } 
             else {
                 /*
-                    Primo arrivo: cane arrivato all'oggetto.
-                    Qui parte il pickup.
+                    Primo arrivo: cane arrivato al target.
+                    Però per il frisbee controllo anche la distanza reale dal disco.
                 */
+
+                if (dogFetchObjectType === "frisbee") {
+                    var fx = dogLookAtBallX - dogFetchX;
+                    var fz = dogLookAtBallZ - dogFetchZ;
+
+                    var distToFrisbee = Math.sqrt(fx * fx + fz * fz);
+
+                    var frisbeePickupDistance = 0.85;
+
+                    if (distToFrisbee > frisbeePickupDistance) {
+                        /*
+                            Il cane è arrivato al primo punto sicuro,
+                            ma il frisbee è ancora lontano.
+                            Allora gli creo un nuovo target più vicino al disco.
+                        */
+
+                        var closerStopOffset = 0.45;
+
+                        var closerTargetX = dogLookAtBallX;
+                        var closerTargetZ = dogLookAtBallZ;
+
+                        if (distToFrisbee > 0.001) {
+                            closerTargetX = dogLookAtBallX - (fx / distToFrisbee) * closerStopOffset;
+                            closerTargetZ = dogLookAtBallZ - (fz / distToFrisbee) * closerStopOffset;
+                        }
+
+                        /*
+                            Evito comunque che il nuovo target finisca dentro la panchina.
+                        */
+                        var correctedCloserTarget = keepDogOutsideParkObstacles(
+                            closerTargetX,
+                            closerTargetZ
+                        );
+
+                        /* dogPath = [
+                            {
+                                x: correctedCloserTarget.x,
+                                z: correctedCloserTarget.z
+                            }
+                        ]; */
+
+                        dogPath = computeDogPathAroundBench(
+                            dogFetchX,
+                            dogFetchZ,
+                            correctedCloserTarget.x,
+                            correctedCloserTarget.z
+                        );
+
+                        dogPathIndex = 0;
+                        dogFetchBallMode = true;
+
+                        dogFetchLoweringActive = false;
+                        dogFetchLowerAmount = 0.0;
+
+                        dogFetchTarget = {
+                            x: dogLookAtBallX,
+                            z: dogLookAtBallZ
+                        };
+
+                        console.log(
+                            "Frisbee too far, moving closer:",
+                            distToFrisbee,
+                            dogPath
+                        );
+
+                        return;
+                    }
+                }
+
                 dogFetchLoweringActive = true;
 
                 dogFetchTarget = {

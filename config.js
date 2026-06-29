@@ -437,11 +437,29 @@ var kibbleVisualYOffset = 0.005;
 var foodButton;
 
 //****************************************************** */
-//             Colliders                                  */
+//             Colliders        Table                          */
 //****************************************************** */
 var bowlColliderRadius = 0.5;
 var bowlColliderHeight = 0.35;
 var bowlColliderY = bowlY + 0.05;
+
+
+//****************************************************** */
+//             Colliders        Bench                    */
+//****************************************************** */
+var BENCH_COLLIDER_X = -5.0;
+var BENCH_COLLIDER_Y = -1.85;
+var BENCH_COLLIDER_Z = -2.8;
+
+// dimensioni VISIVE del box
+var BENCH_COLLIDER_WIDTH  = 4.0;  // lunghezza panchina
+var BENCH_COLLIDER_HEIGHT = 3.0;  // altezza box
+var BENCH_COLLIDER_DEPTH  = 2.0;  // profondità panchina
+
+var BENCH_COLLIDER_ROT_Y = 90.0;
+
+// margine per il cane
+var BENCH_DOG_MARGIN = 1.2;
 
 
 //throwing frisbee variables
