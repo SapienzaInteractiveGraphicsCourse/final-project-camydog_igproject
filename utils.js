@@ -1,43 +1,67 @@
-function updateLightMatricesForCurrentFrame() {
+function ensureLightMatricesExist() {
     var lightPos = vec3(
         lightPosition[0],
         lightPosition[1],
         lightPosition[2]
     );
 
-    lightViewMatrix = lookAt(
-        lightPos,
-        vec3(0.0, 0.0, 0.0),
-        vec3(0.0, 1.0, 0.0)
-    );
-
-    lightProjectionMatrix = ortho(
-        -20.0, 20.0,
-        -20.0, 20.0,
-        -20.0, 50.0
-    );
-
-    pointLightProjectionMatrix = perspective(
-        90.0,
-        1.0,
-        0.1,
-        POINT_SHADOW_FAR
-    );
-
-    for (var i = 0; i < 6; i++) {
-        var target = add(
+    if (!lightViewMatrix) {
+        lightViewMatrix = lookAt(
             lightPos,
-            pointShadowDirections[i]
-        );
-
-        pointLightViewMatrices[i] = lookAt(
-            lightPos,
-            target,
-            pointShadowUps[i]
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 1.0, 0.0)
         );
     }
-}
 
+    if (!lightProjectionMatrix) {
+        lightProjectionMatrix = ortho(
+            -20.0, 20.0,
+            -20.0, 20.0,
+            0.1, 60.0
+        );
+    }
+
+    if (!pointLightProjectionMatrix) {
+        pointLightProjectionMatrix = perspective(
+            90.0,
+            1.0,
+            0.1,
+            POINT_SHADOW_FAR
+        );
+    }
+
+    if (!pointLightViewMatrices || pointLightViewMatrices.length < 6) {
+        pointLightViewMatrices = [];
+
+        var lightTargets = [
+            vec3( 1.0,  0.0,  0.0),
+            vec3(-1.0,  0.0,  0.0),
+            vec3( 0.0,  1.0,  0.0),
+            vec3( 0.0, -1.0,  0.0),
+            vec3( 0.0,  0.0,  1.0),
+            vec3( 0.0,  0.0, -1.0)
+        ];
+
+        var lightUps = [
+            vec3(0.0, -1.0,  0.0),
+            vec3(0.0, -1.0,  0.0),
+            vec3(0.0,  0.0,  1.0),
+            vec3(0.0,  0.0, -1.0),
+            vec3(0.0, -1.0,  0.0),
+            vec3(0.0, -1.0,  0.0)
+        ];
+
+        for (var i = 0; i < 6; i++) {
+            var target = add(lightPos, lightTargets[i]);
+
+            pointLightViewMatrices[i] = lookAt(
+                lightPos,
+                target,
+                lightUps[i]
+            );
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,6 +313,8 @@ function updateSceneButtonsVisibility() {
     var foodButton = document.getElementById("ButtonFood");
     var miniGameButton = document.getElementById("ButtonMiniGame");
     var frisbeeButton = document.getElementById("ButtonFrisbee");
+    var focusCurtainButton = document.getElementById("ButtonFocusCurtain");
+    var focusTeapotButton = document.getElementById("ButtonTeapotFocus");
 
     if (waterButton) {
         waterButton.style.display = isHome ? "flex" : "none";
@@ -304,6 +330,14 @@ function updateSceneButtonsVisibility() {
 
     if (frisbeeButton) {
         frisbeeButton.style.display = isPark ? "flex" : "none";
+    }
+
+    if (focusCurtainButton) {
+    focusCurtainButton.style.display = isHome ? "inline-block" : "none";
+    }
+
+    if (focusTeapotButton) {
+        focusTeapotButton.style.display = isHome ? "inline-block" : "none";
     }
 }
 ///////////////////////////////////////

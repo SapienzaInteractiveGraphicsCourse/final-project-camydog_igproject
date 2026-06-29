@@ -311,6 +311,9 @@ onload = async function init() {
     //new shadow map for point light
     initPointShadowMaps();
 
+    //clear shadow map eventually for park mode
+    clearOldShadowMaps();
+
     // test for  GLB loading for rigged dog
     loadGLBDebug(modelPath_shiba_glb)
     .then(function (result) {
@@ -333,7 +336,10 @@ onload = async function init() {
 
     //carico le texture per teapot e tavolo + cat
 
-    teapotTexture = loadTexture(path_img_teapot);
+    //teapotTexture = loadTexture(path_img_teapot);
+    
+// ocra più elegante
+    teapotTexture = createSolidColorTexture(gl, 205, 150, 65, 255);
     tableTexture = loadTexture(path_img_table);
     catTexture = loadTexture(path_img_cat);
     wallTexture = loadTexture(path_img_wall);
@@ -1308,11 +1314,11 @@ onload = async function init() {
         isNight = !isNight;
 
         if (isNight) {
-            // Ora sei in notte: mostro il sole per tornare al giorno
+            // night mode-> show the sun icon to switch to day mode
             nightDayIcon.src = path_icon_sun
             nightDayButton.title = "Switch to Day Mode";
         } else {
-            // Ora sei in giorno: mostro la luna per passare alla notte
+            // day mode-> show the moon icon to switch to night mode
             nightDayIcon.src = path_icon_moon
             nightDayButton.title = "Switch to Night Mode";
         }
@@ -1521,7 +1527,7 @@ onload = async function init() {
             playDogBarkSound();
             callSkinnedDogToCamera();
 
-            // La modalità resta ON, quindi la manina resta visibile
+            // call dog mode -> the hand cursor remains visible
             updateCanvasCursor();
 
             return;
@@ -1529,7 +1535,7 @@ onload = async function init() {
 });
 
    canvas.addEventListener("mousedown", function(event) {
-        // In modalità Call Dog non iniziare la rotazione
+        // In call dog mode -> do not start rotation
         if (callDogClickMode) {
             return;
         }
@@ -1629,35 +1635,18 @@ onload = async function init() {
 
     updateOrbitCameraFromSliders();
 
-}, { passive: false });
-   /* canvas.addEventListener("mousemove", function(event) {
-        if (!petDogMode) return;
-
-        var rect = canvas.getBoundingClientRect();
-
-        var mouseX =
-            ((event.clientX - rect.left) / rect.width) * 2.0 - 1.0;
-
-        var mouseY =
-            1.0 - ((event.clientY - rect.top) / rect.height) * 2.0;
-        
-        dogPetHeadYaw = mouseX * 30.0;
-        dogPetHeadPitch = mouseY * 15.0;
-
-        console.log("PET:", dogPetHeadYaw, dogPetHeadPitch);
-    });
- */
+    }, { passive: false });
 
     canvas.addEventListener("mousemove", function(event) {
 
 
          // =========================
-        // FRISBEE IN MANO
+        // FRISBEE IN HAND MODE
         // =========================
         if (frisbeeThrowMode) {
             updateFrisbeeHandPositionFromMouse(event);
 
-            // mentre sto mirando col frisbee, non faccio anche la carezza al cane
+            // while aiming with the frisbee, do not pet the dog
                 return;
          }
 
@@ -1677,7 +1666,7 @@ onload = async function init() {
         var mouseYCanvas =
             (event.clientY - rect.top) * canvas.height / rect.height;
 
-        // Punto approssimativo sopra la testa del cane
+        // approximately the dog's head position in world space
         var rad = dogCurrentAngle * Math.PI / 180.0;
 
         var forwardX = Math.sin(rad);
@@ -2069,8 +2058,7 @@ function render() {
     projectionMatrix = perspective(cameraFov, aspect, 0.1,50.0)
 
     //REVIEW -  rivedi per far iniziare con park mode
-    //updateLightMatricesForCurrentFrame();
-
+    ensureLightMatricesExist();
 
     if (currentScene === "home") {
         drawHomeScene(gl,viewMatrix, projectionMatrix);
