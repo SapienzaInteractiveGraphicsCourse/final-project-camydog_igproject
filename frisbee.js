@@ -683,7 +683,7 @@ function startSkinnedDogFetchFrisbee() {
 }
 
 
-function startSkinnedDogReturnFrisbeeToCamera() {
+function startSkinnedDogReturnFrisbeeToCamera_old() {
     dogReturningWithFrisbee = true;
     dogFetchObjectType = "frisbee";
 
@@ -724,4 +724,49 @@ function startSkinnedDogReturnFrisbeeToCamera() {
     };
 
     console.log("Dog returns frisbee to camera:", dogPath);
+}
+function startSkinnedDogReturnFrisbeeToCamera() {
+    dogReturningWithFrisbee = true;
+    dogFetchObjectType = "frisbee";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    var targetX;
+    var targetZ;
+
+    if (frisbeeReturnTarget) {
+        targetX = frisbeeReturnTarget.x;
+        targetZ = frisbeeReturnTarget.z;
+    } else {
+        var forward = normalize(subtract(at, eye));
+
+        targetX = eye[0] + forward[0] * 3.0;
+        targetZ = eye[2] + forward[2] * 3.0;
+
+        targetX = Math.max(-6.0, Math.min(6.0, targetX));
+        targetZ = Math.max(-6.0, Math.min(6.0, targetZ));
+    }
+
+    dogPath = [
+        {
+            x: targetX,
+            z: targetZ
+        }
+    ];
+
+    dogFetchBallMode = true;
+
+    dogFetchTarget = {
+        x: targetX,
+        z: targetZ
+    };
+
+    console.log("Dog returns frisbee to saved target:", dogPath);
 }

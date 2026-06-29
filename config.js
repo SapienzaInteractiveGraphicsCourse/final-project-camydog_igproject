@@ -530,6 +530,8 @@ var dogFetchObjectType = null;
 
 var dogReturningWithFrisbee = false;
 
+var frisbeeReturnTarget = null;
+
 //****************************************************** */
 //             Global variables for grass                */
 //****************************************************** */

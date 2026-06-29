@@ -1520,6 +1520,23 @@ onload = async function init() {
                 frisbeeHandPos[2]
             );
 
+            /*
+                Salvo il punto dove il cane dovrà riportare il frisbee.
+                Uso il punto davanti alla camera nel momento del lancio.
+            */
+            var forward = normalize(subtract(at, eye));
+
+            var returnX = eye[0] + forward[0] * 3.0;
+            var returnZ = eye[2] + forward[2] * 3.0;
+
+            returnX = Math.max(-6.0, Math.min(6.0, returnX));
+            returnZ = Math.max(-6.0, Math.min(6.0, returnZ));
+
+            frisbeeReturnTarget = {
+                x: returnX,
+                z: returnZ
+            };
+
             frisbeeThrowMode = false;
             frisbeeAttachedToHand = false;
             //updateCanvasCursor();
