@@ -352,7 +352,7 @@ function updateSceneButtonsVisibility() {
     if (ballSettingsPanel) {
         ballSettingsPanel.style.display = isHome ? "block" : "none";
     }
-    
+
     if (curtainSettingsPanel) {
         curtainSettingsPanel.style.display = isHome ? "block" : "none";
     }
@@ -1409,77 +1409,7 @@ function uploadCubemapFace(gl, target, image, rotateDeg, flipY)
     );
 }
 
-/* function DrawSkybox(gl, viewMatrix, projectionMatrix,flipY=false)
-{
-    // La skybox deve fare solo da sfondo:
-    // la disegno senza depth test e senza scrivere nel depth buffer
-    gl.disable(gl.DEPTH_TEST);
-    gl.depthMask(false);
-    gl.disable(gl.CULL_FACE);
 
-    gl.useProgram(skyboxProgram);
-
-    gl.uniform1i(
-        gl.getUniformLocation(skyboxProgram, "flipSkyboxY"),
-        flipY ? 1 : 0
-    );
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
-
-    gl.enableVertexAttribArray(skyboxPosLoc);
-    gl.vertexAttribPointer(
-        skyboxPosLoc,
-        3,
-        gl.FLOAT,
-        false,
-        0,
-        0
-    );
-
-    // Copio la view matrix togliendo la traslazione
-    let viewNoTranslation = mat4();
-
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            viewNoTranslation[i][j] = viewMatrix[i][j];
-        }
-    }
-
-    viewNoTranslation[0][3] = 0.0;
-    viewNoTranslation[1][3] = 0.0;
-    viewNoTranslation[2][3] = 0.0;
-
-    let mvp = mult(projectionMatrix, viewNoTranslation);
-
-    gl.uniformMatrix4fv(
-        skyboxMvpLoc,
-        false,
-        flatten(mvp)
-    );
-
-    gl.activeTexture(gl.TEXTURE0);
-
-    //check if it's night or day and bind the correct texture
-    if (isNight) {
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, nightSkyboxTexture);
-    } 
-    else if (currentScene === "park") {
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, parkSkyboxTexture);
-    }
-    else {
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxTexture);
-    }
-    gl.uniform1i(skyboxSamplerLoc, 0);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-    // Ripristino lo stato per la scena normale
-    gl.depthMask(true);
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-    gl.depthFunc(gl.LESS);
-} */
 function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
 {
     gl.enable(gl.DEPTH_TEST);
@@ -1493,6 +1423,21 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
         gl.getUniformLocation(skyboxProgram, "flipSkyboxY"),
         flipY ? 1 : 0
     );
+
+    // for park night mode
+    var nightFactorLoc = gl.getUniformLocation(
+        skyboxProgram,
+        "uNightFactor"
+    );
+
+    var nightFactor = 0.0;
+
+    if (currentScene === "park" && isNight) {
+        nightFactor = 0.88;
+    }
+
+    gl.uniform1f(nightFactorLoc, nightFactor);
+    //////////
 
     gl.bindBuffer(gl.ARRAY_BUFFER, skyboxBuffer);
 
@@ -1531,16 +1476,16 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
 
     gl.activeTexture(gl.TEXTURE0);
 
-    if (isNight) {
-        gl.bindTexture(
-            gl.TEXTURE_CUBE_MAP,
-            nightSkyboxTexture
-        );
-    }
-    else if (currentScene === "park") {
+    if (currentScene === "park") {
         gl.bindTexture(
             gl.TEXTURE_CUBE_MAP,
             parkSkyboxTexture
+        );
+    }
+    else if (isNight) {
+        gl.bindTexture(
+            gl.TEXTURE_CUBE_MAP,
+            nightSkyboxTexture
         );
     }
     else {
@@ -1549,6 +1494,8 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
             skyboxTexture
         );
     }
+
+    
 
     gl.uniform1i(skyboxSamplerLoc, 0);
 

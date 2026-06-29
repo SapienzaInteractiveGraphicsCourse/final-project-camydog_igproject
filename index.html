@@ -40,6 +40,13 @@
 <audio id="wooshFrisbeeSound">
     <source src="./Audio/woosh.mp3" type="audio/mpeg">
 </audio>
+<audio id="dogEatingSound">
+    <source src="./Audio/dog_eating.mp3" type="audio/mpeg">
+</audio>
+<audio id="dogDrinkingSound">
+    <source src="./Audio/dog_drinking.mp3" type="audio/mpeg">
+</audio>
+
 
 
 
@@ -1221,6 +1228,8 @@ varying vec3 v_texCoord;
 uniform samplerCube skybox;
 uniform bool flipSkyboxY;
 
+uniform float uNightFactor;
+
 void main()
 {
     vec3 dir = v_texCoord;
@@ -1228,8 +1237,17 @@ void main()
     if (flipSkyboxY) {
         dir.y = -dir.y;
     }
+    vec4 color = textureCube(skybox, dir);
 
-    gl_FragColor = textureCube(skybox, v_texCoord);
+    vec3 gray = vec3(dot(color.rgb, vec3(0.299, 0.587, 0.114)));
+
+    vec3 nightColor = mix(color.rgb, gray, 0.45);
+    nightColor *= vec3(0.18, 0.24, 0.55);
+    nightColor = mix(nightColor, vec3(0.01, 0.02, 0.08), 0.35);
+
+    color.rgb = mix(color.rgb, nightColor, uNightFactor);
+
+    gl_FragColor = color;
 }
 </script>
 
