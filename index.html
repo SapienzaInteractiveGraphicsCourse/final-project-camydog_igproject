@@ -218,7 +218,7 @@
             </div>
 
               
-             <div class="control-group">
+             <div id="RotationSettingsPanel" class="control-group">
                           <h3>Rotation</h3>
 
                             <details class="control-group collapsible-panel">
@@ -1000,7 +1000,7 @@ void main(){
     }
 
     // Per gli oggetti normali
-    else if (wallShadowMode == 0 || wallShadowMode == 5) {
+    else if (wallShadowMode == 0 || wallShadowMode == 5 || wallShadowMode == 6) {
     
         //baseColor = useTexture
         //    ? texColor * fColor
@@ -1014,6 +1014,41 @@ void main(){
             + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint;
 
         baseColor = vec4(normalColor, 1.0);
+
+
+        if (wallShadowMode == 6) {
+            vec3 N = normalize(fWorldNormal);
+            vec3 lightDir = normalize(lightPosition.xyz - fWorldPos);
+
+            /*
+                Half-Lambert lighting:
+                invece di andare da 0 a 1,
+                lo porto in un range più morbido.
+                Così il retro non diventa nero.
+            */
+            float ndotl = dot(N, lightDir);
+            float directLight = clamp(ndotl * 0.5 + 0.5, 0.0, 1.0);
+
+            /*
+                Luce minima sui ciuffetti.
+                0.45 = lato non illuminato ancora visibile.
+                1.0 = lato illuminato.
+            */
+            directLight = mix(0.35, 1.0, directLight);
+
+            vec3 grassColor =
+                objectBaseColor * (uAmbientStrength * 0.85)
+                + objectBaseColor * directLight * uLightIntensity * uLightTint;
+
+            baseColor = vec4(grassColor, texColor.a);
+        }
+        else {
+                vec3 normalColor =
+                    objectBaseColor * uAmbientStrength
+                    + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint;
+
+                baseColor = vec4(normalColor, 1.0);
+        }
 
     }
     else {
@@ -1101,8 +1136,20 @@ void main(){
 
     }
 
+    float finalShadow = shadow;
+
+    /*
+        I ciuffetti ricevono l'ombra, ma in modo più leggero,
+        altrimenti diventano troppo neri e flickerano.
+    */
+    if (wallShadowMode == 6) {
+        finalShadow = mix(1.0, shadow, 0.45);
+    }
+
+
+
     gl_FragColor = vec4(
-        baseColor.rgb * shadow,
+        baseColor.rgb * finalShadow,
         baseColor.a
     );
 
