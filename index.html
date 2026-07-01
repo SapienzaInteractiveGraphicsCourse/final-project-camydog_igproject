@@ -7,9 +7,19 @@
     <link rel="stylesheet" href="./liquid-glass-js/styles.css"> -->
     <link rel="stylesheet" href="./style.css">
 </head>
+
+<!-- Background Music -->
 <audio id="backgroundMusic" loop>
     <source src="./Audio/background.mp3" type="audio/mpeg">
 </audio>
+<audio id="parkBackgroundMusic" loop>
+    <source src="./Audio/park_background.mp3" type="audio/mpeg">
+</audio>
+<audio id="parkNightBackgroundMusic" loop>
+    <source src="./Audio/background_night_park.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Sounds for many things -->
 <audio id="ballThrowSound">
     <source src="./Audio/ball_throw.mp3" type="audio/mpeg">
 </audio>
@@ -34,9 +44,7 @@
 <audio id="pouringFoodSound" >
     <source src="./Audio/pouring_food_1.mp3" type="audio/mpeg">
 </audio>
-<audio id="parkBackgroundMusic" loop>
-    <source src="./Audio/park_background.mp3" type="audio/mpeg">
-</audio>
+
 <audio id="wooshFrisbeeSound">
     <source src="./Audio/woosh.mp3" type="audio/mpeg">
 </audio>
@@ -46,7 +54,6 @@
 <audio id="dogDrinkingSound">
     <source src="./Audio/dog_drinking.mp3" type="audio/mpeg">
 </audio>
-
 
 
 
@@ -97,9 +104,11 @@
                     
                     <button hidden id="ButtonTex">Disable Textures</button>
 
-                    <button id="ButtonMusic" class="music-icon-button" title="Music OFF">
+                    <button id="ButtonMusic" class="music-icon-button" title="Turn ON background music">
                         <img id="MusicIcon" src="./Icons/music_on.png" alt="Music">
                     </button>
+
+                    
 
                         <div class="control-row music-volume-control">
                             <label for="MusicVolume">Music volume:</label>
@@ -116,6 +125,9 @@
                             <span id="MusicVolumeValue">10%</span>
                         </div>
 
+                   <button id="ButtonGlobalAudio" class="music-icon-button" title="Audio ON">
+                        <img id="GlobalAudioIcon" src="./Icons/no_audio.png" alt="Global Audio">
+                    </button>
                    
                     
                     <button id="ButtonWater" class="water-button" title="Give water">
