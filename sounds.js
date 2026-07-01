@@ -61,6 +61,17 @@ function toggleBackgroundMusic() {
 
     if (!currentMusic) return;
 
+
+    if (globalAudioMuted) {
+        showGameMessage(
+            "Turn global audio back on before starting the background music :)",
+            2900
+        );
+
+        updateBackgroundMusicButtonVisualState();
+        return;
+    }
+
     if (currentMusic.paused) {
         startBackgroundMusic();
     } else {
