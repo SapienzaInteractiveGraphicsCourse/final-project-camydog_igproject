@@ -84,6 +84,7 @@ FPS shown on the canvas
 - bench model => Buying model CG trader
 - bench texture: model folder
 - frisbee model => Buying model CG trader
+- leaf model => https://www.cgtrader.com/free-3d-models/plant/leaf/tree-leaf
 
 
 # Sounds

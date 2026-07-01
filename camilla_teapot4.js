@@ -370,6 +370,12 @@ onload = async function init() {
     frisbeeTexture= loadTexture(path_img_frisbee);
     //frisbeeTexture = createSolidColorTexture(gl, 230, 20, 35, 255);
     grassBlockTexture = loadTexture(path_img_grass_block);
+    leafTexture = loadTexture(path_img_leaf);
+    fireflyTexture = createSolidColorTexture(
+        gl,
+        255, 230, 110, 255
+    );
+
 
     //halo buffers
     haloBuffers = createBuffers(
@@ -538,8 +544,8 @@ onload = async function init() {
 
     //rigged dog parts loading
     //Non serve await per forza, perché la funzione imposta separatedDogLoaded = true quando ha finito.
-    riggedDogTexture = dogTexture; // usa la stessa texture del dog intero
-    loadSeparatedDogParts(gl);
+    /* riggedDogTexture = dogTexture; // usa la stessa texture del dog intero
+    loadSeparatedDogParts(gl); */
 
 
     //room buffers
@@ -553,11 +559,9 @@ onload = async function init() {
     //ball buffers
     await loadOBJ(modelPath_ball);
     console.log("OBJ Ball loaded");
-    
     var ballPoints = pointsArray.slice();
     var ballNormals = normalsArray.slice();
     var ballTex = texCoordsArray.slice();
-
     ballBuffers = createBuffers(ballPoints, ballNormals, ballTex);
 
     //green block Loading
@@ -583,11 +587,24 @@ onload = async function init() {
     var frisbeeTex = texCoordsArray.slice();
     frisbeeBuffers = createBuffers(frisbeePoints, frisbeeNormals, frisbeeTex);
 
+    //leaf loading
+    await loadOBJ(modelPath_leaf);
+    var leafPoints = pointsArray.slice();
+    var leafNormals = normalsArray.slice();
+    var leafTex = texCoordsArray.slice();
+    leafBuffers = createBuffers(leafPoints, leafNormals, leafTex);
+
+    ///fireflies
+    var fireflySphere = createSphere(1.0, 12, 12);
+    fireflySphereBuffers = createBuffers(
+        fireflySphere.points,
+        fireflySphere.normals,
+        fireflySphere.texCoords
+    );
+
 
     //   SKYBOXX    //////////////////
-    // skybox buffers
-
-     //skybox shader program
+    // skybox buffers &  shader program
     skyboxProgram = initShaders(gl, "skybox-vertex-shader", "skybox-fragment-shader");
     console.log("skyboxProgram =", skyboxProgram);
     skyboxBuffer = gl.createBuffer();
@@ -827,6 +844,7 @@ onload = async function init() {
     if (windSlider && windValue) {
         windSlider.addEventListener("input", function () {
             curtainWindStrength = parseFloat(this.value);
+            parkWindStrength = parseFloat(this.value);
             windValue.textContent = curtainWindStrength.toFixed(3);
             updateWindSound(curtainWindStrength);
         });
@@ -963,47 +981,6 @@ onload = async function init() {
 
 
     //////////////////// MUSIC PART
-
-    //ANCHOR - Music Part
-
-
-    //music slider for volume
-    /* backgroundMusic =
-        document.getElementById("backgroundMusic");
-
-    musicVolumeSlider =
-        document.getElementById("MusicVolume");
-
-    musicVolumeValue =
-        document.getElementById("MusicVolumeValue");
-
-    musicButton =
-    document.getElementById("ButtonMusic");
-    
-    musicIcon =
-    document.getElementById("MusicIcon");
-
-
-    // Volume iniziale
-    backgroundMusic.volume =
-        parseFloat(musicVolumeSlider.value);
-
-
-    musicVolumeSlider.addEventListener("input", function () {
-        var volume = parseFloat(this.value);
-
-        backgroundMusic.volume = volume;
-
-        musicVolumeValue.textContent =
-            Math.round(volume * 100) + "%";
-    }); */
-
-
-    /* musicButton.onclick = function () {
-        toggleBackgroundMusic();
-    }; */
-
-
     //ANCHOR - Music Part
 
     backgroundMusic =

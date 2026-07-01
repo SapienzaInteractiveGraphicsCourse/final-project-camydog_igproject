@@ -712,11 +712,11 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
 function printDogJointNames() {
     if (!skinnedDog || !skinnedDog.skin || !skinnedDog.nodes) return;
 
-    //console.log("===== DOG JOINT NAMES =====");
+    console.log("===== DOG JOINT NAMES =====");
 
     skinnedDog.skin.joints.forEach(function(nodeIndex, jointIndex) {
         var node = skinnedDog.nodes[nodeIndex];
-        //console.log(jointIndex, nodeIndex, node.name);
+        console.log(jointIndex, nodeIndex, node.name);
     });
 }
 
@@ -1014,7 +1014,16 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     /* Legs */
 
 
-    dogIsWalking = dogFetchBallMode && dogCrouchAmount < 0.1;
+    dogIsWalking =
+    (
+        dogFetchBallMode ||
+        (
+            dogFireflyCatchActive &&
+            dogFireflyCatchPhase === "chase"
+        )
+    )
+    &&
+    dogCrouchAmount < 0.1;
 
     var legA = 0.0;
     var legB = 0.0;
@@ -1022,6 +1031,14 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
     if (dogIsWalking) {
         var walkSpeed = 6.0;
+
+        if (
+            dogFireflyCatchActive &&
+            dogFireflyCatchPhase === "chase"
+        ) {
+            walkSpeed = 3.0; // più veloce: sembra una corsetta
+        }
+
         var walkPhase = t * walkSpeed;
 
         legA = Math.sin(walkPhase);
@@ -1176,6 +1193,161 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
     }
 
+    if (
+    dogFireflyCatchActive &&
+    dogFireflyCatchPhase === "rear"
+        ) {
+            var p =
+                dogFireflyCatchTimer /
+                dogFireflyRearDuration;
+
+            p = Math.min(Math.max(p, 0.0), 1.0);
+
+            var rearAmount = 0.0;
+
+            if (p < 0.40) {
+                var q = p / 0.40;
+                rearAmount = q * q * (3.0 - 2.0 * q);
+            }
+            else if (p < 0.78) {
+                rearAmount = 1.0;
+            }
+            else {
+                var q2 = (p - 0.78) / 0.22;
+                q2 = q2 * q2 * (3.0 - 2.0 * q2);
+                rearAmount = 1.0 - q2;
+            }
+
+            var pawWave =
+                Math.sin(t * 9.0) * 5.0 * rearAmount;
+
+            /*
+                SPINA / SCHIENA
+                Qui facciamo ruotare meglio il corpo,
+                non solo le zampe davanti.
+            */
+                  
+            
+            /*
+                SPINE - rear pose
+                Distribuisco la posa sulla schiena,
+                così non sembra che ruoti tutto il modello come un pezzo unico.
+            */
+
+            var spineBend =
+                rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
+
+            localOverrides[35] =
+                rotationXMat4Raw(-10.0 * spineBend);
+
+            localOverrides[34] =
+                rotationXMat4Raw(-8.0 * spineBend);
+
+            localOverrides[33] =
+                rotationXMat4Raw(-6.0 * spineBend);
+
+            localOverrides[32] =
+                rotationXMat4Raw(-4.0 * spineBend);
+
+            localOverrides[31] =
+                rotationXMat4Raw(-2.0 * spineBend);
+                        
+           /*
+                ZAMPE ANTERIORI
+                Più distese: le alza, ma senza chiuderle troppo.
+            */
+
+            var pawBend = rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
+            var pawWave = 0.0;   // per ora meglio fermo, così non si allontanano
+
+            // ---------- FRONT LEFT ----------
+            localOverrides[4] =
+                rotationZMat4Raw(10.0 * rearAmount);
+
+            localOverrides[3] =
+                rotationXMat4Raw(+25.0 * pawBend);   // gomito
+
+            localOverrides[2] =
+                rotationXMat4Raw(-42.0 * pawBend);  // avambraccio / parte bassa
+
+            localOverrides[1] =
+                rotationXMat4Raw(-10.0 * pawBend);  // zampa finale
+
+            localOverrides[0] =
+                rotationXMat4Raw(2.0 * pawBend);
+
+
+            // ---------- FRONT RIGHT ----------
+            localOverrides[11] =
+                rotationZMat4Raw(-10.0 * rearAmount);
+
+            localOverrides[10] =
+                rotationXMat4Raw(+25.0 * pawBend);   // gomito
+
+            localOverrides[9] =
+                rotationXMat4Raw(-42.0 * pawBend);  // avambraccio / parte bassa
+
+            localOverrides[8] =
+                rotationXMat4Raw(-10.0 * pawBend);
+
+            localOverrides[7] =
+                rotationXMat4Raw(2.0 * pawBend);
+            /*
+                ZAMPE POSTERIORI
+                Più distese: devono reggere il corpo,
+                non farlo sedere.
+            */
+
+            // posteriore sinistra
+        
+            
+        /*
+    HIND LEGS
+    Le gambe restano abbastanza stabili.
+    Correggo soprattutto ankle/ball/toe per far puntare i piedi verso terra.
+*/
+
+// sinistra
+/*
+    HIND LEGS - cleaned rear pose
+    Obiettivo: non arricciare i piedi, ma tenerli abbastanza naturali.
+*/
+
+// sinistra
+/*
+    HIND LEGS - neutral
+    Non forzo più i piedi posteriori.
+*/
+
+// ---------- HIND LEFT ----------
+var rearHipBend = rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
+
+localOverrides[41] = rotationXMat4Raw(-24.0 * rearHipBend);
+localOverrides[47] = rotationXMat4Raw(-24.0 * rearHipBend);
+// posteriore sinistra
+
+
+
+            /*
+                COLLO / TESTA
+                Un po' verso l'alto, come se guardasse la lucciola.
+            */
+            localOverrides[30] = rotationXMat4Raw(18.0 * rearAmount);
+            localOverrides[28] = rotationXMat4Raw(12.0 * rearAmount);
+            localOverrides[27] = rotationXMat4Raw(8.0 * rearAmount);
+
+            /*
+                Coda viva.
+            */
+            localOverrides[51] =
+                rotationYMat4Raw(Math.sin(t * 10.0) * 14.0 * rearAmount);
+
+            localOverrides[50] =
+                rotationYMat4Raw(Math.sin(t * 10.0 + 0.3) * 20.0 * rearAmount);
+
+            localOverrides[49] =
+                rotationYMat4Raw(Math.sin(t * 10.0 + 0.6) * 24.0 * rearAmount);
+        }
 }
 
 
@@ -1186,6 +1358,64 @@ function getSkinnedDogModelMatrix() {
     var t = performance.now() * 0.001;
 
     var bodyBob = 0.0;
+
+    var fireflyHop = 0.0;
+    var fireflyPitch = 0.0;
+    var rearForwardOffset = 0.0;
+    var rearGroundLift = 0.0;
+
+
+    if (
+        dogFireflyCatchActive &&
+        dogFireflyCatchPhase === "chase"
+    ) {
+        bodyBob =
+            Math.abs(Math.sin(t * 10.0)) * 0.04;
+    }
+
+    if (
+        dogFireflyCatchActive &&
+        dogFireflyCatchPhase === "rear"
+    ) {
+         var p =
+            dogFireflyCatchTimer /
+            dogFireflyRearDuration;
+
+        p = Math.min(Math.max(p, 0.0), 1.0);
+
+        var rearAmount = 0.0;
+
+        if (p < 0.35) {
+            var q = p / 0.35;
+            rearAmount = q * q * (3.0 - 2.0 * q);
+        }
+        else if (p < 0.85) {
+            rearAmount = 1.0;
+        }
+        else {
+            var q2 = (p - 0.85) / 0.15;
+            q2 = q2 * q2 * (3.0 - 2.0 * q2);
+            rearAmount = 1.0 - q2;
+        }
+
+        /*
+            Più morbido:
+            meno rotazione, più lift.
+        */
+        fireflyHop = rearAmount * 0.10;
+        fireflyPitch = -45.0 * rearAmount;
+
+        /*
+            Questo è il fix importante:
+            compensazione verticale extra per non entrare nel terreno.
+        */
+        rearGroundLift = rearAmount * 0.42;
+
+        /*
+            Piccolo spostamento in avanti per compensare la rotazione.
+        */
+        rearForwardOffset = rearAmount * 0.10;
+    }
 
     // Bob solo quando il cane sta andando verso la palla
     if (dogFetchBallMode) {
@@ -1232,21 +1462,72 @@ function getSkinnedDogModelMatrix() {
 
     var crouchBodyDown = 0.55 * dogCrouchAmount;
 
+    var rearOffsetX = 0.0;
+    var rearOffsetZ = 0.0;
+
+    if (
+        dogFireflyCatchActive &&
+        dogFireflyCatchPhase === "rear"
+    ) {
+        var rearRad = dogCurrentAngle * Math.PI / 180.0;
+
+        rearOffsetX = Math.sin(rearRad) * rearForwardOffset;
+        rearOffsetZ = Math.cos(rearRad) * rearForwardOffset;
+    }
+
    
     modelMatrix = mult(
         modelMatrix,
-        translate(dogFetchX, -2.48 + bodyBob - crouchBodyDown, dogFetchZ)
+        translate(dogFetchX + rearOffsetX,
+             -2.48 + bodyBob + fireflyHop  + rearGroundLift - crouchBodyDown, 
+             dogFetchZ + rearOffsetZ)
     );
     modelMatrix = mult(modelMatrix, rotate(dogCurrentAngle, [0, 1, 0]));
 
     // per farlo più orizzontale/horizontal 
     // Solleva la parte anteriore e rende il corpo più orizzontale
-    var lyingPitch = -18.0 * dogCrouchAmount;
+    var lyingPitch = -18.0 * dogCrouchAmount  + fireflyPitch;
 
-    modelMatrix = mult(
+    /* modelMatrix = mult(
         modelMatrix,
         rotate(lyingPitch, [1, 0, 0])
-    );
+    ); */
+
+
+    if (
+            dogFireflyCatchActive &&
+            dogFireflyCatchPhase === "rear"
+        ) {
+            /*
+                Pivot finto vicino alle zampe posteriori:
+                così il cane si alza col busto invece di ruotare
+                tutto attorno al centro del corpo.
+            */
+
+            var pivotY = -0.25;
+            var pivotZ = -0.55;
+
+            modelMatrix = mult(
+                modelMatrix,
+                translate(0.0, pivotY, pivotZ)
+            );
+
+            modelMatrix = mult(
+                modelMatrix,
+                rotate(lyingPitch, [1, 0, 0])
+            );
+
+            modelMatrix = mult(
+                modelMatrix,
+                translate(0.0, -pivotY, -pivotZ)
+            );
+        }
+    else {
+            modelMatrix = mult(
+                modelMatrix,
+                rotate(lyingPitch, [1, 0, 0])
+            );
+    }
     modelMatrix = mult(modelMatrix, scalem(dogScale, dogScale, dogScale));
 
     

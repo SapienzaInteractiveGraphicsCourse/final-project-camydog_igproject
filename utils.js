@@ -318,8 +318,10 @@ function updateSceneButtonsVisibility() {
     //var windSlider = document.getElementById("windSlider");
     var bounceBallButton =document.getElementById("ButtonBounceBall");
     var ballSettingsPanel = document.getElementById("BallSettingsPanel");
-
-    var curtainSettingsPanel = document.getElementById("CurtainSettingsPanel");
+    
+    //var curtainSettingsPanel = document.getElementById("CurtainSettingsPanel");
+    var rotationSettingsPanel = document.getElementById("RotationSettingsPanel");
+    var catMoveButton = document.getElementById("ButtonCatMove");
 
     if (waterButton) {
         waterButton.style.display = isHome ? "flex" : "none";
@@ -353,8 +355,15 @@ function updateSceneButtonsVisibility() {
         ballSettingsPanel.style.display = isHome ? "block" : "none";
     }
 
-    if (curtainSettingsPanel) {
+    /* if (curtainSettingsPanel) {
         curtainSettingsPanel.style.display = isHome ? "block" : "none";
+    } */
+
+    if (rotationSettingsPanel) {
+        rotationSettingsPanel.style.display = isHome ? "block" : "none";
+    }
+    if( catMoveButton){
+        catMoveButton.style.display = isHome ? "flex" : "none";
     }
 }
 ///////////////////////////////////////

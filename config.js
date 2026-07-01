@@ -36,6 +36,7 @@ var modelPath_bowl="./Objects/dog_bowl.obj";
 var modelPath_bench="./Objects/bench.obj";
 var modelPath_frisbee="./Objects/frisbee.obj";
 var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Green_Tall.obj";
+var modelPath_leaf="./Objects/leaf_1_modified.obj";
 
 
 //path folder rigged dog
@@ -43,7 +44,7 @@ var pathFolderRiggedDog = "./Objects/dog_separated_model/";
 
 // images & textures paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
-var path_img_table="./table_tex_512.jpg";
+var path_img_table="./Textures/table_tex_512.jpg";
 var path_img_cat="./Cat/cat_diffuse.jpg";
 var path_img_wall="./Textures/wall_tex.jpg";
 var path_img_floor="./Textures/parquet_tex.jpg";
@@ -68,6 +69,7 @@ var path_img_blue="./Textures/blue_navy.jpg";
 var path_img_frisbee= "./Textures/frisbee_2.png";
 var path_img_bench= "./Textures/textures_bench/bench_BaseColor.png";
 var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Strands_color.jpg";
+var path_img_leaf="./leaf_1/leaf_1_tex.jpg";
 
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
@@ -94,6 +96,7 @@ var dogBuffers;
 var benchBuffers;
 var frisbeeBuffers;
 var grassBlockBuffers;
+var leafBuffers;
 
 
 var daySkyboxTexture;
@@ -119,6 +122,8 @@ var kibbleTexture ;
 var benchTexture;
 var frisbeeTexture;
 var grassBlockTexture;
+var leafTexture;
+var fireflyTexture;
 
 //table specific  variables
 var tableMtlTexture = null;
@@ -145,6 +150,8 @@ var heartMtlTexture = null;
 var curtain = null;
 
 var waterDiskBuffers;
+
+
 
 // room buffers
 var roomPlaneBuffers;
@@ -222,7 +229,7 @@ var aspect;
 
 //light night/day
 var  lightIntensity_night = 0.45;
-var  ambientStrength_night = 0.18;
+var  ambientStrength_night = 0.45; //0.18;
 var  lightTint_night = vec3(0.55, 0.65, 1.0);
 var lightIntensity_sun = 1.0;
 var  ambientStrength_sun = 0.28;
@@ -436,6 +443,8 @@ var kibbleVisualYOffset = 0.005;
 
 var foodButton;
 
+var currentWind;
+
 //****************************************************** */
 //             Colliders        Table                          */
 //****************************************************** */
@@ -554,3 +563,42 @@ var frisbeeReturnTarget = null;
 //             Global variables for grass                */
 //****************************************************** */
 var grassPatchInstances = [];
+
+
+//**********LEAVES */
+var fallingLeaves = [];
+var leafSpawnTimer = 0.0;
+var nextLeafSpawnTime = 0.5;
+
+var maxFallingLeaves = 18;
+// Questa la colleghiamo allo slider del vento
+var parkWindStrength = 0.07
+
+
+/*****fireflies */
+var fireflies = [];
+var firefliesInitialized = false;
+var maxFireflies = 15;
+var fireflySphereBuffers;
+
+
+var dogFireflyCatchActive = false;
+var dogFireflyCatchPhase = "idle"; // "idle", "chase", "jump"
+
+var dogFireflyCatchTimer = 0.0;
+
+var dogFireflyChaseDuration = 6.0;
+var dogFireflyJumpDuration = 0.9;
+
+var dogFireflyCatchCooldown = 2.0;
+
+var dogFireflyTarget = null;
+var dogFireflyPreviousTarget = null;
+
+var dogFireflyChaseRadius = 2.5;
+
+var dogFireflyCircleCenterX = 0.0;
+var dogFireflyCircleCenterZ = 0.0;
+var dogFireflyOrbitAngle = 0.0;
+
+var dogFireflyRearDuration = 3.0;
