@@ -184,16 +184,16 @@ function updateBackgroundMusicButtonVisualState() {
 
     if (musicIsAudible) {
         /*
-            La musica si sente.
-            Mostro l'icona per spegnerla.
+            Music is playing and audible.
+            I have to show the icon to turn it off, so I show the "music off" icon.
         */
         musicIcon.src = path_icon_music_off;
         musicButton.title = "Turn background music off";
         musicButton.classList.add("music-on");
     } else {
         /*
-            La musica non si sente.
-            Può essere spenta oppure coperta dal mute globale.
+            Music is not audible.
+            It could be either turned off or muted globally.
         */
         musicIcon.src = path_icon_music_on;
         musicButton.classList.remove("music-on");
@@ -229,7 +229,12 @@ function updateWindSound(windValue) {
 
     var wind = parseFloat(windValue);
 
-    // cambia questo se il tuo slider ha max diverso
+    if (globalAudioMuted) {
+        showGameMessage(
+            "Turn global audio back on before listening to the wind sound :)",
+            2900
+        );
+    }
     var maxWind = 0.5;
 
     if (wind > 0.05) {
