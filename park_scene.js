@@ -115,27 +115,71 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
     //====== FRISBEE =====
 
     var modelMatrixFrisbee = getFrisbeeModelMatrix();
+    
+    if (shouldDrawFrisbee()) {
 
-    gl.disable(gl.CULL_FACE); // Disabilita il backface culling per il frisbee
+        gl.disable(gl.CULL_FACE); // Disabilita il backface culling per il frisbee
 
-    drawObject(
-        frisbeeBuffers,
-        frisbeeTexture,  // frisbeeTexture
-        modelMatrixFrisbee,
-        viewMatrix,
-        projectionMatrix,
-        true,   // useTexture
-        false,  // isLightMarker
-        true,  // twoSided
-        true,   // receiveShadow
-        0
-    );
-
-
-
+        drawObject(
+            frisbeeBuffers,
+            frisbeeTexture,  // frisbeeTexture
+            modelMatrixFrisbee,
+            viewMatrix,
+            projectionMatrix,
+            true,   // useTexture
+            false,  // isLightMarker
+            true,  // twoSided
+            true,   // receiveShadow
+            0
+        );
 
     gl.enable(gl.CULL_FACE);
+    }
 
+    if (showDogMusicNote && musicNoteBuffers) {
+       
+        var noteMatrix1 = getDogNoteModelMatrix(0);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix1,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+
+        var noteMatrix2 = getDogNoteModelMatrix(1);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix2,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+
+        var noteMatrix3 = getDogNoteModelMatrix(2);
+        drawObject(
+            musicNoteBuffers,
+            musicNoteTexture,
+            noteMatrix3,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+    }
+
+
+    // ===== GRASS PATCHES =====
     drawParkGrassPatches(viewMatrix, projectionMatrix);
 
     /************DOG + FRISBEE FETCH*****************/
@@ -151,9 +195,49 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
     // update dog animation and position
     updateSkinnedDogFetchBall(parkDeltaTime);
 
+     if (showDogHeart) {
+            dogHeartTimer += parkDeltaTime;
+
+            if (dogHeartTimer >= dogHeartDuration) {
+                showDogHeart = false;
+            }
+    } 
+    if (hideDogHeartPending) {
+        hideDogHeartTimer += parkDeltaTime;
+
+        if (hideDogHeartTimer >= hideDogHeartDelay) {
+            showDogHeart = false;
+            dogHeartTimer = 0.0;
+
+            hideDogHeartPending = false;
+            hideDogHeartTimer = 0.0;
+        }
+    }
+    updateSkinnedDogCall(parkDeltaTime);
+
+
+
     /************DOG*****************/
    
     drawSkinnedDog(viewMatrix, projectionMatrix);
+
+
+    // Heart if i am calling the dog
+    if (showDogHeart && heartBuffers) {
+        var heartMatrix = getDogHeartModelMatrix();
+
+        drawObject(
+            heartBuffers,
+            heartTexture, // temporaneamente, solo per vedere il modello
+            heartMatrix,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            false
+        );
+    }
 
 
     /***********MOON /SUN + halo*****************/

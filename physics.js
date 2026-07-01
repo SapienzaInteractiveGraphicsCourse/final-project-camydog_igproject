@@ -1863,6 +1863,16 @@ function updateSkinnedDogFetchBall(deltaTime) {
                     z: eye[2]
                 };
 
+                 frisbeeReturnedAndWaiting = true;
+
+                var buttonFrisbee = document.getElementById("ButtonFrisbee");
+
+                if (buttonFrisbee) {
+                    buttonFrisbee.classList.add("active");
+                    buttonFrisbee.title = "Put away Frisbee";
+                }
+
+
                 console.log("Dog returned with the frisbee!");
             } 
             else {

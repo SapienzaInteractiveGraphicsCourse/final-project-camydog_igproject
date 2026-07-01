@@ -1027,6 +1027,9 @@ onload = async function init() {
         if (parkBackgroundMusic) {
             parkBackgroundMusic.volume = volume;
         }
+        if(parkNightBackgroundMusic){
+            parkNightBackgroundMusic.volume = volume;
+        }
     }
 
 
@@ -1046,8 +1049,20 @@ onload = async function init() {
 
 
     musicButton.onclick = function () {
-        toggleBackgroundMusic();
-};
+            toggleBackgroundMusic();
+    };
+
+    
+    //settings for global audio
+    var globalAudioButton = document.getElementById("ButtonGlobalAudio");
+
+    if (globalAudioButton) {
+        globalAudioButton.onclick = function () {
+            toggleGlobalAudioMute();
+        };
+    }
+
+    updateGlobalAudioButton();
 
 
     //ANCHOR -  For automoving sun part
@@ -1086,6 +1101,45 @@ onload = async function init() {
                 if (currentScene !== "park") {
                     return;
                 }
+                if (
+                    frisbeeThrowMode &&
+                    frisbeeAttachedToHand &&
+                    !frisbeeFlying &&
+                    !frisbeeLanded
+                ) {
+                    putAwayFrisbee(this);
+                    return;
+                }
+
+                if (frisbeeReturnedAndWaiting) {
+
+                    frisbeeReturnedAndWaiting = false;
+
+                    dogHasFrisbee = false;
+                    dogReturningWithFrisbee = false;
+                    dogFetchObjectType = null;
+
+                    frisbeeThrowMode = false;
+                    frisbeeAttachedToHand = false;
+                    frisbeeFlying = false;
+                    frisbeeLanded = false;
+                    frisbeeAlreadyTargeted = false;
+
+                    dogFetchLoweringActive = false;
+                    dogFetchLowerAmount = 0.0;
+
+                    dogCrouchActive = false;
+                    dogCrouchAmount = 0.0;
+
+                    this.classList.remove("active");
+                    this.title = "Take Frisbee";
+
+                    updateCanvasCursor();
+
+                    showGameMessage("Frisbee put away!", 1500);
+
+                    return;
+                }
                 dogHasFrisbee = false;
                 dogReturningWithFrisbee = false;
                 dogFetchObjectType = null;
@@ -1096,7 +1150,7 @@ onload = async function init() {
                 dogCrouchActive = false;
                 dogCrouchAmount = 0.0;
 
-
+                frisbeeReturnedAndWaiting = false;
                 frisbeeThrowMode = true;
                 frisbeeAttachedToHand = true;
 
@@ -1174,6 +1228,19 @@ onload = async function init() {
           
         if (currentScene === "home") {
                 return;
+        }
+
+        if (
+            currentScene === "park" &&
+            isNight &&
+            dogFireflyCatchActive &&
+            dogFireflyCatchPhase !== "idle"
+        ) {
+            showGameMessage(
+                "Wait for the fireflies animation to finish before going home!\nTry again :)",
+                2800
+            );
+            return;
         }
 
         switchSceneWithTransition(
@@ -1287,15 +1354,8 @@ onload = async function init() {
         showLightDirection = !showLightDirection;
         this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
     };
-    /* document.getElementById("ButtonNightDay").onclick = function () {
-        isNight = !isNight;
+   
 
-        if (isNight) {
-            this.textContent = "Day Mode";
-        } else {
-            this.textContent = "Night Mode";
-        }
-    }; */
 
     var nightDayButton =
     document.getElementById("ButtonNightDay");
@@ -1304,7 +1364,8 @@ onload = async function init() {
         document.getElementById("NightDayIcon");
 
     nightDayButton.onclick = function () {
-        isNight = !isNight;
+        requestDayNightToggle();
+        //isNight = !isNight;
 
         if (isNight) {
             // night mode-> show the sun icon to switch to day mode
@@ -2105,9 +2166,16 @@ function drawObject(obj,
     gl.useProgram(program);   
 
     if (isNight) {
-        lightIntensity = lightIntensity_night;
-        ambientStrength = ambientStrength_night;
-        lightTint = lightTint_night; // blu lunare
+        if (currentScene === "park") {
+            lightIntensity = lightIntensity_parkNight;
+            ambientStrength = ambientStrength_parkNight;
+            lightTint = lightTint_parkNight;
+        } else {
+            lightIntensity = lightIntensity_night;
+            ambientStrength = ambientStrength_night;
+            lightTint = lightTint_night; // blu lunare
+        }
+        
     } else {
         lightIntensity = lightIntensity_sun;
         ambientStrength = ambientStrength_sun;
