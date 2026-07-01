@@ -17,15 +17,15 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             }
     } 
     if (hideDogHeartPending) {
-    hideDogHeartTimer += deltaTime;
+        hideDogHeartTimer += deltaTime;
 
-    if (hideDogHeartTimer >= hideDogHeartDelay) {
-        showDogHeart = false;
-        dogHeartTimer = 0.0;
+        if (hideDogHeartTimer >= hideDogHeartDelay) {
+            showDogHeart = false;
+            dogHeartTimer = 0.0;
 
-        hideDogHeartPending = false;
-        hideDogHeartTimer = 0.0;
-    }
+            hideDogHeartPending = false;
+            hideDogHeartTimer = 0.0;
+        }
     }
 
     if (flag_rot_teapot) {
