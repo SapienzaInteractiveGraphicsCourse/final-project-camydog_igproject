@@ -460,6 +460,13 @@ function startSkinnedDogFetchFrisbee() {
 
     dogFetchObjectType = "frisbee";
 
+    showDogMusicNote = true;
+
+    if (!dogHappySoundPlayed) {
+        playDogHappySound();
+        dogHappySoundPlayed = true;
+    }
+
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
 
@@ -579,6 +586,7 @@ function startSkinnedDogReturnFrisbeeToCamera_old() {
 function startSkinnedDogReturnFrisbeeToCamera() {
     dogReturningWithFrisbee = true;
     dogFetchObjectType = "frisbee";
+    
 
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
@@ -774,4 +782,72 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
         x: corrected.x,
         z: corrected.z
     };
+}
+
+function shouldDrawFrisbee() {
+
+    /*
+        if it's day time, always draw the frisbee on the grass
+    */
+    if (!isNight) {
+        return true;
+    }
+
+    /*
+        if it's night time, don't draw the frisbee on the grass by default.
+        But draw it if it's being used:
+        - it's in hand
+        - aiming
+        - flying
+        - landed and the dog needs to fetch it
+        - the dog has it in its mouth
+        - the dog is returning with it
+    */
+    if (
+        frisbeeThrowMode ||
+        frisbeeAttachedToHand ||
+        frisbeeFlying ||
+        frisbeeLanded ||
+        dogHasFrisbee ||
+        dogReturningWithFrisbee
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+
+function putAwayFrisbee(buttonFrisbee) {
+    frisbeeThrowMode = false;
+    frisbeeAttachedToHand = false;
+    frisbeeFlying = false;
+    frisbeeLanded = false;
+    frisbeePreparingThrow = false;
+    frisbeeHasMousePosition = false;
+
+    frisbeePreparingThrow = false;
+    frisbeeHasMousePosition = false;
+
+    frisbeeReturnedAndWaiting = false;
+    frisbeeAlreadyTargeted = false;
+
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+    dogFetchObjectType = null;
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    if (buttonFrisbee) {
+        buttonFrisbee.classList.remove("active");
+        buttonFrisbee.title = "Take Frisbee";
+    }
+
+    updateCanvasCursor();
+
+    showGameMessage("Frisbee put away!", 1400);
 }
