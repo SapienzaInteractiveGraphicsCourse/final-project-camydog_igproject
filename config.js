@@ -10,6 +10,8 @@ var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 //current time of day either "day" or "night"
 var isNight = false;
 
+var gameMessageTimeout = null;
+
 // shadow map variables
 var POINT_SHADOW_SIZE = 4096;
 
@@ -78,6 +80,9 @@ var path_icon_sun= "./Icons/sun.png"
 var path_icon_moon ="./Icons/fullmoon.png"
 var path_icon_sun_auto= "./Icons/auto_moving_sun.png"
 var path_icon_ball="./Icons/ball.png"
+var path_icon_audio_on = "./Icons/yes_audio.png";
+var path_icon_audio_off = "./Icons/no_audio.png";
+var globalAudioMuted = false;
 
 
 //texture variables
@@ -227,13 +232,21 @@ var viewMatrix = lookAt(eye, at, up);
 var projectionMatrix = perspective(cameraFov, aspect, 0.1, 120.0)
 var aspect;
 
-//light night/day
-var  lightIntensity_night = 0.45;
-var  ambientStrength_night = 0.45; //0.18;
+//light night/day and park in particular
+var  lightIntensity_night = 0.40;
+var  ambientStrength_night = 0.18; //0.18;
 var  lightTint_night = vec3(0.55, 0.65, 1.0);
+
 var lightIntensity_sun = 1.0;
 var  ambientStrength_sun = 0.28;
 var lightTint_sun = vec3(1.0, 0.92, 0.75);
+
+// brighter night only for the park
+var lightIntensity_parkNight = 0.48;
+var ambientStrength_parkNight = 0.26;
+var lightTint_parkNight = vec3(0.55, 0.65, 1.0);
+
+
 
 // auto moving sun variables 
 var autoSunEnabled = false;
@@ -420,7 +433,6 @@ var numKibbles = 30;
 var kibbleRadius = 0.035;
 
 // piano invisibile dove atterrano i croccantini
-//var kibbleSound= new Audio("./Audio/pouring_food.mp3");
 var pouringFoodSound;
 var kibbleCatchBody = null;
 
@@ -471,7 +483,7 @@ var BENCH_COLLIDER_ROT_Y = 90.0;
 var BENCH_DOG_MARGIN = 1.2;
 
 
-//throwing frisbee variables
+/**********FRISBEE */
 var frisbeeFlying = false;
 var frisbeeLanded = false;
 var frisbeePreparingThrow = false;
@@ -487,10 +499,6 @@ var frisbeeSpin = 0.0;
 
 var frisbeeThrowMode= false;
 
-
-/* var frisbeeHandPos = vec3(-1.2, -1.1, 4.0);
-var frisbeeHandPlaneY = -1.1;
-var frisbeeHandFixedZ = 6.0; */
 
 var frisbeeHandPos = vec3(-1.2, -1.1, 4.8);
 var frisbeeHandTargetPos = vec3(-1.2, -1.1, 4.8);
@@ -559,6 +567,8 @@ var dogReturningWithFrisbee = false;
 
 var frisbeeReturnTarget = null;
 
+var frisbeeReturnedAndWaiting = false;
+
 //****************************************************** */
 //             Global variables for grass                */
 //****************************************************** */
@@ -576,9 +586,11 @@ var parkWindStrength = 0.07
 
 
 /*****fireflies */
+var fireflyWaitMessageTimeout = null;
+
 var fireflies = [];
 var firefliesInitialized = false;
-var maxFireflies = 15;
+var maxFireflies = 25;
 var fireflySphereBuffers;
 
 
