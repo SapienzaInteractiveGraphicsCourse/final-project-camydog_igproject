@@ -162,10 +162,10 @@ function updateFallingLeaves(deltaTime) {
 
         leaf.age += deltaTime;
 
-        // caduta verticale
+        // vertical fall
         leaf.y -= leaf.fallSpeed * deltaTime;
 
-        // oscillazione naturale
+        // oscillation
         var windMultiplier =
             1.0 + parkWindStrength * 7.0;
 
@@ -175,7 +175,7 @@ function updateFallingLeaves(deltaTime) {
                 leaf.phase
             ) * leaf.swayAmount * windMultiplier;
         
-        // vento: più parkWindStrength è alto, più si muove
+        // wind: is parkWindStrenght is high  then it's more likely to move the leaves
         leaf.x +=
             (
                 sway +
@@ -189,7 +189,7 @@ function updateFallingLeaves(deltaTime) {
                 gust * parkWindStrength * 0.6
             ) * deltaTime;
 
-        // rotazione aumentata dal vento
+        // rotation increases with wind strength
         leaf.rotY +=
             (
                 leaf.rotSpeedY +
@@ -208,7 +208,7 @@ function updateFallingLeaves(deltaTime) {
                 parkWindStrength * 140.0
             ) * deltaTime;
 
-        // se arriva sotto il prato o troppo fuori, la elimino
+        // delete if too low or out of bounds
         if (
             leaf.y < -2.35 ||
             leaf.x < -8.0 ||
@@ -465,13 +465,30 @@ function updateDogFireflyCatch(deltaTime) {
             var r =
                 dogFireflyChaseRadius + wobble;
 
-            dogFetchX =
+            /* dogFetchX =
                 dogFireflyCircleCenterX +
                 Math.cos(dogFireflyOrbitAngle) * r;
 
             dogFetchZ =
                 dogFireflyCircleCenterZ +
-                Math.sin(dogFireflyOrbitAngle) * r;
+                Math.sin(dogFireflyOrbitAngle) * r; */
+
+                var proposedDogX =
+                    dogFireflyCircleCenterX +
+                    Math.cos(dogFireflyOrbitAngle) * r;
+
+                var proposedDogZ =
+                    dogFireflyCircleCenterZ +
+                    Math.sin(dogFireflyOrbitAngle) * r;
+
+                /*
+                    Uso il collider già esistente della panchina.
+                    Se il cane finisce dentro l'area vietata,
+                    viene spinto fuori.
+                */
+                
+                dogFetchX = proposedDogX;
+                dogFetchZ = proposedDogZ;
 
             /*
                 IMPORTANTISSIMO:
@@ -479,7 +496,7 @@ function updateDogFireflyCatch(deltaTime) {
                 guarda un punto più avanti sul cerchio.
                 Così sembra che corra davvero lungo la traiettoria.
             */
-            var lookAheadAngle =
+            /* var lookAheadAngle =
                 dogFireflyOrbitAngle + 0.55;
 
             dogFetchTarget = {
@@ -490,6 +507,24 @@ function updateDogFireflyCatch(deltaTime) {
                 z:
                     dogFireflyCircleCenterZ +
                     Math.sin(lookAheadAngle) * r
+            }; */
+            var lookAheadX =
+                dogFireflyCircleCenterX +
+                Math.cos(dogFireflyOrbitAngle + 0.35) * r;
+
+            var lookAheadZ =
+                dogFireflyCircleCenterZ +
+                Math.sin(dogFireflyOrbitAngle + 0.35) * r;
+
+            var safeLookAhead =
+                keepDogOutsideParkObstacles(
+                    lookAheadX,
+                    lookAheadZ
+                );
+
+            dogFetchTarget = {
+                x: safeLookAhead.x,
+                z: safeLookAhead.z
             };
 
             if (dogFireflyCatchTimer >= dogFireflyChaseDuration) {
@@ -647,7 +682,153 @@ function updateDogFireflyCatch(deltaTime) {
     dogFireflyPreviousTarget = dogFetchTarget;
 
     dogFireflyTarget = bestFirefly;
+
+    /*
+    Evito di far partire l'animazione delle lucciole
+    se il cerchio di corsa passa dentro la panchina.
+    */
+    var orbitRadiusWithMargin = dogFireflyChaseRadius + 0.25;
+
+    if (
+        fireflyOrbitTouchesBench(
+            dogFireflyCircleCenterX,
+            dogFireflyCircleCenterZ,
+            orbitRadiusWithMargin
+        )
+    ) {
+        dogFireflyCatchCooldown = 1.0;
+        return;
+    }
+
     dogFireflyCatchActive = true;
     dogFireflyCatchPhase = "chase";
+
     dogFireflyCatchTimer = 0.0;
+}
+
+function requestDayNightToggle() {
+
+    // Se siamo di notte e il cane sta facendo l'animazione delle lucciole,
+    // non passare subito al giorno.
+    if (
+        isNight &&
+        dogFireflyCatchActive &&
+        dogFireflyCatchPhase !== "idle"
+    ) {
+        showFireflyWaitMessage();
+        return;
+    }
+
+    // comportamento normale
+    isNight = !isNight;
+    refreshBackgroundMusicAfterSceneChange();
+}
+
+
+function showFireflyWaitMessage() {
+    showGameMessage(
+        "Wait for the fireflies animation to finish! Try again :)",
+        2200
+    );
+}
+
+
+
+function isPointInsideParkObstacle(x, z) {
+    var corrected = keepDogOutsideParkObstacles(x, z);
+
+    var dx = Math.abs(corrected.x - x);
+    var dz = Math.abs(corrected.z - z);
+
+    return dx > 0.001 || dz > 0.001;
+}
+
+
+function fireflyOrbitTouchesBench(centerX, centerZ, radius) {
+    var samples = 32;
+
+    for (var i = 0; i < samples; i++) {
+        var a = (i / samples) * Math.PI * 2.0;
+
+        var x = centerX + Math.cos(a) * radius;
+        var z = centerZ + Math.sin(a) * radius;
+
+        if (isPointInsideParkObstacle(x, z)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function showGameMessage(messageText, duration) {
+    var msg = document.getElementById("gameMessageBox");
+
+    var canvas = document.getElementById("gl-canvas");
+    var rect = canvas.getBoundingClientRect();
+
+    if (duration === undefined) {
+        duration = 2200;
+    }
+
+    if (!msg) {
+        msg = document.createElement("div");
+        msg.id = "gameMessageBox";
+
+        msg.style.position = "fixed";
+
+        // centrato rispetto al canvas
+        msg.style.left = (rect.left + rect.width / 2) + "px";
+        msg.style.bottom = "34px";
+        msg.style.transform = "translateX(-50%) translateY(20px)";
+
+        msg.style.width = "min(680px, 72vw)";
+        msg.style.minHeight = "86px";
+        msg.style.padding = "20px 38px";
+        msg.style.boxSizing = "border-box";
+
+        // stile tipo Pokopia
+        msg.style.background = "rgba(65, 76, 175, 0.96)";
+        msg.style.color = "white";
+        msg.style.borderRadius = "36px";
+        msg.style.border = "2px solid rgba(130, 145, 255, 0.65)";
+        msg.style.boxShadow = "0 8px 22px rgba(0, 0, 0, 0.35)";
+
+        // testo centrato
+        msg.style.display = "flex";
+        msg.style.alignItems = "center";
+        msg.style.justifyContent = "center";
+        msg.style.textAlign = "center";
+
+        msg.style.fontFamily = "Arial, sans-serif";
+        msg.style.fontSize = "20px";
+        msg.style.fontWeight = "600";
+        msg.style.lineHeight = "1.4";
+
+        msg.style.zIndex = "9999";
+        msg.style.pointerEvents = "none";
+
+        msg.style.opacity = "0";
+        msg.style.transition =
+            "opacity 0.25s ease, transform 0.25s ease";
+
+        document.body.appendChild(msg);
+    }
+
+    // aggiorna sempre la posizione rispetto al canvas
+    msg.style.left = (rect.left + rect.width / 2) + "px";
+
+    msg.textContent = messageText;
+
+    msg.style.opacity = "1";
+    msg.style.transform = "translateX(-50%) translateY(0px)";
+
+    if (gameMessageTimeout) {
+        clearTimeout(gameMessageTimeout);
+    }
+
+    gameMessageTimeout = setTimeout(function () {
+        msg.style.opacity = "0";
+        msg.style.transform = "translateX(-50%) translateY(20px)";
+    }, duration);
 }
