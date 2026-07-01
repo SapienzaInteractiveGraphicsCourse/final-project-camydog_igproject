@@ -357,6 +357,7 @@ button:active {
    Icon buttons
    ========================= */
 #ButtonMusic,
+#ButtonGLobalAudio,
 #ButtonNightDay {
     width: 70px;
     height: 70px;
@@ -372,6 +373,7 @@ button:active {
 }
 
 #ButtonMusic:hover,
+#ButtonGlobalAudio:hover,
 #ButtonNightDay:hover {
     background: #ffffff;
     transform: scale(1.06);
@@ -379,6 +381,7 @@ button:active {
 }
 
 #ButtonMusic img,
+#ButtonGlobalAudio img,
 #ButtonNightDay img {
     width: 58px;
     height: 58px;

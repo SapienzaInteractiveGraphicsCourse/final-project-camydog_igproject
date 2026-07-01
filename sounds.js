@@ -1,5 +1,9 @@
 function getCurrentBackgroundMusic() {
     if (currentScene === "park") {
+
+        if (isNight) {
+            return document.getElementById("parkNightBackgroundMusic");
+        }
         return document.getElementById("parkBackgroundMusic");
     }
 
@@ -9,6 +13,7 @@ function getCurrentBackgroundMusic() {
 function stopEveryBackgroundMusic() {
     var homeMusic = document.getElementById("backgroundMusic");
     var parkMusic = document.getElementById("parkBackgroundMusic");
+    var parkNightMusic = document.getElementById("parkNightBackgroundMusic");
 
     if (homeMusic) {
         homeMusic.pause();
@@ -16,6 +21,9 @@ function stopEveryBackgroundMusic() {
 
     if (parkMusic) {
         parkMusic.pause();
+    }
+    if (parkNightMusic) {
+        parkNightMusic.pause();
     }
 }
 
@@ -55,18 +63,37 @@ function toggleBackgroundMusic() {
 
     if (currentMusic.paused) {
         startBackgroundMusic();
-
-        musicIcon.src = path_icon_music_off;
-        musicButton.title = "Music ON";
-        musicButton.classList.add("music-on");
-
     } else {
         stopBackgroundMusic();
-
-        musicIcon.src = path_icon_music_on;
-        musicButton.title = "Music OFF";
-        musicButton.classList.remove("music-on");
     }
+
+    updateBackgroundMusicButtonVisualState();
+}
+
+function isAnyBackgroundMusicPlaying() {
+    var homeMusic = document.getElementById("backgroundMusic");
+    var parkMusic = document.getElementById("parkBackgroundMusic");
+    var parkNightMusic = document.getElementById("parkNightBackgroundMusic");
+
+    return (
+        (homeMusic && !homeMusic.paused) ||
+        (parkMusic && !parkMusic.paused) ||
+        (parkNightMusic && !parkNightMusic.paused)
+    );
+}
+
+
+function refreshBackgroundMusicAfterSceneChange() {
+    var wasPlaying = isAnyBackgroundMusicPlaying();
+
+    stopEveryBackgroundMusic();
+
+    if (wasPlaying) {
+        startBackgroundMusic();
+
+        
+    }
+    updateBackgroundMusicButtonVisualState();
 }
 
 ///////////////////////////////////////////
@@ -85,8 +112,94 @@ function updateMusicSliderStyle() {
     }
 }
 //////////////////////////////////////////////
+function setGlobalAudioMuted(muted) {
+    globalAudioMuted = muted;
+
+    var audioElements = document.querySelectorAll("audio");
+
+    for (var i = 0; i < audioElements.length; i++) {
+        audioElements[i].muted = muted;
+    }
+
+    updateGlobalAudioButton();
+
+    /*
+        Importantissimo:
+        aggiorno anche il bottone della background music,
+        perché col mute globale la musica non è più udibile.
+    */
+    updateBackgroundMusicButtonVisualState();
+}
+
+
+function toggleGlobalAudioMute() {
+    setGlobalAudioMuted(!globalAudioMuted);
+}
+
+
+function updateGlobalAudioButton() {
+    var globalAudioButton = document.getElementById("ButtonGlobalAudio");
+    var globalAudioIcon = document.getElementById("GlobalAudioIcon");
+
+    if (!globalAudioButton || !globalAudioIcon) {
+        return;
+    }
+
+    if (globalAudioMuted) {
+        globalAudioIcon.src = path_icon_audio_on;
+        globalAudioButton.title = "Audio ON";
+        globalAudioButton.classList.add("audio-muted");
+    } else {
+        globalAudioIcon.src = path_icon_audio_off;
+        globalAudioButton.title = "Mute all audio";
+        globalAudioButton.classList.remove("audio-muted");
+    }
+}
+
+function updateBackgroundMusicButtonVisualState() {
+    if (!musicButton || !musicIcon) {
+        return;
+    }
+
+    var currentMusic = getCurrentBackgroundMusic();
+
+    var musicIsPlaying =
+        currentMusic &&
+        !currentMusic.paused;
+
+    var musicIsAudible =
+        musicIsPlaying &&
+        !globalAudioMuted;
+
+    if (musicIsAudible) {
+        /*
+            La musica si sente.
+            Mostro l'icona per spegnerla.
+        */
+        musicIcon.src = path_icon_music_off;
+        musicButton.title = "Turn background music off";
+        musicButton.classList.add("music-on");
+    } else {
+        /*
+            La musica non si sente.
+            Può essere spenta oppure coperta dal mute globale.
+        */
+        musicIcon.src = path_icon_music_on;
+        musicButton.classList.remove("music-on");
+
+        if (globalAudioMuted && musicIsPlaying) {
+            musicButton.title = "Global audio is muted";
+        } else {
+            musicButton.title = "Turn background music on";
+        }
+    }
+}
+//////////////////////////////////////
 
 function playBallThrowSound() {
+    if (globalAudioMuted) {
+        return;
+    }
     var sound = document.getElementById("ballThrowSound");
 
     if (!sound) return;
@@ -125,6 +238,10 @@ function updateWindSound(windValue) {
 }
 ////////////////////////////////////
 function playDogHappySound() {
+     if (globalAudioMuted) {
+        return;
+    }
+
     if (!dogHappySound) return;
 
     dogHappySound.currentTime = 0;
