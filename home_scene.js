@@ -72,6 +72,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             checkBallStoppedAndSendSkinnedDog();
             updateSkinnedDogFetchBall(deltaTime);
         }
+        //checking if dog is in follow teapot mode, if so update dog position and animation
+        if (dogFollowTeapotMode) {
+            updateDogFollowTeapot(deltaTime);
+            updateSkinnedDogFetchBall(deltaTime);
+        }
 
         
 

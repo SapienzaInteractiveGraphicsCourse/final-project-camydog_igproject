@@ -967,6 +967,307 @@ function updateKibbles(deltaTime) {
 
 
 ///////////////////////////////////
+function getBowlAvoidRadiusForDog() {
+    /*
+        Raggio bowl + spazio per il corpo del cane.
+    */
+    return bowlColliderRadius + 1.05;
+}
+
+function keepDogOutsideBowl(x, z) {
+    var radius = getBowlAvoidRadiusForDog();
+
+    var dx = x - bowlX;
+    var dz = z - bowlZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist >= radius) {
+        return {
+            x: x,
+            z: z
+        };
+    }
+
+    if (dist < 0.001) {
+        dx = 1.0;
+        dz = 0.0;
+        dist = 1.0;
+    }
+
+    dx /= dist;
+    dz /= dist;
+
+    return {
+        x: bowlX + dx * radius,
+        z: bowlZ + dz * radius
+    };
+}
+
+function keepDogOutsideTeapotChaseObstacles(x, z) {
+    /*
+        Ordine:
+        1. limiti stanza
+        2. fuori dal tavolo
+        3. fuori dalla bowl
+        4. ricontrollo tavolo/stanza
+    */
+
+    var p = clampDogTargetToRoom(x, z);
+
+    p = keepDogOutsideTable(p.x, p.z);
+    p = keepDogOutsideBowl(p.x, p.z);
+
+    p = keepDogOutsideTable(p.x, p.z);
+    p = clampDogTargetToRoom(p.x, p.z);
+
+    return p;
+}
+
+function segmentIntersectsBowlAvoidZone(startX, startZ, targetX, targetZ) {
+    var radius = getBowlAvoidRadiusForDog();
+
+    var vx = targetX - startX;
+    var vz = targetZ - startZ;
+
+    var wx = bowlX - startX;
+    var wz = bowlZ - startZ;
+
+    var len2 = vx * vx + vz * vz;
+
+    if (len2 < 0.001) {
+        return false;
+    }
+
+    var t = (wx * vx + wz * vz) / len2;
+    t = Math.max(0.0, Math.min(1.0, t));
+
+    var closestX = startX + vx * t;
+    var closestZ = startZ + vz * t;
+
+    var dx = closestX - bowlX;
+    var dz = closestZ - bowlZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    return dist < radius;
+}
+
+function computeDogPathAroundBowl(startX, startZ, targetX, targetZ) {
+    if (!segmentIntersectsBowlAvoidZone(startX, startZ, targetX, targetZ)) {
+        return [
+            {
+                x: targetX,
+                z: targetZ
+            }
+        ];
+    }
+
+    var radius = getBowlAvoidRadiusForDog() + 0.45;
+
+    var dirX = targetX - startX;
+    var dirZ = targetZ - startZ;
+
+    var len = Math.sqrt(dirX * dirX + dirZ * dirZ);
+
+    if (len < 0.001) {
+        return [
+            {
+                x: targetX,
+                z: targetZ
+            }
+        ];
+    }
+
+    dirX /= len;
+    dirZ /= len;
+
+    var perpX = -dirZ;
+    var perpZ = dirX;
+
+    var sideA = keepDogOutsideTeapotChaseObstacles(
+        bowlX + perpX * radius,
+        bowlZ + perpZ * radius
+    );
+
+    var sideB = keepDogOutsideTeapotChaseObstacles(
+        bowlX - perpX * radius,
+        bowlZ - perpZ * radius
+    );
+
+    var costA =
+        dist2D(startX, startZ, sideA.x, sideA.z) +
+        dist2D(sideA.x, sideA.z, targetX, targetZ);
+
+    var costB =
+        dist2D(startX, startZ, sideB.x, sideB.z) +
+        dist2D(sideB.x, sideB.z, targetX, targetZ);
+
+    var best = costA < costB ? sideA : sideB;
+
+    return [
+        {
+            x: best.x,
+            z: best.z
+        },
+        {
+            x: targetX,
+            z: targetZ
+        }
+    ];
+}
+
+function computeDogPathToTeapot(startX, startZ, targetX, targetZ) {
+    /*
+        Prima evito il tavolo usando la logica già esistente,
+        poi controllo anche la bowl.
+    */
+
+    var safeTarget = keepDogOutsideTeapotChaseObstacles(
+        targetX,
+        targetZ
+    );
+
+    var tablePath = computeDogPathToBall(
+        startX,
+        startZ,
+        safeTarget.x,
+        safeTarget.z
+    );
+
+    var finalPath = [];
+
+    var currentX = startX;
+    var currentZ = startZ;
+
+    for (var i = 0; i < tablePath.length; i++) {
+        var point = keepDogOutsideTeapotChaseObstacles(
+            tablePath[i].x,
+            tablePath[i].z
+        );
+
+        var bowlPath = computeDogPathAroundBowl(
+            currentX,
+            currentZ,
+            point.x,
+            point.z
+        );
+
+        for (var j = 0; j < bowlPath.length; j++) {
+            finalPath.push(bowlPath[j]);
+        }
+
+        currentX = point.x;
+        currentZ = point.z;
+    }
+
+    if (finalPath.length === 0) {
+        finalPath.push(safeTarget);
+    }
+
+    return finalPath;
+}
+
+function getSafeDogTargetNearTeapot(teapotX, teapotZ) {
+    /*
+        La teapot è in alto.
+        Il cane segue la sua proiezione X/Z,
+        ma si ferma a una distanza sicura.
+    */
+
+    var dx = teapotX - dogFetchX;
+    var dz = teapotZ - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var targetX = teapotX;
+    var targetZ = teapotZ;
+
+    if (dist > 0.001) {
+        targetX = teapotX - (dx / dist) * TEAPOT_CHASE_STOP_OFFSET;
+        targetZ = teapotZ - (dz / dist) * TEAPOT_CHASE_STOP_OFFSET;
+    }
+
+    return keepDogOutsideTeapotChaseObstacles(
+        targetX,
+        targetZ
+    );
+}
+
+function updateDogFollowTeapot(deltaTime) {
+    if (!dogFollowTeapotMode) {
+        return;
+    }
+
+    if (currentScene !== "home") {
+        return;
+    }
+
+    var teapotX = objPos[0];
+    var teapotZ = objPos[2];
+
+    /*
+        Il cane guarda la teapot vera,
+        ma si muove verso un target sicuro sul pavimento.
+    */
+    dogLookAtBallX = teapotX;
+    dogLookAtBallZ = teapotZ;
+
+    dogFetchTarget = {
+        x: teapotX,
+        z: teapotZ
+    };
+
+    dogFollowTeapotRepathTimer += deltaTime;
+
+    var movedX = teapotX - dogFollowTeapotLastX;
+    var movedZ = teapotZ - dogFollowTeapotLastZ;
+
+    var teapotMoved = Math.sqrt(
+        movedX * movedX +
+        movedZ * movedZ
+    );
+
+    /*
+        Non ricalcolo il path ogni frame,
+        altrimenti il cane può tremare.
+    */
+    if (
+        dogFetchBallMode &&
+        dogFollowTeapotRepathTimer < DOG_TEAPOT_REPATH_INTERVAL &&
+        teapotMoved < DOG_TEAPOT_MIN_MOVE_TO_REPATH
+    ) {
+        return;
+    }
+
+    var safeTarget = getSafeDogTargetNearTeapot(
+        teapotX,
+        teapotZ
+    );
+
+    dogPath = computeDogPathToTeapot(
+        dogFetchX,
+        dogFetchZ,
+        safeTarget.x,
+        safeTarget.z
+    );
+
+    dogPathIndex = 0;
+    dogFetchBallMode = true;
+
+    dogFetchObjectType = "teapot";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogFollowTeapotLastX = teapotX;
+    dogFollowTeapotLastZ = teapotZ;
+    dogFollowTeapotRepathTimer = 0.0;
+}
+//////////////////////////////////////////////
 
 
 function createTableCompoundCollider() {
@@ -1907,8 +2208,26 @@ function updateSkinnedDogFetchBall(deltaTime) {
         } */
 
         if (dogPathIndex >= dogPath.length) {
+
             dogPathIndex = dogPath.length - 1;
             dogFetchBallMode = false;
+
+            if (dogFetchObjectType === "teapot") {
+                            dogFetchLoweringActive = false;
+                            dogFetchLowerAmount = 0.0;
+
+                            dogCrouchActive = false;
+                            dogCrouchAmount = 0.0;
+
+                            dogFetchTarget = {
+                                x: objPos[0],
+                                z: objPos[2]
+                            };
+
+                            showDogMusicNote = true;
+
+                            return;
+            }
 
             if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
                 /*

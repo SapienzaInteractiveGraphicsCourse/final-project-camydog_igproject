@@ -1,6 +1,6 @@
 // variable to enable start screen
-var ENABLE_START_SCREEN = true; 
-var ENABLE_LOADING_SCREEN = true;
+var ENABLE_START_SCREEN = false; 
+var ENABLE_LOADING_SCREEN = false;
 
 //current Scene either "home" or "park"
 var currentScene = "home"; 
@@ -627,3 +627,21 @@ var dogFireflyCircleCenterZ = 0.0;
 var dogFireflyOrbitAngle = 0.0;
 
 var dogFireflyRearDuration = 3.0;
+
+/************************** */
+//      TEAPOT PLAY DOG     //
+/************************** */
+var dogFollowTeapotMode = false;
+
+var dogFollowTeapotLastX = 9999.0;
+var dogFollowTeapotLastZ = 9999.0;
+
+var dogFollowTeapotRepathTimer = 0.0;
+
+var DOG_TEAPOT_REPATH_INTERVAL = 0.35;
+var DOG_TEAPOT_MIN_MOVE_TO_REPATH = 0.30;
+var TEAPOT_CHASE_MIN_Y = -0.7;
+var TEAPOT_CHASE_MAX_Y = 1.8;
+
+var TEAPOT_CHASE_STOP_OFFSET = 1.35;
+
