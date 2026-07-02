@@ -817,8 +817,50 @@ function shouldDrawFrisbee() {
     return false;
 }
 
+function cancelDogFrisbeeMission() {
+    /*
+        Cancella la missione del cane legata al frisbee.
+        Serve quando il frisbee viene tolto mentre è in volo
+        oppure mentre il cane sta già andando a prenderlo.
+    */
+
+    if (
+        dogFetchObjectType !== "frisbee" &&
+        !frisbeeAlreadyTargeted &&
+        !dogHasFrisbee &&
+        !dogReturningWithFrisbee
+    ) {
+        return;
+    }
+
+    // Ferma il movimento verso il frisbee
+    dogFetchBallMode = false;
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    // Toglie abbassamento / posa tipo raccolta
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    // Toglie stati del frisbee nel cane
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+    dogFetchObjectType = null;
+
+    showDogMusicNote = false;
+    dogHappySoundPlayed = false;
+}
+
 
 function putAwayFrisbee(buttonFrisbee) {
+
+    /* cancelDogFrisbeeMission();
+
+
     frisbeeThrowMode = false;
     frisbeeAttachedToHand = false;
     frisbeeFlying = false;
@@ -849,5 +891,95 @@ function putAwayFrisbee(buttonFrisbee) {
 
     updateCanvasCursor();
 
+    showGameMessage("Frisbee put away!", 1400); */
+
+     /*
+        Reset completo del frisbee.
+        Importante: se il cane sta già andando verso il frisbee,
+        bisogna cancellare anche il suo path, altrimenti continua
+        verso il vecchio target fantasma.
+    */
+
+    stopDogFrisbeeFetch();
+
+    // Stop movimento/fetch del cane
+    dogFetchBallMode = false;
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    // Stop target visivo/rotazione verso il frisbee
+    dogLookAtBallX = dogFetchX;
+    dogLookAtBallZ = dogFetchZ;
+
+    // Stop stati del cane legati al frisbee
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+    dogFetchObjectType = null;
+
+    // Stop animazioni di raccolta / sdraiamento
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    showDogMusicNote = false;
+    dogHappySoundPlayed = false;
+
+    // Reset stati del frisbee
+    frisbeeThrowMode = false;
+    frisbeeAttachedToHand = false;
+    frisbeeFlying = false;
+    frisbeeLanded = false;
+    frisbeePreparingThrow = false;
+    frisbeeHasMousePosition = false;
+
+    frisbeeReturnedAndWaiting = false;
+    frisbeeAlreadyTargeted = false;
+
+    if (buttonFrisbee) {
+        buttonFrisbee.classList.remove("active");
+        buttonFrisbee.title = "Take Frisbee";
+    }
+
+    updateCanvasCursor();
+
     showGameMessage("Frisbee put away!", 1400);
+}
+
+
+function stopDogFrisbeeFetch() {
+    /*
+        Ferma il cane quando il frisbee non è più il suo target.
+        Serve sia quando metti via il frisbee, sia quando lo riprendi in mano
+        mentre il cane sta andando a prenderlo.
+    */
+
+    if (dogFetchObjectType !== "frisbee" && !frisbeeAlreadyTargeted) {
+        return;
+    }
+
+    dogFetchBallMode = false;
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    dogLookAtBallX = dogFetchX;
+    dogLookAtBallZ = dogFetchZ;
+
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+    dogFetchObjectType = null;
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    showDogMusicNote = false;
+    dogHappySoundPlayed = false;
+
+    frisbeeAlreadyTargeted = false;
 }

@@ -103,7 +103,7 @@ function resizeCanvasToDisplaySize() {
         );
     }
 }
-//////////////////////////!SECTION
+/////////////////////////
 function finishInitialLoading() {
     var loadingScreen =
         document.getElementById("loadingScreen");
