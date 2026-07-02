@@ -43,11 +43,6 @@ var tz = 0.0;
 
 
 
-
-
-
-
-
 // ===== BALL MINI-GAME / CANNON PHYSICS =====
 
 var ROOM_MIN_X = -7.0;
@@ -1351,6 +1346,47 @@ onload = async function init() {
         };
     }
 
+    var buttonDogCameraMode = document.getElementById("ButtonDogCameraMode");
+
+    if (buttonDogCameraMode) {
+        buttonDogCameraMode.onclick = function () {
+            if (cameraDogMode === "static") {
+                cameraDogMode = "follow";
+                cameraDogAutoAngle = false;
+
+                showGameMessage(
+                    "Dog follow active!\nCamera follows the dog without auto angle.",
+                    2400
+                );
+            } else if (cameraDogMode === "follow") {
+                cameraDogMode = "autoAngle";
+                cameraDogAutoAngle = true;
+
+                showGameMessage(
+                    "Dog auto angle active!\nCamera follows and rotates automatically.",
+                    2400
+                );
+            } else {
+                cameraDogMode = "static";
+                cameraDogAutoAngle = false;
+
+                cameraDogStaticTarget = vec3(
+                    dogFetchX,
+                    -0.6,
+                    dogFetchZ
+                );
+
+                showGameMessage(
+                    "Dog static focus active!\nCamera stays on this dog position.",
+                    2400
+                );
+            }
+
+            updateDogCameraModeButton();
+            updateOrbitCameraFromSliders();
+        };
+    }
+
     var buttonCollision = document.getElementById("ButtonCollision");
 
     if (buttonCollision) {
@@ -1649,21 +1685,39 @@ onload = async function init() {
         }
 });
 
+    //REVIEW -  MODIFICA PER TELECAMERA
+    canvas.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+    });
+
    canvas.addEventListener("mousedown", function(event) {
         // In call dog mode -> do not start rotation
         if (callDogClickMode) {
             return;
         }
 
-        isDraggingCamera = true;
+        //isDraggingCamera = true;
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
+
+        if (event.button === 2) {
+            // tasto destro -> pan
+            isPanningCamera = true;
+            isDraggingCamera = false;
+        } else {
+            // tasto sinistro -> orbit
+            isDraggingCamera = true;
+            isPanningCamera = false;
+        }
+
 
         updateCanvasCursor();
     });
 
     window.addEventListener("mouseup", function() {
         isDraggingCamera = false;
+
+        isPanningCamera = false;
         updateCanvasCursor();
     });
 
@@ -1673,7 +1727,7 @@ onload = async function init() {
              updateCanvasCursor();
             return;
         }
-        if (!isDraggingCamera) {
+        if (!isDraggingCamera && !isPanningCamera) {
             return;
         }
 
@@ -1682,6 +1736,13 @@ onload = async function init() {
 
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
+
+
+        if (isPanningCamera) {
+            panOrbitCamera(dx, dy);
+            updateOrbitCameraFromSliders();
+            return;
+        }
 
         // horizontal drag -> camera angle
         var currentAngle = parseFloat(cameraAngleSlider.value);
@@ -1697,8 +1758,7 @@ onload = async function init() {
         // vertical drag -> camera height
         var currentHeight = parseFloat(cameraHeightSlider.value);
 
-        // se trascini verso l'alto, dy è negativo.
-        // Con il meno, verso l'alto aumenta l'altezza.
+        // if you drag up, dy is negative. With the minus, going up increases the height.
         currentHeight -= dy * mouseSensitivityY;
 
         var minHeight = parseFloat(cameraHeightSlider.min);
@@ -1728,6 +1788,7 @@ onload = async function init() {
         }
     }); */
 
+    //REVIEW - MODIFICA PER TELECAMERA - ZOOM CON SLIDER
 
     canvas.addEventListener("wheel", function(event) {
     event.preventDefault();
@@ -1738,8 +1799,11 @@ onload = async function init() {
 
     currentDistance += event.deltaY * zoomSpeed;
 
-    var minDistance = 5.0;
-    var maxDistance = parseFloat(cameraDistanceSlider.max);
+    //var minDistance = 5.0;
+    var minDistance = CAMERA_MIN_DISTANCE;
+    var maxDistance = CAMERA_MAX_DISTANCE;
+
+    //var maxDistance = parseFloat(cameraDistanceSlider.max);
 
     currentDistance = Math.max(
         minDistance,
@@ -1873,7 +1937,156 @@ onload = async function init() {
     render();
 };
 
+/////////////////////// MODIFICA ROTAZIONE TELECAMERA ZOOM // !REVIEW
+
+function updateDogCameraModeButton() {
+    var buttonDogCameraMode = document.getElementById("ButtonDogCameraMode");
+
+    if (!buttonDogCameraMode) {
+        return;
+    }
+
+    if (cameraFocusMode !== "dog") {
+        buttonDogCameraMode.style.display = "none";
+        return;
+    }
+
+    buttonDogCameraMode.style.display = "block";
+
+    if (cameraDogMode === "static") {
+        buttonDogCameraMode.textContent = "Dog Camera: Static";
+        buttonDogCameraMode.title = "Camera stays on the current dog position";
+    } else if (cameraDogMode === "follow") {
+        buttonDogCameraMode.textContent = "Dog Camera: Follow";
+        buttonDogCameraMode.title = "Camera follows the dog without rotating automatically";
+    } else if (cameraDogMode === "autoAngle") {
+        buttonDogCameraMode.textContent = "Dog Camera: Auto Angle";
+        buttonDogCameraMode.title = "Camera follows the dog and rotates automatically";
+    }
+}
+
+function clampValue(value, minValue, maxValue) {
+    return Math.max(minValue, Math.min(maxValue, value));
+}
+
+function getCameraBaseTarget() {
+    /*
+        Target base della camera.
+        In free mode guardo cameraTarget.
+        In dog focus seguo il cane.
+        In curtain focus guardo la tenda.
+    */
+
+    if (cameraFocusMode === "dog") {
+        if (cameraDogMode === "follow" || cameraDogMode === "autoAngle") {
+            return vec3(
+                dogFetchX,
+                -0.6,
+                dogFetchZ
+            );
+        }
+
+        return cameraDogStaticTarget;
+    }
+
+    if (cameraFocusMode === "curtain") {
+        return vec3(
+            CURTAIN_ORIGIN_X,
+            CURTAIN_ORIGIN_Y - CURTAIN_HEIGHT / 2.0,
+            CURTAIN_ORIGIN_Z
+        );
+    }
+
+    return cameraTarget;
+}
+
+function getCurrentCameraTarget() {
+    var baseTarget = getCameraBaseTarget();
+
+    return vec3(
+        baseTarget[0] + cameraPanOffset[0],
+        baseTarget[1] + cameraPanOffset[1],
+        baseTarget[2] + cameraPanOffset[2]
+    );
+}
+
 function updateOrbitCameraFromSliders() {
+    cameraAngle = parseFloat(cameraAngleSlider.value);
+    cameraHeight = parseFloat(cameraHeightSlider.value);
+    cameraDistance = parseFloat(cameraDistanceSlider.value);
+
+    if (isNaN(cameraAngle)) {
+        cameraAngle = 35.0;
+    }
+
+    if (isNaN(cameraHeight)) {
+        cameraHeight = 4.0;
+    }
+
+    if (isNaN(cameraDistance)) {
+        cameraDistance = 10.0;
+    }
+
+    cameraDistance = clampValue(
+        cameraDistance,
+        CAMERA_MIN_DISTANCE,
+        CAMERA_MAX_DISTANCE
+    );
+
+    var target = getCurrentCameraTarget();
+    var rad = radians(cameraAngle);
+
+    eye = vec3(
+        target[0] + cameraDistance * Math.sin(rad),
+        target[1] + cameraHeight,
+        target[2] + cameraDistance * Math.cos(rad)
+    );
+
+    at = target;
+    up = vec3(0.0, 1.0, 0.0);
+
+    cameraAngleSlider.value = cameraAngle.toFixed(0);
+    cameraHeightSlider.value = cameraHeight.toFixed(1);
+    cameraDistanceSlider.value = cameraDistance.toFixed(1);
+
+    cameraAngleValue.innerHTML = cameraAngle.toFixed(0) + "°";
+    cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
+    cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
+}
+
+
+function panOrbitCamera(dx, dy) {
+    /*
+        Pan = sposto il target della camera.
+        Non cambio zoom, non cambio rotazione.
+    */
+
+    var rad = radians(cameraAngle);
+
+    /*
+        right = direzione laterale rispetto alla camera
+        forward = direzione avanti/indietro sul piano XZ
+    */
+    var rightX = Math.cos(rad);
+    var rightZ = -Math.sin(rad);
+
+    var forwardX = Math.sin(rad);
+    var forwardZ = Math.cos(rad);
+
+    var panSpeed = Math.max(
+        0.006,
+        cameraDistance * mouseSensitivityPan
+    );
+
+    cameraPanOffset[0] -= rightX * dx * panSpeed;
+    cameraPanOffset[2] -= rightZ * dx * panSpeed;
+
+    cameraPanOffset[0] += forwardX * dy * panSpeed;
+    cameraPanOffset[2] += forwardZ * dy * panSpeed;
+}
+
+///////////////////////////////////////////////////////
+function updateOrbitCameraFromSliders_old() {
         cameraAngle = parseFloat(cameraAngleSlider.value);
         cameraHeight = parseFloat(cameraHeightSlider.value);
         cameraDistance = parseFloat(cameraDistanceSlider.value);
@@ -2167,6 +2380,15 @@ function render() {
     readGamepad();
     clampTeapotToTable();
 
+   if (cameraFocusMode === "dog") {
+        if (cameraDogMode === "autoAngle") {
+            updateDogFocusAutoAngle();
+        }
+
+        if (cameraDogMode === "follow" || cameraDogMode === "autoAngle") {
+            updateOrbitCameraFromSliders();
+        }
+    }
    
 
     viewMatrix = lookAt(eye, at, up);
@@ -2529,6 +2751,13 @@ function setCameraFocusButtonActive(activeButtonId) {
 
 
 function resetCameraView() {
+
+    cameraFocusMode = "free";
+    cameraDogAutoAngle = false;
+    updateDogCameraModeButton();
+
+    cameraPanOffset = vec3(0.0, 0.0, 0.0);
+
     cameraTarget = vec3(0.0, 0.5, 0.0);
 
     cameraAngle = 35.0;
@@ -2548,6 +2777,13 @@ function resetCameraView() {
 
 function focusCurtainCamera() {
     // central point of the curtain in world space
+
+    cameraFocusMode = "curtain";
+    cameraDogAutoAngle = false;
+    updateDogCameraModeButton();
+    cameraPanOffset = vec3(0.0, 0.0, 0.0);
+
+
     cameraTarget = vec3(
         CURTAIN_ORIGIN_X,
         CURTAIN_ORIGIN_Y - CURTAIN_HEIGHT / 2.0,
@@ -2572,61 +2808,158 @@ function focusCurtainCamera() {
     );
 }
 
+///////////////
+function normalizeAngleDegrees(angle) {
+    angle = angle % 360.0;
+
+    if (angle < 0.0) {
+        angle += 360.0;
+    }
+
+    return angle;
+}
+
+function lerpAngleDegrees(currentAngle, targetAngle, amount) {
+    /*
+        Interpolazione tra angoli senza fare il giro lungo.
+        Esempio: da 350° a 10° passa da 0°, non da 180°.
+    */
+
+    var diff = ((targetAngle - currentAngle + 540.0) % 360.0) - 180.0;
+
+    return normalizeAngleDegrees(currentAngle + diff * amount);
+}
+
+function getDogSafeCameraAngle() {
+    /*
+        In home voglio guardare il cane dal lato del centro stanza.
+        Quindi calcolo la direzione dal cane verso il centro.
+    */
+
+    var roomCenterX = 0.0;
+    var roomCenterZ = 0.0;
+
+    var dirX = roomCenterX - dogFetchX;
+    var dirZ = roomCenterZ - dogFetchZ;
+
+    var length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+
+    if (length < 0.001) {
+        return cameraAngle;
+    }
+
+    dirX /= length;
+    dirZ /= length;
+
+    var angleRad = Math.atan2(dirX, dirZ);
+    var angleDeg = angleRad * 180.0 / Math.PI;
+
+    return normalizeAngleDegrees(angleDeg);
+}
+
+function updateDogFocusAutoAngle() {
+    if (cameraFocusMode !== "dog") {
+        return;
+    }
+
+    if (!cameraDogAutoAngle) {
+        return;
+    }
+
+    if (currentScene !== "home") {
+        return;
+    }
+
+    var desiredAngle = getDogSafeCameraAngle();
+
+    cameraAngle = lerpAngleDegrees(
+        cameraAngle,
+        desiredAngle,
+        0.05
+    );
+
+    if (cameraAngleSlider) {
+        cameraAngleSlider.value = cameraAngle.toFixed(0);
+    }
+}
+
+///////////////
+function getDogFrontCameraAngle() {
+    /*
+        La direzione forward del cane è:
+        forwardX = sin(angle)
+        forwardZ = cos(angle)
+
+        Per mettere la camera davanti al cane, uso lo stesso angolo
+        del cane. Così la camera guarda il muso, non il tavolo.
+    */
+
+    return normalizeAngleDegrees(dogCurrentAngle);
+}
+
+function getDogHeadCameraTarget() {
+    /*
+        Target un po' davanti al corpo, verso la testa.
+        Così la camera centra il muso/cane, non il centro stanza.
+    */
+
+    var rad = dogCurrentAngle * Math.PI / 180.0;
+
+    var forwardX = Math.sin(rad);
+    var forwardZ = Math.cos(rad);
+
+    return vec3(
+        dogFetchX + forwardX * 0.65,
+        -0.45,
+        dogFetchZ + forwardZ * 0.65
+    );
+}
+
 ///////////////////////
 function focusDogCamera() {
     /*
-        Camera focus sul cane.
-        Se il cane è vicino alle pareti della home, scelgo automaticamente
-        un angolo più sicuro, così la camera non finisce dietro ai muri.
+        Focus Dog iniziale = STATIC.
+        La camera centra il cane nel punto attuale
+        e lo guarda da davanti.
+        
+        Se poi voglio seguirlo o auto-ruotare, uso il bottone
+        Dog Camera Mode.
     */
 
-    cameraTarget = vec3(
-        dogFetchX,
-        -0.6,
-        dogFetchZ
-    );
+    // Spengo eventuale focus teapot
+    teapotFocus = false;
+
+    var teapotButton = document.getElementById("ButtonTeapotFocus");
+    if (teapotButton) {
+        teapotButton.textContent = "Focus Teapot";
+    }
+
+    cameraFocusMode = "dog";
+    cameraDogMode = "static";
+    cameraDogAutoAngle = false;
+
+    cameraPanOffset = vec3(0.0, 0.0, 0.0);
+
+    /*
+        Target sul cane, leggermente verso la testa.
+        Non uso il centro stanza.
+    */
+    cameraDogStaticTarget = getDogHeadCameraTarget();
+    cameraTarget = cameraDogStaticTarget;
 
     if (currentScene === "home") {
         /*
-            Soglie approssimative della stanza.
-            Il cane vicino alla parete destra, sinistra, davanti o dietro
-            richiede una camera più vicina e orientata dall'interno.
+            Static = visto da davanti.
+            Non faccio auto-angolazione qui.
         */
-        var nearRightWall = dogFetchX > 4.2;
-        var nearLeftWall  = dogFetchX < -4.2;
-        var nearFrontWall = dogFetchZ > 4.2;
-        var nearBackWall  = dogFetchZ < -4.2;
-
-        var dogNearWall =
-            nearRightWall ||
-            nearLeftWall ||
-            nearFrontWall ||
-            nearBackWall;
-
-        if (nearRightWall) {
-            // Parete destra: camera verso il centro della stanza
-            cameraAngle = 270.0;
-        } else if (nearLeftWall) {
-            // Parete sinistra: camera verso il centro
-            cameraAngle = 90.0;
-        } else if (nearFrontWall) {
-            // Parete davanti: camera più indietro
-            cameraAngle = 180.0;
-        } else if (nearBackWall) {
-            // Parete dietro: camera più avanti
-            cameraAngle = 0.0;
-        } else {
-            cameraAngle = 35.0;
-        }
-
-        cameraHeight = dogNearWall ? 0.9 : 1.2;
-        cameraDistance = dogNearWall ? 2.0 : 5.0;
-        cameraFov = dogNearWall ? 62.0 : 52.0;
+        cameraAngle = getDogFrontCameraAngle();
+        cameraHeight = 0.75;
+        cameraDistance = 2.8;
+        cameraFov = 55.0;
     } else {
-        // Nel parco non ci sono pareti vicine, quindi resta più libera
-        cameraAngle = 35.0;
-        cameraHeight = 1.6;
-        cameraDistance = 6.0;
+        cameraAngle = getDogFrontCameraAngle();
+        cameraHeight = 1.2;
+        cameraDistance = 4.0;
         cameraFov = 55.0;
     }
 
@@ -2645,6 +2978,7 @@ function focusDogCamera() {
     updateOrbitCameraFromSliders();
 
     setCameraFocusButtonActive("ButtonFocusDog");
+    updateDogCameraModeButton();
 
     showGameMessage(
         "Dog focus active!\nClick Reset Camera to exit focus mode.",
@@ -2652,51 +2986,6 @@ function focusDogCamera() {
     );
 }
 
-function focusDogCamera_old() {
-    /*
-        Camera focus sul cane.
-        Il target diventa la posizione attuale del cane,
-        quindi la rotazione degli slider avviene intorno al cane
-        e non più intorno al centro della stanza.
-    */
-
-    cameraTarget = vec3(
-        dogFetchX,
-        -0.6,
-        dogFetchZ
-    );
-
-    if (currentScene === "home") {
-        cameraAngle = 35.0;
-        cameraHeight = 1.2;
-        cameraDistance = 5.0;
-        cameraFov = 52.0;
-    } else {
-        cameraAngle = 35.0;
-        cameraHeight = 1.6;
-        cameraDistance = 6.0;
-        cameraFov = 55.0;
-    }
-
-    if (cameraAngleSlider) {
-        cameraAngleSlider.value = cameraAngle;
-    }
-
-    if (cameraHeightSlider) {
-        cameraHeightSlider.value = cameraHeight;
-    }
-
-    if (cameraDistanceSlider) {
-        cameraDistanceSlider.value = cameraDistance;
-    }
-
-    updateOrbitCameraFromSliders();
-    setCameraFocusButtonActive("ButtonFocusDog");
-        showGameMessage(
-        "Dog focus active!\nClick Reset Camera to exit focus mode.",
-        2600
-    );
-}
 ////////////////////////
 
 

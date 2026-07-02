@@ -917,7 +917,7 @@ button:active {
 }
 
 /* =========================================================
-   Linguetta pannello laterale sinistro
+    Side panel toggle button
    ========================================================= */
 
 :root {
@@ -998,4 +998,49 @@ body.ui-panel-hidden .canvas-container {
     font-weight: 700;
     box-shadow: 0 0 12px rgba(255, 210, 80, 0.65);
     transform: translateY(-1px);
+}
+
+#ButtonDogCameraMode {
+    display: none;
+
+    margin-top: 8px;
+    width: 100%;
+
+    padding: 11px 14px;
+    border: none;
+    border-radius: 14px;
+
+    background: linear-gradient(
+        135deg,
+        rgba(255, 95, 162, 0.92),
+        rgba(255, 200, 87, 0.88)
+    );
+
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 6px 16px rgba(255, 95, 162, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+    transition:
+        transform 0.12s ease,
+        filter 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+#ButtonDogCameraMode:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow:
+        0 8px 20px rgba(255, 95, 162, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+#ButtonDogCameraMode:active {
+    transform: scale(0.97);
 }

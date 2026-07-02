@@ -1,11 +1,25 @@
 // variable to enable start screen
-var ENABLE_START_SCREEN = false; 
-var ENABLE_LOADING_SCREEN = false;
+var ENABLE_START_SCREEN = true; 
+var ENABLE_LOADING_SCREEN = true;
 
 //current Scene either "home" or "park"
 var currentScene = "home"; 
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
+
+var cameraFocusMode = "free";
+var cameraPanOffset = vec3(0.0, 0.0, 0.0);
+var cameraDogAutoAngle = false;
+
+var CAMERA_MIN_DISTANCE = 2.2;
+var CAMERA_MAX_DISTANCE = 25.0;
+
+var cameraDogMode = "static"; // valori possibili: "static", "follow", "autoAngle"
+
+var cameraDogStaticTarget = vec3(0.0, -0.6, 0.0);
+
+var isPanningCamera = false;
+var mouseSensitivityPan = 0.0012;
 
 //current time of day either "day" or "night"
 var isNight = false;
@@ -209,7 +223,6 @@ var camRadius = 8.0;
 var cameraTarget =  vec3(0.0, 0.5, 0.0);
 //var cameraFov = 80.0;
 var cameraFov = 58.0;
-
 var cameraAngle = 35.0;
 var cameraHeight = 4.0;
 var cameraDistance = 10.0;   // questo è lo zoom
