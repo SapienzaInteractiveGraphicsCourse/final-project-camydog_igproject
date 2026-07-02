@@ -367,6 +367,48 @@ function updateSceneButtonsVisibility() {
     }
 }
 ///////////////////////////////////////
+function isBallMinigameBusyForTeapot() {
+    /*
+        Se la palla è attiva, visibile, in movimento,
+        o il cane la sta inseguendo/prendendo,
+        non permetto di attivare Teapot Chase.
+    */
+
+    if (miniGameActive) {
+        return true;
+    }
+
+   if (
+        dogFetchObjectType === "ball" &&
+        (
+            dogFetchBallMode ||
+            dogFetchLoweringActive ||
+            dogHasBall ||
+            skinnedDogAlreadyTargeted
+        )
+    ) {
+        return true;
+    }
+
+    if (ballVisible && ballBody) {
+        var vx = ballBody.velocity.x;
+        var vy = ballBody.velocity.y;
+        var vz = ballBody.velocity.z;
+
+        var speed = Math.sqrt(
+            vx * vx +
+            vy * vy +
+            vz * vz
+        );
+
+        if (speed > 0.05) {
+            return true;
+        }
+    }
+
+    return false;
+}
+/////////////////////////////////////
 function showSceneTransition(title, text) {
     var screen = document.getElementById("sceneTransitionScreen");
     var titleElement = document.getElementById("SceneTransitionTitle");

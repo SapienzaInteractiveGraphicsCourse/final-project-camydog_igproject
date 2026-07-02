@@ -1273,6 +1273,14 @@ onload = async function init() {
         //if I am not at home, I cannot throw the ball
         if(currentScene == "park") return;
 
+        if (!miniGameActive && dogFollowTeapotMode) {
+            showGameMessage(
+                "Teapot Chase is active!\nStop it before starting the ball minigame.",
+                2500
+            );
+
+            return;
+        }
 
         miniGameActive = !miniGameActive;
 
@@ -1315,6 +1323,21 @@ onload = async function init() {
                 }
 
                 stopBallMiniGame();
+
+                dogFetchObjectType = null;
+                dogFetchBallMode = false;
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogHasBall = false;
+                skinnedDogAlreadyTargeted = false;
+
+                dogPath = [];
+                dogPathIndex = 0;
+                dogFetchTarget = null;
 
                 resetSkinnedDogBallInteraction();
                 //resetSkinnedDogBallInteractionFull();
@@ -1427,6 +1450,76 @@ onload = async function init() {
             nightDayButton.title = "Switch to Night Mode";
         }
     };
+
+    //button for teapot minigame
+    var buttonTeapotChase = document.getElementById("ButtonTeapotChase");
+
+    if (buttonTeapotChase) {
+        buttonTeapotChase.onclick = function () {
+
+             /*
+                Se sto cercando di ACCENDERE la teapot,
+                ma la palla è attiva, blocco.
+                Se invece la teapot è già ON, permetto di spegnerla.
+            */
+            if (!dogFollowTeapotMode && isBallMinigameBusyForTeapot()) {
+                showGameMessage(
+                    "Ball minigame is active!\nStop the ball before starting Teapot Chase.",
+                    2500
+                );
+
+                return;
+            }
+            
+            dogFollowTeapotMode = !dogFollowTeapotMode;
+
+            console.log("Teapot chase mode:", dogFollowTeapotMode);
+
+            if (dogFollowTeapotMode) {
+                this.classList.add("active");
+                this.title = "Stop Teapot Chase";
+
+                dogFetchObjectType = "teapot";
+
+                dogFollowTeapotLastX = 9999.0;
+                dogFollowTeapotLastZ = 9999.0;
+                dogFollowTeapotRepathTimer = 9999.0;
+
+                dogFetchBallMode = false;
+                dogPath = [];
+                dogPathIndex = 0;
+
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                showDogMusicNote = true;
+
+                showGameMessage(
+                    "Teapot chase mode active!\nMove the teapot with the gamepad.",
+                    2600
+                );
+            } else {
+                this.classList.remove("active");
+                this.title = "Teapot Chase";
+
+                if (dogFetchObjectType === "teapot") {
+                    dogFetchObjectType = null;
+                    dogFetchBallMode = false;
+                    dogPath = [];
+                    dogPathIndex = 0;
+                    showDogMusicNote = false;
+                }
+
+                showGameMessage("Teapot chase mode off.", 1600);
+            }
+        };
+    } else {
+        console.log("ButtonTeapotChase not found");
+    }
+
 
     // to toggle side panel
     const toggleSidePanelButton = document.getElementById("ButtonToggleSidePanel");
@@ -1714,6 +1807,14 @@ onload = async function init() {
         updateCanvasCursor();
     });
 
+    /* window.addEventListener("gamepadconnected", function (event) {
+        console.log("GAMEPAD CONNECTED:", event.gamepad.index, event.gamepad.id);
+    });
+
+    window.addEventListener("gamepaddisconnected", function (event) {
+        console.log("GAMEPAD DISCONNECTED:", event.gamepad.index, event.gamepad.id);
+    }); */
+
     window.addEventListener("mouseup", function() {
         isDraggingCamera = false;
 
@@ -1791,28 +1892,40 @@ onload = async function init() {
     //REVIEW - MODIFICA PER TELECAMERA - ZOOM CON SLIDER
 
     canvas.addEventListener("wheel", function(event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    var zoomSpeed = 0.01;
+        var zoomSpeed = 0.01;
 
-    var currentDistance = parseFloat(cameraDistanceSlider.value);
+        var currentDistance = parseFloat(cameraDistanceSlider.value);
 
-    currentDistance += event.deltaY * zoomSpeed;
+        if (isNaN(currentDistance)) {
+            currentDistance = cameraDistance;
+        }
 
-    //var minDistance = 5.0;
-    var minDistance = CAMERA_MIN_DISTANCE;
-    var maxDistance = CAMERA_MAX_DISTANCE;
+        currentDistance += event.deltaY * zoomSpeed;
 
-    //var maxDistance = parseFloat(cameraDistanceSlider.max);
+        currentDistance = clampValue(
+            currentDistance,
+            CAMERA_MIN_DISTANCE,
+            CAMERA_MAX_DISTANCE
+        );
 
-    currentDistance = Math.max(
-        minDistance,
-        Math.min(maxDistance, currentDistance)
-    );
+        cameraDistance = currentDistance;
+        cameraDistanceSlider.value = currentDistance.toFixed(1);
+        cameraDistanceValue.innerHTML = currentDistance.toFixed(1);
 
-    cameraDistanceSlider.value = currentDistance.toFixed(1);
-
-    updateOrbitCameraFromSliders();
+        /*
+            Se sono in dog focus follow/autoAngle, NON rileggo lo slider
+            dell'angolo, perché potrei perdere l'angolo smooth corrente.
+        */
+        if (
+            cameraFocusMode === "dog" &&
+            (cameraDogMode === "follow" || cameraDogMode === "autoAngle")
+        ) {
+            updateOrbitCameraFromCurrentValues();
+        } else {
+            updateOrbitCameraFromSliders();
+        }
 
     }, { passive: false });
 
@@ -2010,7 +2123,59 @@ function getCurrentCameraTarget() {
     );
 }
 
+function updateOrbitCameraFromCurrentValues() {
+    /*
+        Aggiorna eye/at usando i valori già presenti:
+        cameraAngle, cameraHeight, cameraDistance.
+
+        Questa funzione NON rilegge gli slider.
+        Serve per follow dog / auto angle, così la camera resta smooth.
+    */
+
+    if (isNaN(cameraAngle)) {
+        cameraAngle = 35.0;
+    }
+
+    if (isNaN(cameraHeight)) {
+        cameraHeight = 4.0;
+    }
+
+    if (isNaN(cameraDistance)) {
+        cameraDistance = 10.0;
+    }
+
+    cameraDistance = clampValue(
+        cameraDistance,
+        CAMERA_MIN_DISTANCE,
+        CAMERA_MAX_DISTANCE
+    );
+
+    var target = getCurrentCameraTarget();
+
+    var rad = radians(cameraAngle);
+
+    eye = vec3(
+        target[0] + cameraDistance * Math.sin(rad),
+        target[1] + cameraHeight,
+        target[2] + cameraDistance * Math.cos(rad)
+    );
+
+    at = target;
+    up = vec3(0.0, 1.0, 0.0);
+
+    cameraAngleValue.innerHTML = cameraAngle.toFixed(1) + "°";
+    cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
+    cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
+}
 function updateOrbitCameraFromSliders() {
+    cameraAngle = parseFloat(cameraAngleSlider.value);
+    cameraHeight = parseFloat(cameraHeightSlider.value);
+    cameraDistance = parseFloat(cameraDistanceSlider.value);
+
+    updateOrbitCameraFromCurrentValues();
+}
+
+function updateOrbitCameraFromSliders_old() {
     cameraAngle = parseFloat(cameraAngleSlider.value);
     cameraHeight = parseFloat(cameraHeightSlider.value);
     cameraDistance = parseFloat(cameraDistanceSlider.value);
@@ -2262,8 +2427,136 @@ async function loadOBJ(url) {
 }
 
 
-
 function readGamepad() {
+    var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+    var gp = null;
+
+    for (var i = 0; i < gamepads.length; i++) {
+            if (gamepads[i]) {
+                gp = gamepads[i];
+                break;
+            }
+        }
+
+    if (!gp) {
+            return;
+        }
+
+    //console.log("GAMEPAD OK", gp.index, gp.id, gp.axes);
+
+    /*
+        La teapot viene controllata col gamepad solo quando:
+        - è attivo Teapot Chase
+        - oppure è attivo Focus Teapot
+    */
+    var teapotGamepadActive =
+        dogFollowTeapotMode ||
+        teapotFocus;
+    //console.log("teapotGamepadActive:", teapotGamepadActive, "dogFollowTeapotMode:", dogFollowTeapotMode, "teapotFocus:", teapotFocus);
+
+    if (!teapotGamepadActive) {
+        lastButtonA = gp.buttons[0].pressed;
+        return;
+    }
+
+    // -----------------------------
+    // 1) Tasto A -> toggle rotazione automatica
+    // -----------------------------
+    var pressedA = gp.buttons[0].pressed;
+
+    if (pressedA && !lastButtonA) {
+        flag_rot_teapot = !flag_rot_teapot;
+        console.log("Toggle rotation:", flag_rot_teapot);
+    }
+
+    lastButtonA = pressedA;
+
+    // -----------------------------
+    // 2) Stick sinistro -> rotazione teapot
+    // -----------------------------
+    var lx = gp.axes[0];
+    var ly = gp.axes[1];
+
+    if (Math.abs(lx) < 0.15) lx = 0.0;
+    if (Math.abs(ly) < 0.15) ly = 0.0;
+
+    theta[1] += lx * 2.0;   // rotazione Y
+    theta[0] += ly * 2.0;   // rotazione X
+
+    // -----------------------------
+    // 3) Direzioni sul piano X/Z rispetto alla camera attuale
+    // -----------------------------
+    var forwardX = at[0] - eye[0];
+    var forwardZ = at[2] - eye[2];
+
+    var forwardLen = Math.sqrt(
+        forwardX * forwardX +
+        forwardZ * forwardZ
+    );
+
+    if (forwardLen < 0.001) {
+        forwardX = 0.0;
+        forwardZ = -1.0;
+        forwardLen = 1.0;
+    }
+
+    forwardX /= forwardLen;
+    forwardZ /= forwardLen;
+
+    var rightX = -forwardZ;
+    var rightZ = forwardX;
+
+    // -----------------------------
+    // 4) Stick destro -> movimento orizzontale teapot
+    // -----------------------------
+    var rx = gp.axes[2];
+    var ry = gp.axes[3];
+
+    if (Math.abs(rx) < 0.15) rx = 0.0;
+    if (Math.abs(ry) < 0.15) ry = 0.0;
+
+    var moveSpeed = 0.06;
+
+    objPos[0] += rx * moveSpeed * rightX;
+    objPos[2] += rx * moveSpeed * rightZ;
+
+    objPos[0] += -ry * moveSpeed * forwardX;
+    objPos[2] += -ry * moveSpeed * forwardZ;
+
+    // -----------------------------
+    // 5) LT / RT -> altezza teapot
+    // -----------------------------
+    var zOut = gp.buttons[6].value; // LT
+    var zIn  = gp.buttons[7].value; // RT
+
+    objPos[1] += (zIn - zOut) * 0.045;
+
+    if (dogFollowTeapotMode) {
+        var minTeapotY =
+            typeof TEAPOT_CHASE_MIN_Y !== "undefined"
+                ? TEAPOT_CHASE_MIN_Y
+                : -0.7;
+
+        var maxTeapotY =
+            typeof TEAPOT_CHASE_MAX_Y !== "undefined"
+                ? TEAPOT_CHASE_MAX_Y
+                : 1.8;
+
+        objPos[1] = clampValue(
+            objPos[1],
+            minTeapotY,
+            maxTeapotY
+        );
+    }
+
+    // Limiti stanza, così non scappa troppo fuori
+    objPos[0] = clampValue(objPos[0], -6.2, 6.2);
+    objPos[2] = clampValue(objPos[2], -4.6, 7.4);
+}
+
+
+function readGamepad_old() {
     var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     var gp = gamepads[0];
     if (!gp) return;
@@ -2386,7 +2679,8 @@ function render() {
         }
 
         if (cameraDogMode === "follow" || cameraDogMode === "autoAngle") {
-            updateOrbitCameraFromSliders();
+            //updateOrbitCameraFromSliders();
+            updateOrbitCameraFromCurrentValues();
         }
     }
    
@@ -2878,9 +3172,9 @@ function updateDogFocusAutoAngle() {
         0.05
     );
 
-    if (cameraAngleSlider) {
+    /* if (cameraAngleSlider) {
         cameraAngleSlider.value = cameraAngle.toFixed(0);
-    }
+    } */
 }
 
 ///////////////

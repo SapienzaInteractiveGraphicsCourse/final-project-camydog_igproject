@@ -1044,3 +1044,15 @@ body.ui-panel-hidden .canvas-container {
 #ButtonDogCameraMode:active {
     transform: scale(0.97);
 }
+
+.teapot-icon-button img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+}
+
+.teapot-icon-button.active {
+    background: rgba(255, 210, 80, 0.95) !important;
+    box-shadow: 0 0 14px rgba(255, 210, 80, 0.75);
+    transform: translateY(-1px);
+}

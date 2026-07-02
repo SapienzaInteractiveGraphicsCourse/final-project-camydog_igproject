@@ -98,3 +98,4 @@ From PixaBay
 From FlatIcon
 
 yes_audio : https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912
+teapot icon : "https://www.flaticon.com/free-icons/teapot"
