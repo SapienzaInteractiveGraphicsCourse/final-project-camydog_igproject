@@ -45,9 +45,9 @@ body.game-not-started .main-layout {
 }
 
 .start-card {
-    width: 420px;
+    width: 520px;
     max-width: 90vw;
-    padding: 34px 36px;
+    padding: 42px 48px;
     border-radius: 26px;
     background: rgba(255, 255, 255, 0.28);
     border: 1px solid rgba(255, 255, 255, 0.45);
@@ -66,27 +66,28 @@ body.game-not-started .main-layout {
 }
 
 .start-card h1 {
-    margin: 0 0 12px 0;
-    font-size: 34px;
-    letter-spacing: -0.5px;
+    margin: 0 0 14px 0;
+    font-size: 42px;
+    letter-spacing: -0.7px;
 }
 
 .start-card p {
-    margin: 0 0 24px 0;
-    font-size: 15px;
-    line-height: 1.5;
-    color: rgba(30, 30, 30, 0.78);
+    margin: 0 0 28px 0;
+    font-size: 20px;
+    line-height: 1.55;
+    font-weight: 500;
+    color: rgba(30, 30, 30, 0.82);
 }
 
 #ButtonStartGame {
-    min-width: 170px;
-    height: 48px;
+    min-width: 190px;
+    height: 56px;
     background: rgba(255, 34, 126, 0.68);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.45);
-    border-radius: 16px;
-    font-size: 17px;
-    font-weight: 700;
+    border-radius: 18px;
+    font-size: 20px;
+    font-weight: 800;
     cursor: pointer;
     backdrop-filter: blur(14px) saturate(160%);
     -webkit-backdrop-filter: blur(14px) saturate(160%);
@@ -222,7 +223,7 @@ body.game-not-started .main-layout {
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.45);
     color: white;
-    font-size: 13px;
+    font-size: 20px;
     font-weight: 600;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -502,10 +503,10 @@ button:active {
 }
 
 .loading-card {
-    width: 420px;
+    width: 520px;
     max-width: 90vw;
 
-    padding: 34px 36px;
+    padding: 42px 48px;
     border-radius: 26px;
 
     background: rgba(255, 255, 255, 0.30);
@@ -528,19 +529,23 @@ button:active {
 }
 
 .loading-card h1 {
-    margin: 0 0 18px 0;
-    font-size: 30px;
+    margin: 0 0 22px 0;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 .loading-card p {
-    margin: 18px 0 0 0;
-    font-size: 14px;
-    color: rgba(30, 30, 30, 0.72);
+    margin: 22px 0 0 0;
+    font-size: 19px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: rgba(30, 30, 30, 0.82);
 }
 
 .loading-bar {
     width: 100%;
-    height: 14px;
+    height: 18px;
 
     border-radius: 999px;
     overflow: hidden;
@@ -563,6 +568,27 @@ button:active {
     );
 
     animation: loadingFill 1.8s ease-in-out forwards;
+}
+
+.start-card h1,
+.loading-card h1 {
+    margin: 0 0 18px 0 !important;
+    font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 38px !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.6px !important;
+    color: #90027d !important;
+}
+.start-card p,
+.loading-card p {
+    font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 23px !important;
+    line-height: 1.55 !important;
+    font-weight: 600 !important;
+    max-width: 560px;
+    margin: 18px auto 32px auto !important;
+    color: rgba(30, 30, 30, 0.82) !important;
 }
 
 @keyframes loadingFill {
