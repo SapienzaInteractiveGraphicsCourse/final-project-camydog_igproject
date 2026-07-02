@@ -1253,6 +1253,8 @@ onload = async function init() {
             function () {
                  currentScene = "home";
 
+                resetDogForHomeScene();
+
                 updateSceneButtonsVisibility();
 
                 if (musicButton && musicButton.classList.contains("music-on")) {

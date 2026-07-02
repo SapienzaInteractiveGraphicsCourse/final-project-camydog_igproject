@@ -832,3 +832,71 @@ function showGameMessage(messageText, duration) {
         msg.style.transform = "translateX(-50%) translateY(20px)";
     }, duration);
 }
+
+function resetDogForHomeScene() {
+    /*
+        Quando torno dal parco alla casa, non devo conservare
+        la posizione del cane nel parco, perché in casa potrebbe
+        coincidere con tavolo / oggetti / pareti.
+    */
+
+    // Ferma eventuali movimenti attivi
+    dogFetchBallMode = false;
+    dogPath = [];
+    dogPathIndex = 0;
+    dogFetchTarget = null;
+
+    dogCallMode = false;
+    dogCallPath = [];
+    dogCallPathIndex = 0;
+    callDogClickMode = false;
+
+    // Reset stati fetch / gioco
+    dogHasBall = false;
+    dogHasFrisbee = false;
+    dogReturningWithFrisbee = false;
+    dogFetchObjectType = null;
+
+    skinnedDogAlreadyTargeted = false;
+
+    // Reset animazioni speciali
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogLieDownActive = false;
+    dogLieDownAmount = 0.0;
+
+    showDogMusicNote = false;
+    dogHappySoundPlayed = false;
+
+    // Reset frisbee, se esiste la funzione che abbiamo aggiunto prima
+    if (typeof stopDogFrisbeeFetch === "function") {
+        stopDogFrisbeeFetch();
+    }
+
+    frisbeeFlying = false;
+    frisbeeLanded = false;
+    frisbeeReturnedAndWaiting = false;
+    frisbeeAlreadyTargeted = false;
+    frisbeeAttachedToHand = false;
+    frisbeeThrowMode = false;
+
+    // Posizione sicura in casa, lontana dal tavolo
+    dogFetchX = -3.2;
+    dogFetchZ = 4.0;
+
+    // Orientamento iniziale comodo
+    dogCurrentAngle = 90.0;
+
+    // Target neutro davanti al cane, così non guarda vecchi target del parco
+    dogLookAtBallX = dogFetchX + 1.0;
+    dogLookAtBallZ = dogFetchZ;
+
+    dogFetchTarget = {
+        x: dogLookAtBallX,
+        z: dogLookAtBallZ
+    };
+}
