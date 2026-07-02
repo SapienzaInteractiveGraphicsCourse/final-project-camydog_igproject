@@ -964,3 +964,12 @@ body.ui-panel-hidden .canvas-container {
     max-width: none !important;
     margin-left: 0 !important;
 }
+
+
+.camera-focus-active {
+    background: rgba(255, 210, 80, 0.95) !important;
+    color: #2b1b00 !important;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(255, 210, 80, 0.65);
+    transform: translateY(-1px);
+}

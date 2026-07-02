@@ -1306,7 +1306,7 @@ onload = async function init() {
 
                 
 
-                // importante: dopo reset, la palla deve essere libera
+                // important: after reset, the ball must be free
                 dogHasBall = false;
                
                 skinnedDogAlreadyTargeted = false;
@@ -1326,7 +1326,7 @@ onload = async function init() {
             }
     };
 
-    // settings bottoni + sliders
+    // settings buttons + sliders
 
     var buttonResetCamera = document.getElementById("ButtonResetCamera");
 
@@ -1342,6 +1342,15 @@ onload = async function init() {
             focusCurtainCamera();
         };
     }
+
+    var buttonFocusDog = document.getElementById("ButtonFocusDog");
+
+    if (buttonFocusDog) {
+        buttonFocusDog.onclick = function () {
+            focusDogCamera();
+        };
+    }
+
     var buttonCollision = document.getElementById("ButtonCollision");
 
     if (buttonCollision) {
@@ -1401,6 +1410,17 @@ onload = async function init() {
         teapotFocus = !teapotFocus;
 
         this.textContent = teapotFocus ? "Exit Teapot Focus" : "Focus Teapot";
+        if (teapotFocus) {
+
+            setCameraFocusButtonActive("ButtonTeapotFocus");
+             showGameMessage(
+                "Teapot focus active!\nClick Reset Camera to exit focus mode.",
+                2600
+            );
+
+        } else {
+            setCameraFocusButtonActive(null);
+        }
     };
     document.getElementById("ButtonCatMove").onclick = function () {
         moveCat = !moveCat;
@@ -2485,6 +2505,28 @@ function clampTeapotToTable() {
     }
 }
 
+function setCameraFocusButtonActive(activeButtonId) {
+    var focusButtons = [
+        "ButtonFocusDog",
+        "ButtonFocusCurtain",
+        "ButtonTeapotFocus"
+    ];
+
+    for (var i = 0; i < focusButtons.length; i++) {
+        var button = document.getElementById(focusButtons[i]);
+
+        if (!button) {
+            continue;
+        }
+
+        if (focusButtons[i] === activeButtonId) {
+            button.classList.add("camera-focus-active");
+        } else {
+            button.classList.remove("camera-focus-active");
+        }
+    }
+}
+
 
 function resetCameraView() {
     cameraTarget = vec3(0.0, 0.5, 0.0);
@@ -2499,6 +2541,8 @@ function resetCameraView() {
     if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
 
     updateOrbitCameraFromSliders();
+    setCameraFocusButtonActive(null);
+    showGameMessage("Camera reset.", 1400);
 }
 
 
@@ -2521,7 +2565,139 @@ function focusCurtainCamera() {
     if (cameraDistanceSlider) cameraDistanceSlider.value = cameraDistance;
 
     updateOrbitCameraFromSliders();
+    setCameraFocusButtonActive("ButtonFocusCurtain");
+    showGameMessage(
+        "Curtain focus active!\nClick Reset Camera to exit focus mode.",
+        2600
+    );
 }
+
+///////////////////////
+function focusDogCamera() {
+    /*
+        Camera focus sul cane.
+        Se il cane è vicino alle pareti della home, scelgo automaticamente
+        un angolo più sicuro, così la camera non finisce dietro ai muri.
+    */
+
+    cameraTarget = vec3(
+        dogFetchX,
+        -0.6,
+        dogFetchZ
+    );
+
+    if (currentScene === "home") {
+        /*
+            Soglie approssimative della stanza.
+            Il cane vicino alla parete destra, sinistra, davanti o dietro
+            richiede una camera più vicina e orientata dall'interno.
+        */
+        var nearRightWall = dogFetchX > 4.2;
+        var nearLeftWall  = dogFetchX < -4.2;
+        var nearFrontWall = dogFetchZ > 4.2;
+        var nearBackWall  = dogFetchZ < -4.2;
+
+        var dogNearWall =
+            nearRightWall ||
+            nearLeftWall ||
+            nearFrontWall ||
+            nearBackWall;
+
+        if (nearRightWall) {
+            // Parete destra: camera verso il centro della stanza
+            cameraAngle = 270.0;
+        } else if (nearLeftWall) {
+            // Parete sinistra: camera verso il centro
+            cameraAngle = 90.0;
+        } else if (nearFrontWall) {
+            // Parete davanti: camera più indietro
+            cameraAngle = 180.0;
+        } else if (nearBackWall) {
+            // Parete dietro: camera più avanti
+            cameraAngle = 0.0;
+        } else {
+            cameraAngle = 35.0;
+        }
+
+        cameraHeight = dogNearWall ? 0.9 : 1.2;
+        cameraDistance = dogNearWall ? 2.0 : 5.0;
+        cameraFov = dogNearWall ? 62.0 : 52.0;
+    } else {
+        // Nel parco non ci sono pareti vicine, quindi resta più libera
+        cameraAngle = 35.0;
+        cameraHeight = 1.6;
+        cameraDistance = 6.0;
+        cameraFov = 55.0;
+    }
+
+    if (cameraAngleSlider) {
+        cameraAngleSlider.value = cameraAngle;
+    }
+
+    if (cameraHeightSlider) {
+        cameraHeightSlider.value = cameraHeight;
+    }
+
+    if (cameraDistanceSlider) {
+        cameraDistanceSlider.value = cameraDistance;
+    }
+
+    updateOrbitCameraFromSliders();
+
+    setCameraFocusButtonActive("ButtonFocusDog");
+
+    showGameMessage(
+        "Dog focus active!\nClick Reset Camera to exit focus mode.",
+        2600
+    );
+}
+
+function focusDogCamera_old() {
+    /*
+        Camera focus sul cane.
+        Il target diventa la posizione attuale del cane,
+        quindi la rotazione degli slider avviene intorno al cane
+        e non più intorno al centro della stanza.
+    */
+
+    cameraTarget = vec3(
+        dogFetchX,
+        -0.6,
+        dogFetchZ
+    );
+
+    if (currentScene === "home") {
+        cameraAngle = 35.0;
+        cameraHeight = 1.2;
+        cameraDistance = 5.0;
+        cameraFov = 52.0;
+    } else {
+        cameraAngle = 35.0;
+        cameraHeight = 1.6;
+        cameraDistance = 6.0;
+        cameraFov = 55.0;
+    }
+
+    if (cameraAngleSlider) {
+        cameraAngleSlider.value = cameraAngle;
+    }
+
+    if (cameraHeightSlider) {
+        cameraHeightSlider.value = cameraHeight;
+    }
+
+    if (cameraDistanceSlider) {
+        cameraDistanceSlider.value = cameraDistance;
+    }
+
+    updateOrbitCameraFromSliders();
+    setCameraFocusButtonActive("ButtonFocusDog");
+        showGameMessage(
+        "Dog focus active!\nClick Reset Camera to exit focus mode.",
+        2600
+    );
+}
+////////////////////////
 
 
 function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) {
