@@ -91,6 +91,57 @@ function isInsideTableAvoidZone(x, z) {
     );
 }
 
+function getSafeDogBodyTargetForFetch(objectX, objectZ, stopOffset) {
+    /*
+        Calcola un punto dove il corpo del cane può fermarsi
+        per prendere palla/frisbee.
+
+        Importante:
+        il punto del corpo NON deve finire dentro la zona del tavolo,
+        altrimenti il cane si blocca sul bordo.
+    */
+
+    var dx = objectX - dogFetchX;
+    var dz = objectZ - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var bodyTargetX = objectX;
+    var bodyTargetZ = objectZ;
+
+    if (dist > 0.001) {
+        bodyTargetX = objectX - (dx / dist) * stopOffset;
+        bodyTargetZ = objectZ - (dz / dist) * stopOffset;
+    }
+
+    if (currentScene === "home") {
+        /*
+            Se il punto scelto cade dentro/vicino al tavolo,
+            lo sposto automaticamente sul bordo sicuro.
+        */
+        var safeBodyTarget = getReachableBallTarget(
+            bodyTargetX,
+            bodyTargetZ
+        );
+
+        safeBodyTarget = clampDogTargetToRoom(
+            safeBodyTarget.x,
+            safeBodyTarget.z
+        );
+
+        return safeBodyTarget;
+    }
+
+    /*
+        Nel parco evito gli ostacoli del parco.
+    */
+    return keepDogOutsideParkObstacles(
+        bodyTargetX,
+        bodyTargetZ
+    );
+}
+
+
 function getReachableBallTarget(ballX, ballZ) {
     var r = getTableAvoidRect();
 
@@ -1638,7 +1689,7 @@ function startSkinnedDogFetchBall() {
     // target sicuro rispetto alle pareti
     safeTarget = clampDogTargetToRoom(safeTarget.x, safeTarget.z);
 
-    // il corpo non deve arrivare esattamente sulla palla
+    /* // il corpo non deve arrivare esattamente sulla palla
     var dx = safeTarget.x - dogFetchX;
     var dz = safeTarget.z - dogFetchZ;
     var dist = Math.sqrt(dx * dx + dz * dz);
@@ -1654,7 +1705,20 @@ function startSkinnedDogFetchBall() {
     }
 
     // riclampiamo anche il target del corpo
-    var clampedBodyTarget = clampDogTargetToRoom(bodyTargetX, bodyTargetZ);
+    var clampedBodyTarget = clampDogTargetToRoom(bodyTargetX, bodyTargetZ); */
+        /*
+        Il corpo non deve arrivare esattamente sopra la palla.
+        Però il punto di stop non deve nemmeno finire dentro il tavolo.
+    */
+    var bodyStopOffset = 0.85;
+
+    var clampedBodyTarget = getSafeDogBodyTargetForFetch(
+        safeTarget.x,
+        safeTarget.z,
+        bodyStopOffset
+    );
+
+
 
     dogPath = computeDogPathToBall(
         dogFetchX,
@@ -1942,6 +2006,67 @@ function updateSkinnedDogFetchBall(deltaTime) {
                         console.log(
                             "Frisbee too far, moving closer:",
                             distToFrisbee,
+                            dogPath
+                        );
+
+                        return;
+                    }
+                }
+                else if (dogFetchObjectType === "ball" && !dogHasBall) {
+                    var bx = dogLookAtBallX - dogFetchX;
+                    var bz = dogLookAtBallZ - dogFetchZ;
+
+                    var distToBall = Math.sqrt(bx * bx + bz * bz);
+
+                    var ballPickupDistance = 0.95;
+
+                    if (distToBall > ballPickupDistance) {
+                        /*
+                            Il cane è arrivato al primo punto sicuro,
+                            ma la palla è ancora lontana.
+                            Succede soprattutto quando la palla è
+                            dall'altra parte del tavolo.
+                        */
+
+                        var closerStopOffset = 0.45;
+
+                        var correctedCloserTarget =
+                            getSafeDogBodyTargetForFetch(
+                                dogLookAtBallX,
+                                dogLookAtBallZ,
+                                closerStopOffset
+                            );
+
+                        if (currentScene === "home") {
+                            dogPath = computeDogPathToBall(
+                                dogFetchX,
+                                dogFetchZ,
+                                correctedCloserTarget.x,
+                                correctedCloserTarget.z
+                            );
+                        } else {
+                            dogPath = computeDogPathAroundBench(
+                                dogFetchX,
+                                dogFetchZ,
+                                correctedCloserTarget.x,
+                                correctedCloserTarget.z
+                            );
+                        }
+
+                        dogPathIndex = 0;
+                        dogFetchBallMode = true;
+
+                        dogFetchLoweringActive = false;
+                        dogFetchLowerAmount = 0.0;
+
+                        dogFetchTarget = {
+                            x: dogLookAtBallX,
+                            z: dogLookAtBallZ
+                        };
+
+                        console.log(
+                            "Ball still far, moving closer:",
+                            distToBall,
                             dogPath
                         );
 
