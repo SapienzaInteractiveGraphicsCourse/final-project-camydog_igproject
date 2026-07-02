@@ -3,7 +3,7 @@ var ENABLE_START_SCREEN = false;
 var ENABLE_LOADING_SCREEN = false;
 
 //current Scene either "home" or "park"
-var currentScene = "park"; 
+var currentScene = "home"; 
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 
