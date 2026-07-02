@@ -889,3 +889,78 @@ button:active {
     object-fit: contain;
     pointer-events: none;
 }
+
+/* =========================================================
+   Linguetta pannello laterale sinistro
+   ========================================================= */
+
+:root {
+    --top-bar-height: 92px;
+    --main-layout-padding: 12px;
+    --side-panel-width: 300px;
+    --side-toggle-width: 34px;
+}
+
+/* Freccia attaccata al bordo destro del pannello */
+.toggle-side-panel-button {
+    position: fixed;
+
+    top: calc(var(--top-bar-height) + (100vh - var(--top-bar-height)) / 2);
+    left: calc(var(--main-layout-padding) + var(--side-panel-width));
+
+    transform: translateY(-50%);
+
+    z-index: 10000;
+
+    width: var(--side-toggle-width);
+    height: 74px;
+
+    padding: 0;
+    border: none;
+    border-radius: 0 14px 14px 0;
+
+    background: rgba(240, 219, 219, 0.82);
+    color: rgb(200, 50, 50);
+
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.22);
+    transition:
+        left 0.25s ease,
+        background 0.15s ease,
+        transform 0.12s ease;
+}
+
+.toggle-side-panel-button:hover {
+    background: rgba(246, 246, 246, 0.92);
+}
+
+/* Nella schermata iniziale non si vede */
+body.game-not-started .toggle-side-panel-button {
+    display: none;
+}
+
+/* Quando il pannello è nascosto, la linguetta resta sul bordo sinistro */
+body.ui-panel-hidden .toggle-side-panel-button {
+    left: 0;
+}
+
+/* Nasconde il pannello laterale */
+body.ui-panel-hidden .controls-panel {
+    display: none !important;
+}
+
+/* Il canvas si prende tutto lo spazio */
+body.ui-panel-hidden .canvas-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+}

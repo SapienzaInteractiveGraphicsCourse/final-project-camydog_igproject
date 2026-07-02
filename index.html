@@ -152,6 +152,10 @@
 
             </div>
     </div>
+     <!-- end of top-control-bar -->
+    <button id="ButtonToggleSidePanel" class="toggle-side-panel-button" title="Hide controls">
+        ‹
+    </button>
   
     <div class="main-layout">
 
@@ -1013,54 +1017,71 @@ void main(){
 
     // Per gli oggetti normali
     else if (wallShadowMode == 0 || wallShadowMode == 5 || wallShadowMode == 6) {
-    
-        //baseColor = useTexture
-        //    ? texColor * fColor
-        //    : fColor;
-        vec3 objectBaseColor = useTexture
-            ? texColor.rgb
-            : vec3(1.0);
-
-        vec3 normalColor =
-            objectBaseColor * uAmbientStrength
-            + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint;
-
-        baseColor = vec4(normalColor, 1.0);
-
-
-        if (wallShadowMode == 6) {
-            vec3 N = normalize(fWorldNormal);
-            vec3 lightDir = normalize(lightPosition.xyz - fWorldPos);
+            vec3 objectBaseColor = useTexture
+                ? texColor.rgb
+                : vec3(1.0);
 
             /*
-                Half-Lambert lighting:
-                invece di andare da 0 a 1,
-                lo porto in un range più morbido.
-                Così il retro non diventa nero.
+                wallShadowMode == 6
+                Grass / ciuffetti del parco.
+                NON lo tocchiamo.
             */
-            float ndotl = dot(N, lightDir);
-            float directLight = clamp(ndotl * 0.5 + 0.5, 0.0, 1.0);
+            if (wallShadowMode == 6) {
+                vec3 N = normalize(fWorldNormal);
+                vec3 lightDir = normalize(lightPosition.xyz - fWorldPos);
+
+                float ndotl = dot(N, lightDir);
+                float directLight = clamp(ndotl * 0.5 + 0.5, 0.0, 1.0);
+
+                directLight = mix(0.35, 1.0, directLight);
+
+                vec3 grassColor =
+                    objectBaseColor * (uAmbientStrength * 0.85)
+                    + objectBaseColor * directLight * uLightIntensity * uLightTint;
+
+                baseColor = vec4(grassColor, texColor.a);
+            }
 
             /*
-                Luce minima sui ciuffetti.
-                0.45 = lato non illuminato ancora visibile.
-                1.0 = lato illuminato.
+                wallShadowMode == 5
+                Pavimento della home.
+                Qui riduciamo la luce diretta quando il sole è fuori dalla stanza.
             */
-            directLight = mix(0.35, 1.0, directLight);
+            else if (wallShadowMode == 5) {
+                bool lightOutsideRoomForFloor =
+                    lightPosition.x < -8.0 ||
+                    lightPosition.x >  8.0 ||
+                    lightPosition.z < -10.0 ||
+                    lightPosition.z >  10.0;
 
-            vec3 grassColor =
-                objectBaseColor * (uAmbientStrength * 0.85)
-                + objectBaseColor * directLight * uLightIntensity * uLightTint;
+                float floorAmbientStrength = uAmbientStrength;
+                float floorDirectStrength = 1.0;
 
-            baseColor = vec4(grassColor, texColor.a);
-        }
-        else {
+                if (lightOutsideRoomForFloor) {
+                    floorAmbientStrength = uAmbientStrength * 0.88;
+                    floorDirectStrength = 0.10;
+                }
+
+                vec3 floorColor =
+                    objectBaseColor * floorAmbientStrength
+                    + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint * floorDirectStrength;
+
+                baseColor = vec4(floorColor, 1.0);
+            }
+
+            /*
+                wallShadowMode == 0
+                Oggetti normali.
+                Restano identici a prima.
+            */
+            else {
                 vec3 normalColor =
                     objectBaseColor * uAmbientStrength
                     + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint;
 
                 baseColor = vec4(normalColor, 1.0);
-        }
+            }
+        
 
     }
     else {
@@ -1137,11 +1158,44 @@ void main(){
        /* vec3 wallColor =
             wallBaseColor * (0.18 + 0.82 * wallDiffuse); */
 
-       vec3 wallColor =
+       /*vec3 wallColor =
             wallBaseColor * uAmbientStrength
-            + wallBaseColor * wallDiffuse * uLightIntensity * uLightTint;
+            + wallBaseColor * wallDiffuse * uLightIntensity * uLightTint; 
+            
+        baseColor = vec4(wallColor, 1.0);
+            
+        */
+
+        // MODIFICA PER OMBRE PARETI
+        
+        /*
+            Se il sole è fuori dalla stanza, la luce diretta
+            NON deve entrare attraverso i muri.
+        */
+        bool lightOutsideRoom =
+            lightPosition.x < -8.0 ||
+            lightPosition.x >  8.0 ||
+            lightPosition.z < -10.0 ||
+            lightPosition.z >  15.0;
+
+        float wallAmbientStrength = uAmbientStrength;
+        float wallDirectStrength = wallDiffuse;
+
+        if (lightOutsideRoom) {
+            /*
+                Niente direct light sulle pareti interne.
+                Resta solo ambient, così non diventa tutto nero totale.
+            */
+            wallDirectStrength = 0.4;
+            wallAmbientStrength = uAmbientStrength * 0.82;
+        }
+
+        vec3 wallColor =
+            wallBaseColor * wallAmbientStrength
+            + wallBaseColor * wallDirectStrength * uLightIntensity * uLightTint;
 
         baseColor = vec4(wallColor, 1.0);
+                
 
 
 
@@ -1562,8 +1616,9 @@ float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
             0.0012
         );
 
+    // MODIFICA PER PARCO NOTTE //0.55
     return currentDepth > closestDepth + bias
-        ? 0.55
+        ? 0.78
         : 1.0;
 }
 
@@ -1574,10 +1629,12 @@ void main()
 
     float ndotl = dot(N, L);
 
-    if (ndotl <= 0.0) {
+    //MODIFICA PARCO NOTTE 
+    /* if (ndotl <= 0.0) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
+    */
 
     //modifica per ombre
     //float diff = ndotl;
@@ -1602,7 +1659,28 @@ void main()
         shadow = computePointShadowForDog(fWorldPos, fWorldNormal);
     }
 
-    gl_FragColor = vec4((ambient + diffuse) * shadow, 1.0);
+    //gl_FragColor = vec4((ambient + diffuse) * shadow, 1.0);
+
+    //MODIFICA PER NOTTE PARCO
+     /*
+        La shadow deve scurire la luce diretta,
+        ma NON deve spegnere completamente il cane.
+    */
+    vec3 finalColor =
+        ambient + diffuse * shadow;
+
+    /*
+        Nel parco di notte il cane deve restare leggibile.
+        Uso uAmbientStrength > 0.50 perché nel parco notte
+        lo abbiamo alzato, mentre a casa resta più basso.
+    */
+    if (uAmbientStrength > 0.50) {
+        finalColor += baseColor * 0.12;
+    }
+
+    finalColor = clamp(finalColor, 0.0, 1.0);
+
+    gl_FragColor = vec4(finalColor, 1.0);
 }
 </script>
 
