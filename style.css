@@ -921,9 +921,9 @@ button:active {
    ========================================================= */
 
 :root {
-    --top-bar-height: 92px;
-    --main-layout-padding: 12px;
-    --side-panel-width: 300px;
+    --top-bar-height: 90px;
+    --main-layout-padding: 0px;
+    --side-panel-width: 320px;
     --side-toggle-width: 34px;
 }
 
@@ -936,7 +936,7 @@ button:active {
 
     transform: translateY(-50%);
 
-    z-index: 10000;
+    z-index: 20000;
 
     width: var(--side-toggle-width);
     height: 74px;
@@ -957,8 +957,12 @@ button:active {
     justify-content: center;
 
     cursor: pointer;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: manipulation;
 
     box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.22);
+
     transition:
         left 0.25s ease,
         background 0.15s ease,
@@ -969,6 +973,10 @@ button:active {
     background: rgba(246, 246, 246, 0.92);
 }
 
+.toggle-side-panel-button:active {
+    transform: translateY(-50%) scale(0.96);
+}
+
 /* Nella schermata iniziale non si vede */
 body.game-not-started .toggle-side-panel-button {
     display: none;
@@ -977,6 +985,7 @@ body.game-not-started .toggle-side-panel-button {
 /* Quando il pannello è nascosto, la linguetta resta sul bordo sinistro */
 body.ui-panel-hidden .toggle-side-panel-button {
     left: 0;
+    border-radius: 0 14px 14px 0;
 }
 
 /* Nasconde il pannello laterale */
@@ -992,6 +1001,9 @@ body.ui-panel-hidden .canvas-container {
 }
 
 
+
+/************************/
+
 .camera-focus-active {
     background: rgba(255, 210, 80, 0.95) !important;
     color: #2b1b00 !important;
@@ -999,6 +1011,8 @@ body.ui-panel-hidden .canvas-container {
     box-shadow: 0 0 12px rgba(255, 210, 80, 0.65);
     transform: translateY(-1px);
 }
+
+/****************************/
 
 #ButtonDogCameraMode {
     display: none;
@@ -1055,4 +1069,30 @@ body.ui-panel-hidden .canvas-container {
     background: rgba(255, 210, 80, 0.95) !important;
     box-shadow: 0 0 14px rgba(255, 210, 80, 0.75);
     transform: translateY(-1px);
+}
+
+
+/* MESSAGE FOR MOBILE USERS */
+.device-warning {
+    margin: 18px auto 0 auto;
+    padding-top: 14px;
+    max-width: 420px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 500;
+    text-align: center;
+
+    color: rgba(55, 55, 65, 0.72);
+
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Hidden some buttons while developing */
+#ButtonCatMove,
+#ButtonBounceBall {
+    display: none !important;
 }

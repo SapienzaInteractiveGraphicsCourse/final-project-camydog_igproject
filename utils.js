@@ -62,6 +62,23 @@ function ensureLightMatricesExist() {
         }
     }
 }
+///////////////////////
+function updateSidePanelToggleButton() {
+        var panelHidden = document.body.classList.contains("ui-panel-hidden");
+
+        toggleSidePanelButton.textContent = panelHidden ? "›" : "‹";
+        toggleSidePanelButton.title = panelHidden ? "Show controls" : "Hide controls";
+    }
+
+    function toggleSidePanel(event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        document.body.classList.toggle("ui-panel-hidden");
+        updateSidePanelToggleButton();
+    }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 

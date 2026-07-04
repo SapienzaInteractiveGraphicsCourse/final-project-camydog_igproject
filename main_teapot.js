@@ -1184,6 +1184,11 @@ onload = async function init() {
     document.getElementById("ButtonGoOut").onclick = function () {
 
              if (currentScene === "park") {
+                showGameMessage(
+                    "You are already at the park!",
+                    2200
+                );
+   
                 return;
             }
 
@@ -1225,6 +1230,11 @@ onload = async function init() {
     document.getElementById("ButtonGoHome").onclick = function () {
           
         if (currentScene === "home") {
+                showGameMessage(
+                    "You are already at home!",
+                    2200
+                );
+      
                 return;
         }
 
@@ -1521,20 +1531,16 @@ onload = async function init() {
     }
 
 
-    // to toggle side panel
-    const toggleSidePanelButton = document.getElementById("ButtonToggleSidePanel");
+    // to toggle side panel( left menu) visibility
+    toggleSidePanelButton = document.getElementById("ButtonToggleSidePanel");
 
-    toggleSidePanelButton.addEventListener("click", function () {
-        document.body.classList.toggle("ui-panel-hidden");
-
-        if (document.body.classList.contains("ui-panel-hidden")) {
-            toggleSidePanelButton.textContent = "›";
-            toggleSidePanelButton.title = "Show controls";
-        } else {
-            toggleSidePanelButton.textContent = "‹";
-            toggleSidePanelButton.title = "Hide controls";
-        }
+    toggleSidePanelButton.addEventListener("pointerdown", toggleSidePanel);
+    toggleSidePanelButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
     });
+
+
     document.getElementById("ButtonTeapotFocus").onclick = function () {
         teapotFocus = !teapotFocus;
 

@@ -1,6 +1,6 @@
 // variable to enable start screen
-var ENABLE_START_SCREEN = false; 
-var ENABLE_LOADING_SCREEN = false;
+var ENABLE_START_SCREEN = true; 
+var ENABLE_LOADING_SCREEN = true;
 
 //current Scene either "home" or "park"
 var currentScene = "home"; 
@@ -469,6 +469,8 @@ var kibbleVisualYOffset = 0.005;
 var foodButton;
 
 var currentWind;
+
+var toggleSidePanelButton;
 
 //****************************************************** */
 //             Colliders        Table                          */
