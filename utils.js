@@ -62,6 +62,32 @@ function ensureLightMatricesExist() {
         }
     }
 }
+///////////////////////////////
+function updateTeapotControlsLegend() {
+    var legend = document.getElementById("TeapotControlsLegend");
+
+    if (!legend) {
+        return;
+    }
+
+    if (dogFollowTeapotMode) {
+        legend.classList.remove("hidden");
+
+        /*
+            Richiamo visivo quando si attiva Teapot Chase.
+            Rimuovo e riaggiungo la classe per far ripartire l'animazione
+            anche se l'utente riattiva la modalità più volte.
+        */
+        legend.classList.remove("attention");
+
+        void legend.offsetWidth;
+
+        legend.classList.add("attention");
+    } else {
+        legend.classList.add("hidden");
+        legend.classList.remove("attention");
+    }
+}
 ///////////////////////
 function updateSidePanelToggleButton() {
         var panelHidden = document.body.classList.contains("ui-panel-hidden");
@@ -340,6 +366,17 @@ function updateSceneButtonsVisibility() {
     var rotationSettingsPanel = document.getElementById("RotationSettingsPanel");
     var catMoveButton = document.getElementById("ButtonCatMove");
 
+    var teapotChaseButton = document.getElementById("ButtonTeapotChase");
+
+    if (teapotChaseButton) {
+        if (currentScene === "home") {
+            teapotChaseButton.style.display = "flex";
+        } else {
+            teapotChaseButton.style.display = "none";
+            teapotChaseButton.classList.remove("active");
+        }
+    }
+
     if (waterButton) {
         waterButton.style.display = isHome ? "flex" : "none";
     }
@@ -382,6 +419,77 @@ function updateSceneButtonsVisibility() {
     if( catMoveButton){
         catMoveButton.style.display = isHome ? "flex" : "none";
     }
+}
+
+/////////////////
+function pointInsideExpandedTableArea(x, z) {
+    return (
+        x > TEAPOT_TABLE_MIN_X - TEAPOT_TABLE_AVOID_MARGIN &&
+        x < TEAPOT_TABLE_MAX_X + TEAPOT_TABLE_AVOID_MARGIN &&
+        z > TEAPOT_TABLE_MIN_Z - TEAPOT_TABLE_AVOID_MARGIN &&
+        z < TEAPOT_TABLE_MAX_Z + TEAPOT_TABLE_AVOID_MARGIN
+    );
+}
+
+function segmentCrossesExpandedTableArea(x1, z1, x2, z2) {
+    var steps = 24;
+
+    for (var i = 0; i <= steps; i++) {
+        var t = i / steps;
+
+        var x = x1 + (x2 - x1) * t;
+        var z = z1 + (z2 - z1) * t;
+
+        if (pointInsideExpandedTableArea(x, z)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function getSafeTeapotChaseTarget(targetX, targetZ) {
+    /*
+        Se il percorso cane -> teapot attraversa il tavolo,
+        mando prima il cane a un lato del tavolo.
+    */
+
+    if (!segmentCrossesExpandedTableArea(dogFetchX, dogFetchZ, targetX, targetZ)) {
+        return {
+            x: targetX,
+            z: targetZ
+        };
+    }
+
+    var leftSideX = TEAPOT_TABLE_MIN_X - TEAPOT_TABLE_AVOID_MARGIN;
+    var rightSideX = TEAPOT_TABLE_MAX_X + TEAPOT_TABLE_AVOID_MARGIN;
+
+    var distanceViaLeft =
+        Math.abs(dogFetchX - leftSideX) +
+        Math.abs(targetX - leftSideX);
+
+    var distanceViaRight =
+        Math.abs(dogFetchX - rightSideX) +
+        Math.abs(targetX - rightSideX);
+
+    var sideX;
+
+    if (distanceViaLeft < distanceViaRight) {
+        sideX = leftSideX;
+    } else {
+        sideX = rightSideX;
+    }
+
+    /*
+        Prima vado lateralmente fuori dal tavolo.
+        Uso una z intermedia così non punta subito dietro al tavolo.
+    */
+    var sideZ = dogFetchZ + (targetZ - dogFetchZ) * 0.35;
+
+    return {
+        x: sideX,
+        z: sideZ
+    };
 }
 ///////////////////////////////////////
 function isBallMinigameBusyForTeapot() {

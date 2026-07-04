@@ -323,8 +323,35 @@ function segmentIntersectsTableAvoidZone(x1, z1, x2, z2) {
 
     // Fallback: se qualcosa va storto, almeno prova ad andare al target
     if (!bestPath) {
+        var distFront =
+            Math.abs(startZ - frontZ) +
+            Math.abs(targetZ - frontZ);
+
+        var distBack =
+            Math.abs(startZ - backZ) +
+            Math.abs(targetZ - backZ);
+
+        var sideZ;
+
+        if (distFront < distBack) {
+            sideZ = frontZ;
+        } else {
+            sideZ = backZ;
+        }
+
+        var p1 = keepDogOutsideTable(startX, sideZ);
+        p1 = clampDogTargetToRoom(p1.x, p1.z);
+
+        var p2 = keepDogOutsideTable(targetX, sideZ);
+        p2 = clampDogTargetToRoom(p2.x, p2.z);
+
+        var p3 = keepDogOutsideTable(targetX, targetZ);
+        p3 = clampDogTargetToRoom(p3.x, p3.z);
+
         return [
-            { x: targetX, z: targetZ }
+            { x: p1.x, z: p1.z },
+            { x: p2.x, z: p2.z },
+            { x: p3.x, z: p3.z }
         ];
     }
 
@@ -1117,10 +1144,14 @@ function computeDogPathAroundBowl(startX, startZ, targetX, targetZ) {
     ];
 }
 
+
 function computeDogPathToTeapot(startX, startZ, targetX, targetZ) {
     /*
-        Prima evito il tavolo usando la logica già esistente,
-        poi controllo anche la bowl.
+        Path dedicato alla Teapot Chase.
+
+        Creo percorsi larghi attorno al tavolo e scelgo quello più corto
+        tra: davanti, dietro, sinistra, destra.
+        Il cane non deve mai puntare direttamente attraverso il tavolo.
     */
 
     var safeTarget = keepDogOutsideTeapotChaseObstacles(
@@ -1128,44 +1159,265 @@ function computeDogPathToTeapot(startX, startZ, targetX, targetZ) {
         targetZ
     );
 
-    var tablePath = computeDogPathToBall(
-        startX,
-        startZ,
-        safeTarget.x,
-        safeTarget.z
-    );
-
-    var finalPath = [];
-
-    var currentX = startX;
-    var currentZ = startZ;
-
-    for (var i = 0; i < tablePath.length; i++) {
-        var point = keepDogOutsideTeapotChaseObstacles(
-            tablePath[i].x,
-            tablePath[i].z
+    if (typeof pushTeapotTargetAwayFromTable === "function") {
+        safeTarget = pushTeapotTargetAwayFromTable(
+            safeTarget.x,
+            safeTarget.z
         );
+    }
 
-        var bowlPath = computeDogPathAroundBowl(
-            currentX,
-            currentZ,
-            point.x,
-            point.z
-        );
+    /*
+        Se il percorso diretto non attraversa il tavolo,
+        può andare direttamente.
+    */
+    if (
+        !segmentIntersectsTableAvoidZone(
+            startX,
+            startZ,
+            safeTarget.x,
+            safeTarget.z
+        )
+    ) {
+        return [
+            {
+                x: safeTarget.x,
+                z: safeTarget.z
+            }
+        ];
+    }
 
-        for (var j = 0; j < bowlPath.length; j++) {
-            finalPath.push(bowlPath[j]);
+    var r = getTableAvoidRect();
+
+    var extra =
+        typeof DOG_TEAPOT_PATH_EXTRA !== "undefined"
+            ? DOG_TEAPOT_PATH_EXTRA
+            : 1.65;
+
+    var frontZ = r.maxZ + extra;
+    var backZ  = r.minZ - extra;
+    var leftX  = r.minX - extra;
+    var rightX = r.maxX + extra;
+
+    var candidates = [
+        // giro davanti al tavolo
+        [
+            { x: startX,       z: frontZ },
+            { x: safeTarget.x, z: frontZ },
+            { x: safeTarget.x, z: safeTarget.z }
+        ],
+
+        // giro dietro al tavolo
+        [
+            { x: startX,       z: backZ },
+            { x: safeTarget.x, z: backZ },
+            { x: safeTarget.x, z: safeTarget.z }
+        ],
+
+        // giro a sinistra del tavolo
+        [
+            { x: leftX,        z: startZ },
+            { x: leftX,        z: safeTarget.z },
+            { x: safeTarget.x, z: safeTarget.z }
+        ],
+
+        // giro a destra del tavolo
+        [
+            { x: rightX,       z: startZ },
+            { x: rightX,       z: safeTarget.z },
+            { x: safeTarget.x, z: safeTarget.z }
+        ]
+    ];
+
+    var bestPath = null;
+    var bestCost = Infinity;
+
+    for (var i = 0; i < candidates.length; i++) {
+        var rawPath = candidates[i];
+        var path = [];
+        var currentX = startX;
+        var currentZ = startZ;
+        var cost = 0.0;
+        var badPath = false;
+
+        for (var j = 0; j < rawPath.length; j++) {
+            var p = clampDogTargetToRoom(
+                rawPath[j].x,
+                rawPath[j].z
+            );
+
+            p = keepDogOutsideTeapotChaseObstacles(
+                p.x,
+                p.z
+            );
+
+            if (
+                segmentIntersectsTableAvoidZone(
+                    currentX,
+                    currentZ,
+                    p.x,
+                    p.z
+                )
+            ) {
+                badPath = true;
+                break;
+            }
+
+            cost += dist2D(
+                currentX,
+                currentZ,
+                p.x,
+                p.z
+            );
+
+            path.push({
+                x: p.x,
+                z: p.z
+            });
+
+            currentX = p.x;
+            currentZ = p.z;
         }
 
-        currentX = point.x;
-        currentZ = point.z;
+        if (!badPath && cost < bestCost) {
+            bestCost = cost;
+            bestPath = path;
+        }
     }
 
-    if (finalPath.length === 0) {
-        finalPath.push(safeTarget);
+    /*
+        Fallback: se per qualche motivo tutti i path risultano problematici,
+        scelgo comunque un giro largo davanti/dietro, mai il path diretto.
+    */
+    if (!bestPath) {
+        var frontCost =
+            Math.abs(startZ - frontZ) +
+            Math.abs(safeTarget.z - frontZ);
+
+        var backCost =
+            Math.abs(startZ - backZ) +
+            Math.abs(safeTarget.z - backZ);
+
+        var sideZ = frontCost < backCost ? frontZ : backZ;
+
+        var p1 = clampDogTargetToRoom(startX, sideZ);
+        p1 = keepDogOutsideTeapotChaseObstacles(p1.x, p1.z);
+
+        var p2 = clampDogTargetToRoom(safeTarget.x, sideZ);
+        p2 = keepDogOutsideTeapotChaseObstacles(p2.x, p2.z);
+
+        var p3 = keepDogOutsideTeapotChaseObstacles(
+            safeTarget.x,
+            safeTarget.z
+        );
+
+        bestPath = [
+            { x: p1.x, z: p1.z },
+            { x: p2.x, z: p2.z },
+            { x: p3.x, z: p3.z }
+        ];
     }
 
-    return finalPath;
+    /*
+        Rimuovo punti quasi uguali, così il cane non fa micro-rotazioni inutili.
+    */
+    var cleanedPath = [];
+    var lastX = startX;
+    var lastZ = startZ;
+
+    for (var c = 0; c < bestPath.length; c++) {
+        if (
+            dist2D(
+                lastX,
+                lastZ,
+                bestPath[c].x,
+                bestPath[c].z
+            ) > 0.35
+        ) {
+            cleanedPath.push(bestPath[c]);
+            lastX = bestPath[c].x;
+            lastZ = bestPath[c].z;
+        }
+    }
+
+    if (cleanedPath.length === 0) {
+        cleanedPath.push({
+            x: safeTarget.x,
+            z: safeTarget.z
+        });
+    }
+
+    return cleanedPath;
+}
+function pushTeapotTargetAwayFromTable(x, z) {
+    /*
+        Se il target del cane per la teapot è troppo vicino al tavolo,
+        lo sposto sul lato esterno più vicino.
+        Così il cane non prova a fermarsi appiccicato al bordo del tavolo.
+    */
+
+    var r = getTableAvoidRect();
+
+    var extra =
+        typeof DOG_TEAPOT_TABLE_TARGET_EXTRA !== "undefined"
+            ? DOG_TEAPOT_TABLE_TARGET_EXTRA
+            : 0.85;
+
+    var minX = r.minX - extra;
+    var maxX = r.maxX + extra;
+    var minZ = r.minZ - extra;
+    var maxZ = r.maxZ + extra;
+
+    /*
+        Se il punto è già abbastanza lontano dal tavolo,
+        non lo modifico.
+    */
+    if (
+        x < minX ||
+        x > maxX ||
+        z < minZ ||
+        z > maxZ
+    ) {
+        return {
+            x: x,
+            z: z
+        };
+    }
+
+    /*
+        Il punto è dentro la zona "troppo vicina".
+        Lo sposto verso il bordo più vicino della zona espansa.
+    */
+    var distLeft = Math.abs(x - minX);
+    var distRight = Math.abs(maxX - x);
+    var distBack = Math.abs(z - minZ);
+    var distFront = Math.abs(maxZ - z);
+
+    var minDist = Math.min(
+        distLeft,
+        distRight,
+        distBack,
+        distFront
+    );
+
+    if (minDist === distLeft) {
+        x = minX;
+    } else if (minDist === distRight) {
+        x = maxX;
+    } else if (minDist === distBack) {
+        z = minZ;
+    } else {
+        z = maxZ;
+    }
+
+    var p = clampDogTargetToRoom(x, z);
+
+    /*
+        Ricontrollo anche la bowl, perché nel tuo caso c'è pure la ciotola.
+    */
+    p = keepDogOutsideBowl(p.x, p.z);
+    p = clampDogTargetToRoom(p.x, p.z);
+
+    return p;
 }
 
 function getSafeDogTargetNearTeapot(teapotX, teapotZ) {
@@ -1188,13 +1440,140 @@ function getSafeDogTargetNearTeapot(teapotX, teapotZ) {
         targetZ = teapotZ - (dz / dist) * TEAPOT_CHASE_STOP_OFFSET;
     }
 
-    return keepDogOutsideTeapotChaseObstacles(
+     var safeTarget = keepDogOutsideTeapotChaseObstacles(
         targetX,
         targetZ
     );
+
+    /*
+        Extra safety:
+        se la teapot è vicino al tavolo, il target del cane viene spostato
+        più fuori, così non resta bloccato sul bordo.
+    */
+    safeTarget = pushTeapotTargetAwayFromTable(
+        safeTarget.x,
+        safeTarget.z
+    );
+
+    return safeTarget;
 }
 
+
 function updateDogFollowTeapot(deltaTime) {
+    if (!dogFollowTeapotMode) {
+        return;
+    }
+
+    if (currentScene !== "home") {
+        return;
+    }
+
+    var teapotX = objPos[0];
+    var teapotZ = objPos[2];
+
+    /*
+        Il cane guarda sempre la teapot vera,
+        ma non parte subito mentre la sto muovendo.
+    */
+    dogLookAtBallX = teapotX;
+    dogLookAtBallZ = teapotZ;
+
+    dogFetchTarget = {
+        x: teapotX,
+        z: teapotZ
+    };
+
+    /*
+        Controllo se la teapot si sta muovendo.
+        Se si muove, il cane aspetta fermo.
+    */
+    var observedMove = dist2D(
+        dogTeapotLastObservedX,
+        dogTeapotLastObservedZ,
+        teapotX,
+        teapotZ
+    );
+
+    if (observedMove > DOG_TEAPOT_STILL_EPSILON) {
+        dogTeapotStillTimer = 0.0;
+
+        dogTeapotLastObservedX = teapotX;
+        dogTeapotLastObservedZ = teapotZ;
+
+        /*
+            Mentre sto muovendo la teapot, il cane non insegue.
+            Così non ricalcola continuamente path strani intorno al tavolo.
+        */
+        dogFetchBallMode = false;
+        dogPath = [];
+        dogPathIndex = 0;
+
+        dogFetchObjectType = "teapot";
+
+        return;
+    }
+
+    /*
+        Se la teapot non si muove, accumulo tempo.
+        Il cane partirà solo dopo DOG_TEAPOT_WAIT_AFTER_MOVE secondi.
+    */
+    dogTeapotStillTimer += deltaTime;
+
+    if (dogTeapotStillTimer < DOG_TEAPOT_WAIT_AFTER_MOVE) {
+        return;
+    }
+
+    dogFollowTeapotRepathTimer += deltaTime;
+
+    var movedX = teapotX - dogFollowTeapotLastX;
+    var movedZ = teapotZ - dogFollowTeapotLastZ;
+
+    var teapotMoved = Math.sqrt(
+        movedX * movedX +
+        movedZ * movedZ
+    );
+
+    /*
+        Se il cane sta già andando verso la posizione finale
+        e la teapot non è cambiata abbastanza, non ricalcolo.
+    */
+    if (
+        dogFetchBallMode &&
+        dogFollowTeapotRepathTimer < DOG_TEAPOT_REPATH_INTERVAL &&
+        teapotMoved < DOG_TEAPOT_MIN_MOVE_TO_REPATH
+    ) {
+        return;
+    }
+
+    var safeTarget = getSafeDogTargetNearTeapot(
+        teapotX,
+        teapotZ
+    );
+
+    dogPath = computeDogPathToTeapot(
+        dogFetchX,
+        dogFetchZ,
+        safeTarget.x,
+        safeTarget.z
+    );
+
+    dogPathIndex = 0;
+    dogFetchBallMode = true;
+
+    dogFetchObjectType = "teapot";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogFollowTeapotLastX = teapotX;
+    dogFollowTeapotLastZ = teapotZ;
+    dogFollowTeapotRepathTimer = 0.0;
+}
+
+function updateDogFollowTeapot_old(deltaTime) {
     if (!dogFollowTeapotMode) {
         return;
     }
@@ -1250,7 +1629,7 @@ function updateDogFollowTeapot(deltaTime) {
         dogFetchZ,
         safeTarget.x,
         safeTarget.z
-    );
+);
 
     dogPathIndex = 0;
     dogFetchBallMode = true;
@@ -1522,6 +1901,47 @@ function isBallOnGround() {
         ballBody.position.y <= groundY &&
         Math.abs(ballBody.velocity.y) < 0.45
     );
+}
+
+function isBallOnTable() {
+    if (!ballBody) {
+        return false;
+    }
+
+    /*
+        Controllo X/Z: la palla è dentro l'area del piano del tavolo.
+        Uso il piano vero del tavolo, non la zona larga usata per evitare il cane.
+    */
+    var halfW = TABLE_TOP_WIDTH / 2.0 + ballRadius * 0.6;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + ballRadius * 0.6;
+
+    var insideTableXZ =
+        ballBody.position.x > TABLE_X - halfW &&
+        ballBody.position.x < TABLE_X + halfW &&
+        ballBody.position.z > TABLE_Z - halfD &&
+        ballBody.position.z < TABLE_Z + halfD;
+
+    if (!insideTableXZ) {
+        return false;
+    }
+
+    /*
+        Altezza del piano superiore del tavolo.
+        La palla sopra al tavolo ha il centro circa a:
+        topSurfaceY + ballRadius.
+    */
+    var tableTopSurfaceY =
+        TABLE_Y +
+        TABLE_TOP_OFFSET_Y +
+        TABLE_TOP_HEIGHT / 2.0;
+
+    var expectedBallY = tableTopSurfaceY + ballRadius;
+
+    var nearTableTop =
+        ballBody.position.y > expectedBallY - 0.45 &&
+        ballBody.position.y < expectedBallY + 0.65;
+
+    return nearTableTop;
 }
 
 //function to check if the ball is almost stopped (used to trigger idle bounce)
@@ -2040,48 +2460,392 @@ function startSkinnedDogFetchBall() {
 
     console.log("Skinned dog path:", dogPath);
 }
+
 function updateSkinnedDogFetchBall(deltaTime) {
-   /*  if (dogFetchLoweringActive) {
-        dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
 
+    if (dogFetchLoweringActive) {
 
-            if (dogFetchLowerAmount > 0.85) {
+        if (dogFetchObjectType === "frisbee") {
+            /*
+                Per il frisbee il cane si abbassa poco,
+                non come quando prende la palla.
+            */
+            dogFetchLowerAmount += (0.28 - dogFetchLowerAmount) * 0.12;
 
-                if (dogFetchObjectType === "frisbee" && !dogHasFrisbee) {
-                    dogHasFrisbee = true;
+            if (dogFetchLowerAmount > 0.22 && !dogHasFrisbee) {
+                dogHasFrisbee = true;
 
-                    showDogMusicNote = false;
-                    dogHappySoundPlayed = false;
-                    dogCrouchActive = true;
+                showDogMusicNote = false;
+                dogHappySoundPlayed = false;
 
-                    console.log("Dog picked up the frisbee!");
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                console.log("Dog picked up the frisbee!");
+
+                startSkinnedDogReturnFrisbeeToCamera();
+            }
+        }
+
+        else {
+            /*
+                Comportamento vecchio della palla:
+                qui lasciamo l'abbassamento più marcato.
+            */
+            dogFetchLowerAmount += (1.0 - dogFetchLowerAmount) * 0.08;
+
+            if (dogFetchLowerAmount > 0.85 && !dogHasBall) {
+                dogHasBall = true;
+
+                showDogMusicNote = false;
+                dogHappySoundPlayed = false;
+
+                dogCrouchActive = true;
+
+                ballVisible = true;
+                ballIdleBounceActive = false;
+
+                if (ballBody) {
+                    ballBody.velocity.set(0, 0, 0);
+                    ballBody.angularVelocity.set(0, 0, 0);
+                    ballBody.force.set(0, 0, 0);
+                    ballBody.torque.set(0, 0, 0);
+                    ballBody.sleep();
+                }
+
+                console.log("Dog picked up the ball!");
+            }
+        }
+    }
+
+    if (dogCrouchActive) {
+        dogCrouchAmount += (1.0 - dogCrouchAmount) * 0.08;
+    } else {
+        dogCrouchAmount += (0.0 - dogCrouchAmount) * 0.08;
+    }
+
+    if (!dogFetchBallMode || !dogPath || dogPath.length === 0) {
+        return;
+    }
+
+    var target = dogPath[dogPathIndex];
+
+    var dx = target.x - dogFetchX;
+    var dz = target.z - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var speed = 0.035;
+
+    /*
+        Per la Teapot Chase non voglio che il cane arrivi
+        esattamente sul waypoint prima di girare.
+
+        Con un raggio più grande, quando il cane è abbastanza vicino
+        al waypoint passa già al punto successivo.
+        Questo rende la curva meno scattosa.
+    */
+    var waypointRadius = 0.12;
+
+    if (dogFetchObjectType === "teapot") {
+        waypointRadius =
+            typeof DOG_TEAPOT_WAYPOINT_RADIUS !== "undefined"
+                ? DOG_TEAPOT_WAYPOINT_RADIUS
+                : 0.55;
+    }
+
+    if (dist > waypointRadius) {
+        var nextX = dogFetchX + (dx / dist) * speed;
+        var nextZ = dogFetchZ + (dz / dist) * speed;
+
+        // safety: keep the dog outside the table area, even if the path is wrong
+        if (currentScene === "home") {
+            var corrected;
+
+            if (dogFetchObjectType === "teapot") {
+                corrected = keepDogOutsideTeapotChaseObstacles(
+                    nextX,
+                    nextZ
+                );
+            } else {
+                corrected = keepDogOutsideTable(
+                    nextX,
+                    nextZ
+                );
+            }
+
+            /*
+                Anti-stuck per Teapot Chase:
+                se la correzione anti-tavolo non fa avanzare il cane,
+                salto al prossimo waypoint invece di lasciarlo fermo sul bordo.
+            */
+            if (dogFetchObjectType === "teapot") {
+                var beforeDist = dist2D(
+                    dogFetchX,
+                    dogFetchZ,
+                    target.x,
+                    target.z
+                );
+
+                var afterDist = dist2D(
+                    corrected.x,
+                    corrected.z,
+                    target.x,
+                    target.z
+                );
+
+                if (
+                    beforeDist > waypointRadius &&
+                    afterDist >= beforeDist - 0.001
+                ) {
+                    dogPathIndex++;
+
+                    if (dogPathIndex >= dogPath.length) {
+                        dogPathIndex = dogPath.length - 1;
+                        dogFetchBallMode = false;
+                    }
+
+                    return;
+                }
+            }
+
+            dogFetchX = corrected.x;
+            dogFetchZ = corrected.z;
+        }
+
+        else {
+            // park mode
+            var correctedPark = keepDogOutsideParkObstacles(
+                nextX,
+                nextZ
+            );
+
+            dogFetchX = correctedPark.x;
+            dogFetchZ = correctedPark.z;
+        }
+
+        dogFetchTarget = {
+            x: target.x,
+            z: target.z
+        };
+    }
+
+    else {
+        dogPathIndex++;
+
+        if (dogPathIndex >= dogPath.length) {
+
+            dogPathIndex = dogPath.length - 1;
+            dogFetchBallMode = false;
+
+            if (dogFetchObjectType === "teapot") {
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchTarget = {
+                    x: objPos[0],
+                    z: objPos[2]
+                };
+
+                showDogMusicNote = true;
+
+                return;
+            }
+
+            if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
+                /*
+                    Il cane è tornato verso la camera con il frisbee.
+                    Non deve abbassarsi di nuovo.
+                */
+                dogReturningWithFrisbee = false;
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchTarget = {
+                    x: eye[0],
+                    z: eye[2]
+                };
+
+                frisbeeReturnedAndWaiting = true;
+
+                var buttonFrisbee = document.getElementById("ButtonFrisbee");
+
+                if (buttonFrisbee) {
+                    buttonFrisbee.classList.add("active");
+                    buttonFrisbee.title = "Put away Frisbee";
+                }
+
+                console.log("Dog returned with the frisbee!");
+            }
+
+            else {
+                /*
+                    Primo arrivo: cane arrivato al target.
+                    Però per il frisbee controllo anche la distanza reale dal disco.
+                */
+
+                if (dogFetchObjectType === "frisbee") {
+                    var fx = dogLookAtBallX - dogFetchX;
+                    var fz = dogLookAtBallZ - dogFetchZ;
+
+                    var distToFrisbee = Math.sqrt(fx * fx + fz * fz);
+
+                    var frisbeePickupDistance = 0.85;
+
+                    if (distToFrisbee > frisbeePickupDistance) {
+                        /*
+                            Il cane è arrivato al primo punto sicuro,
+                            ma il frisbee è ancora lontano.
+                            Allora gli creo un nuovo target più vicino al disco.
+                        */
+
+                        var closerStopOffset = 0.45;
+
+                        var closerTargetX = dogLookAtBallX;
+                        var closerTargetZ = dogLookAtBallZ;
+
+                        if (distToFrisbee > 0.001) {
+                            closerTargetX =
+                                dogLookAtBallX -
+                                (fx / distToFrisbee) * closerStopOffset;
+
+                            closerTargetZ =
+                                dogLookAtBallZ -
+                                (fz / distToFrisbee) * closerStopOffset;
+                        }
+
+                        /*
+                            Evito comunque che il nuovo target finisca dentro la panchina.
+                        */
+                        var correctedCloserTarget = keepDogOutsideParkObstacles(
+                            closerTargetX,
+                            closerTargetZ
+                        );
+
+                        dogPath = computeDogPathAroundBench(
+                            dogFetchX,
+                            dogFetchZ,
+                            correctedCloserTarget.x,
+                            correctedCloserTarget.z
+                        );
+
+                        dogPathIndex = 0;
+                        dogFetchBallMode = true;
+
+                        dogFetchLoweringActive = false;
+                        dogFetchLowerAmount = 0.0;
+
+                        dogFetchTarget = {
+                            x: dogLookAtBallX,
+                            z: dogLookAtBallZ
+                        };
+
+                        console.log(
+                            "Frisbee too far, moving closer:",
+                            distToFrisbee,
+                            dogPath
+                        );
+
+                        return;
+                    }
                 }
 
                 else if (dogFetchObjectType === "ball" && !dogHasBall) {
-                    dogHasBall = true;
+                    var bx = dogLookAtBallX - dogFetchX;
+                    var bz = dogLookAtBallZ - dogFetchZ;
 
-                    // crouching starts
-                    showDogMusicNote = false;
-                    dogHappySoundPlayed = false;
+                    var distToBall = Math.sqrt(bx * bx + bz * bz);
 
-                    dogCrouchActive = true;
+                    var ballPickupDistance = 0.95;
 
-                    ballVisible = true;
-                    ballIdleBounceActive = false;
+                    if (distToBall > ballPickupDistance) {
+                        /*
+                            Il cane è arrivato al primo punto sicuro,
+                            ma la palla è ancora lontana.
+                            Succede soprattutto quando la palla è
+                            dall'altra parte del tavolo.
+                        */
 
-                    if (ballBody) {
-                        ballBody.velocity.set(0, 0, 0);
-                        ballBody.angularVelocity.set(0, 0, 0);
-                        ballBody.force.set(0, 0, 0);
-                        ballBody.torque.set(0, 0, 0);
-                        ballBody.sleep();
+                        var closerStopOffset = 0.45;
+
+                        var correctedCloserTarget =
+                            getSafeDogBodyTargetForFetch(
+                                dogLookAtBallX,
+                                dogLookAtBallZ,
+                                closerStopOffset
+                            );
+
+                        if (currentScene === "home") {
+                            dogPath = computeDogPathToBall(
+                                dogFetchX,
+                                dogFetchZ,
+                                correctedCloserTarget.x,
+                                correctedCloserTarget.z
+                            );
+                        } else {
+                            dogPath = computeDogPathAroundBench(
+                                dogFetchX,
+                                dogFetchZ,
+                                correctedCloserTarget.x,
+                                correctedCloserTarget.z
+                            );
+                        }
+
+                        dogPathIndex = 0;
+                        dogFetchBallMode = true;
+
+                        dogFetchLoweringActive = false;
+                        dogFetchLowerAmount = 0.0;
+
+                        dogFetchTarget = {
+                            x: dogLookAtBallX,
+                            z: dogLookAtBallZ
+                        };
+
+                        console.log(
+                            "Ball still far, moving closer:",
+                            distToBall,
+                            dogPath
+                        );
+
+                        return;
                     }
-
-                    console.log("Dog picked up the ball!");
                 }
+
+                dogFetchLoweringActive = true;
+
+                dogFetchTarget = {
+                    x: dogLookAtBallX,
+                    z: dogLookAtBallZ
+                };
+
+                console.log("DOG ARRIVED - LOWER:", dogFetchLowerAmount);
             }
+        }
+
+        else {
+            /*
+                Aggiorno subito il target visivo verso il prossimo waypoint.
+                Così il cane non resta orientato al vecchio punto.
+            */
+            dogFetchTarget = {
+                x: dogPath[dogPathIndex].x,
+                z: dogPath[dogPathIndex].z
+            };
+        }
     }
- */
+}
+function updateSkinnedDogFetchBall_old(deltaTime) {
+  
 
     if (dogFetchLoweringActive) {
 
@@ -2164,10 +2928,57 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
         // safety: keep the dog outside the table area, even if the path is wrong
         if(currentScene === "home") {
-        var corrected = keepDogOutsideTable(nextX, nextZ);
+                var corrected;
 
-        dogFetchX = corrected.x;
-        dogFetchZ = corrected.z;
+                if (dogFetchObjectType === "teapot") {
+                    corrected = keepDogOutsideTeapotChaseObstacles(
+                        nextX,
+                        nextZ
+                    );
+                } else {
+                    corrected = keepDogOutsideTable(
+                        nextX,
+                        nextZ
+                    );
+                }
+
+                /*
+                    Anti-stuck per Teapot Chase:
+                    se la correzione anti-tavolo non fa avanzare il cane,
+                    salto al prossimo waypoint invece di lasciarlo fermo sul bordo.
+                */
+                if (dogFetchObjectType === "teapot") {
+                    var beforeDist = dist2D(
+                        dogFetchX,
+                        dogFetchZ,
+                        target.x,
+                        target.z
+                    );
+
+                    var afterDist = dist2D(
+                        corrected.x,
+                        corrected.z,
+                        target.x,
+                        target.z
+                    );
+
+                    if (
+                        beforeDist > 0.35 &&
+                        afterDist >= beforeDist - 0.001
+                    ) {
+                        dogPathIndex++;
+
+                        if (dogPathIndex >= dogPath.length) {
+                            dogPathIndex = dogPath.length - 1;
+                            dogFetchBallMode = false;
+                        }
+
+                        return;
+                    }
+                }
+
+                dogFetchX = corrected.x;
+                dogFetchZ = corrected.z;
         }
         else{ //park mode
             /* 
@@ -2408,10 +3219,76 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
 
 
-function checkBallStoppedAndSendSkinnedDog() {
+function checkBallStoppedAndSendSk_old() {
     if (!miniGameActive || !ballBody || !ballVisible) return;
 
     if (skinnedDogAlreadyTargeted) return;
+
+    if (isBallAlmostStopped()) {
+        startSkinnedDogFetchBall();
+        skinnedDogAlreadyTargeted = true;
+    }
+}
+function checkBallStoppedAndSendSkinnedDog() {
+    if (!miniGameActive || !ballBody || !ballVisible) {
+        return;
+    }
+
+    var v = ballBody.velocity;
+
+    var ballSpeed = Math.sqrt(
+        v.x * v.x +
+        v.y * v.y +
+        v.z * v.z
+    );
+
+    /*
+        Se la palla si sta ancora muovendo, resetto il warning.
+        Così se poi viene rilanciata, il messaggio può ricomparire.
+    */
+    if (ballSpeed > 0.18) {
+        ballOnTableWarningShown = false;
+        ballBlockedOnTable = false;
+        return;
+    }
+
+    /*
+        Caso speciale: palla ferma sul tavolo.
+        Il cane non può prenderla.
+    */
+    if (isBallOnTable()) {
+        if (!ballOnTableWarningShown) {
+            showGameMessage(
+                "The ball is on the table!\nThe dog cannot reach it.",
+                2800
+            );
+        }
+
+        ballOnTableWarningShown = true;
+        ballBlockedOnTable = true;
+
+        skinnedDogAlreadyTargeted = true;
+
+        dogFetchBallMode = false;
+        dogPath = [];
+        dogPathIndex = 0;
+
+        return;
+    }
+
+    /*
+        Se prima era bloccata sul tavolo ma ora non lo è più,
+        permetto di nuovo al cane di partire.
+    */
+    if (ballBlockedOnTable) {
+        ballBlockedOnTable = false;
+        ballOnTableWarningShown = false;
+        skinnedDogAlreadyTargeted = false;
+    }
+
+    if (skinnedDogAlreadyTargeted) {
+        return;
+    }
 
     if (isBallAlmostStopped()) {
         startSkinnedDogFetchBall();

@@ -1,6 +1,6 @@
 // variable to enable start screen
-var ENABLE_START_SCREEN = true; 
-var ENABLE_LOADING_SCREEN = true;
+var ENABLE_START_SCREEN = false; 
+var ENABLE_LOADING_SCREEN = false;
 
 //current Scene either "home" or "park"
 var currentScene = "home"; 
@@ -159,6 +159,9 @@ var ballMtlTexture = null;
 
 //heart specific variables
 var heartMtlTexture = null;
+
+var ballOnTableWarningShown = false;
+var ballBlockedOnTable = false;
 
 
 //****************************************************** */
@@ -633,6 +636,13 @@ var dogFireflyRearDuration = 3.0;
 /************************** */
 //      TEAPOT PLAY DOG     //
 /************************** */
+
+var TEAPOT_REST_X = 0.85;
+var TEAPOT_REST_Y = -1.05;
+var TEAPOT_REST_Z = 0.15;
+
+var TEAPOT_CHASE_Y = 0.45;
+
 var dogFollowTeapotMode = false;
 
 var dogFollowTeapotLastX = 9999.0;
@@ -647,3 +657,21 @@ var TEAPOT_CHASE_MAX_Y = 1.8;
 
 var TEAPOT_CHASE_STOP_OFFSET = 1.35;
 
+
+var TEAPOT_TABLE_MIN_X = -2.4;
+var TEAPOT_TABLE_MAX_X =  2.4;
+var TEAPOT_TABLE_MIN_Z = -1.8;
+var TEAPOT_TABLE_MAX_Z =  1.8;
+
+var TEAPOT_TABLE_AVOID_MARGIN = 0.9;
+
+var DOG_TEAPOT_WAIT_AFTER_MOVE = 0.60;
+var DOG_TEAPOT_STILL_EPSILON = 0.035;
+
+var dogTeapotStillTimer = 0.0;
+var dogTeapotLastObservedX = 9999.0;
+var dogTeapotLastObservedZ = 9999.0;
+var DOG_TEAPOT_TABLE_TARGET_EXTRA = 1.10;
+
+var DOG_TEAPOT_PATH_EXTRA = 1.65;
+var DOG_TEAPOT_WAYPOINT_RADIUS = 0.55;

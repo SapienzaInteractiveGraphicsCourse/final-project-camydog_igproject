@@ -624,7 +624,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         //drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, true)
 
         if (ENABLE_SKINNED_DOG_SHADOW) {
-            console.log("Drawing skinned dog depth-only shadow pass");
+            //console.log("Drawing skinned dog depth-only shadow pass");
             drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix);
         }
         
@@ -735,7 +735,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     }
 
 
-
+    gl.disable(gl.CULL_FACE);
 
     drawObject(teapotBuffers,
          teapotTexture,
@@ -745,6 +745,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false,false,true);
 
 
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
         
 
     /* drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,

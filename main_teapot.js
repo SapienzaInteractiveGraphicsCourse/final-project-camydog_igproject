@@ -15,7 +15,7 @@ var texCoordsArray = [];
 
 var axis = 0;
 var theta = [0, 0, 0];
-var flag_rot_teapot = true;
+var flag_rot_teapot = false;
 var flag_rot_table = false;
 
 var modelViewMatrixLoc;
@@ -34,6 +34,11 @@ var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 //parte joystick
 
 var objPos = vec3(0.0, 0.0, 0.0);
+objPos = vec3(
+    TEAPOT_REST_X,
+    TEAPOT_REST_Y,
+    TEAPOT_REST_Z
+);
 var lastButtonA = false;
 
 var tx = 0.0;
@@ -355,7 +360,8 @@ onload = async function init() {
     //teapotTexture = loadTexture(path_img_teapot);
     
 // ocra più elegante
-    teapotTexture = createSolidColorTexture(gl, 205, 150, 65, 255);
+    //teapotTexture = createSolidColorTexture(gl, 205, 150, 65, 255);
+    teapotTexture = createSolidColorTexture(gl, 55, 125, 150, 255);
     tableTexture = loadTexture(path_img_table);
     catTexture = loadTexture(path_img_cat);
     wallTexture = loadTexture(path_img_wall);
@@ -376,7 +382,9 @@ onload = async function init() {
     haloTexture = loadTexture(path_img_halo);
     grassTexture= loadTexture(path_img_grass);
     //bowlTexture= loadTexture(path_img_blue);
-    bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
+    //bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
+//bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
+bowlTexture = loadTexture ("./Textures/bowl_2.png");
     waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
     waterHighlightTexture = createSolidColorTexture(gl, 255, 255, 255, 180);
     //kibbleTexture = createSolidColorTexture(gl, 115, 70, 30, 255);
@@ -1220,6 +1228,7 @@ onload = async function init() {
                 function () {
                     // Prima di uscire dalla home, chiudo il minigame della palla
                     miniGameActive = false;
+                    updateTeapotControlsLegend();
 
                     stopBallMiniGame();
 
@@ -1507,6 +1516,12 @@ onload = async function init() {
             console.log("Teapot chase mode:", dogFollowTeapotMode);
 
             if (dogFollowTeapotMode) {
+                //at the beginning the teapot is on the table then 
+                // when I click on the button it starts to rotate and the dog will follow it
+                objPos[1] = TEAPOT_CHASE_Y;
+                flag_rot_teapot = true;
+
+
                 this.classList.add("active");
                 this.title = "Stop Teapot Chase";
 
@@ -1515,6 +1530,10 @@ onload = async function init() {
                 dogFollowTeapotLastX = 9999.0;
                 dogFollowTeapotLastZ = 9999.0;
                 dogFollowTeapotRepathTimer = 9999.0;
+
+                dogTeapotStillTimer = 0.0;
+                dogTeapotLastObservedX = objPos[0];
+                dogTeapotLastObservedZ = objPos[2];
 
                 dogFetchBallMode = false;
                 dogPath = [];
@@ -1542,10 +1561,22 @@ onload = async function init() {
                     dogPath = [];
                     dogPathIndex = 0;
                     showDogMusicNote = false;
+
+                   
                 }
+
+                objPos[0] = TEAPOT_REST_X;
+                objPos[1] = TEAPOT_REST_Y;
+                objPos[2] = TEAPOT_REST_Z;
+                theta[0] = 0.0;
+                theta[1] = 0.0;
+                theta[2] = 0.0;
+                flag_rot_teapot = false;
 
                 showGameMessage("Teapot chase mode off.", 1600);
             }
+
+            updateTeapotControlsLegend();
         };
     } else {
         console.log("ButtonTeapotChase not found");
@@ -1562,22 +1593,15 @@ onload = async function init() {
     });
 
 
-    document.getElementById("ButtonTeapotFocus").onclick = function () {
-        teapotFocus = !teapotFocus;
+    var buttonTeapotFocus = document.getElementById("ButtonTeapotFocus");
 
-        this.textContent = teapotFocus ? "Exit Teapot Focus" : "Focus Teapot";
-        if (teapotFocus) {
+    if (buttonTeapotFocus) {
+        buttonTeapotFocus.onclick = function () {
+            focusTeapotCamera();
+        };
 
-            setCameraFocusButtonActive("ButtonTeapotFocus");
-             showGameMessage(
-                "Teapot focus active!\nClick Reset Camera to exit focus mode.",
-                2600
-            );
 
-        } else {
-            setCameraFocusButtonActive(null);
-        }
-    };
+    }
     document.getElementById("ButtonCatMove").onclick = function () {
         moveCat = !moveCat;
         console.log("Cat walk:", moveCat);
@@ -2141,6 +2165,10 @@ function getCameraBaseTarget() {
             CURTAIN_ORIGIN_Y - CURTAIN_HEIGHT / 2.0,
             CURTAIN_ORIGIN_Z
         );
+    }
+
+    if (cameraFocusMode === "teapot") {
+        return getTeapotCameraTarget();
     }
 
     return cameraTarget;
@@ -2716,6 +2744,10 @@ function render() {
             updateOrbitCameraFromCurrentValues();
         }
     }
+
+    if (cameraFocusMode === "teapot") {
+        updateOrbitCameraFromCurrentValues();
+    }
    
 
     viewMatrix = lookAt(eye, at, up);
@@ -3080,6 +3112,13 @@ function setCameraFocusButtonActive(activeButtonId) {
 function resetCameraView() {
 
     cameraFocusMode = "free";
+    teapotFocus = false;
+
+    var buttonTeapotFocus = document.getElementById("ButtonTeapotFocus");
+
+    if (buttonTeapotFocus) {
+        buttonTeapotFocus.textContent = "Focus Teapot";
+    }
     cameraDogAutoAngle = false;
     updateDogCameraModeButton();
 
@@ -3156,6 +3195,70 @@ function lerpAngleDegrees(currentAngle, targetAngle, amount) {
 
     return normalizeAngleDegrees(currentAngle + diff * amount);
 }
+//////////////////////////////////////
+function getTeapotCameraTarget() {
+    return vec3(
+        objPos[0],
+        objPos[1] + 0.35,
+        objPos[2]
+    );
+}
+
+function focusTeapotCamera() {
+    if (currentScene !== "home") {
+        showGameMessage(
+            "Teapot focus is available only at home!",
+            2200
+        );
+        return;
+    }
+
+    teapotFocus = true;
+
+    cameraFocusMode = "teapot";
+    cameraDogAutoAngle = false;
+    cameraDogMode = "static";
+
+    updateDogCameraModeButton();
+
+    cameraPanOffset = vec3(0.0, 0.0, 0.0);
+
+    cameraTarget = getTeapotCameraTarget();
+
+    cameraAngle = 35.0;
+    cameraHeight = 1.0;
+    cameraDistance = 3.2;
+    cameraFov = 50.0;
+
+    if (cameraAngleSlider) {
+        cameraAngleSlider.value = cameraAngle;
+    }
+
+    if (cameraHeightSlider) {
+        cameraHeightSlider.value = cameraHeight;
+    }
+
+    if (cameraDistanceSlider) {
+        cameraDistanceSlider.value = cameraDistance;
+    }
+
+    updateOrbitCameraFromSliders();
+
+    setCameraFocusButtonActive("ButtonTeapotFocus");
+
+    var buttonTeapotFocus = document.getElementById("ButtonTeapotFocus");
+
+    if (buttonTeapotFocus) {
+        buttonTeapotFocus.textContent = "Focus Teapot";
+    }
+
+    showGameMessage(
+        "Teapot focus active!\nClick Reset Camera to exit focus mode.",
+        2600
+    );
+}
+
+////////////////////////////
 
 function getDogSafeCameraAngle() {
     /*
