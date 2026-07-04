@@ -1230,6 +1230,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                     miniGameActive = false;
                     updateTeapotControlsLegend();
 
+                    updateBallSettingsOverlay();
+
                     stopBallMiniGame();
 
                     resetSkinnedDogFetchState();
@@ -1358,7 +1360,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 this.title = "Start Ball ";
                 this.classList.remove("active");
 
-                 if (miniGameIcon) {
+                if (miniGameIcon) {
                     miniGameIcon.alt = "Start Ball";
                 }
 
@@ -1382,6 +1384,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 resetSkinnedDogBallInteraction();
                 //resetSkinnedDogBallInteractionFull();
             }
+        //updateBallSettingsOverlay();
+        updateBallSettingsOverlay(miniGameActive);
+
+
     };
 
     // settings buttons + sliders
@@ -1739,9 +1745,29 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         }
     });
 
+    miniGameActive = false;
+    ballSettingsPanelHasBeenOpened = false;
+    ballSettingsPanelClosedByUser = false;
+    updateBallSettingsOverlay();
+
     document.getElementById("ButtonBounceBall").onclick = function () {
         startBallBounceAnimation();
     };
+
+
+    // initialize the close button for the ball settings panel
+
+    var closeBallSettingsButton =
+        document.getElementById("CloseBallSettingsPanel");
+
+    if (closeBallSettingsButton) {
+        closeBallSettingsButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            closeBallSettingsPanel();
+        };
+    }
 
 
 
@@ -2103,6 +2129,9 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     
     updateSceneButtonsVisibility();
+
+    updateBallSettingsOverlay();
+
 
     render();
 };

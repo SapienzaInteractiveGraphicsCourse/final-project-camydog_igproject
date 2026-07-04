@@ -163,6 +163,8 @@ var heartMtlTexture = null;
 var ballOnTableWarningShown = false;
 var ballBlockedOnTable = false;
 
+var ballSettingsPanelHasBeenOpened = false;
+var ballSettingsPanelClosedByUser = false;
 
 //****************************************************** */
 /*              BUFFERS                                  */

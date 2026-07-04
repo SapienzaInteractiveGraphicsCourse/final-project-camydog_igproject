@@ -89,6 +89,77 @@ function updateTeapotControlsLegend() {
     }
 }
 ///////////////////////
+function updateBallSettingsOverlay(playAttention) {
+    var panel = document.getElementById("BallSettingsPanel");
+
+    if (!panel) {
+        return;
+    }
+
+    /*
+        Fuori dalla home non mostro il pannello.
+    */
+    if (currentScene !== "home") {
+        panel.style.display = "none";
+        panel.classList.remove("attention");
+        return;
+    }
+
+    /*
+        Quando il minigame viene attivato:
+        - il pannello deve comparire sempre
+        - anche se prima era stato chiuso con la X
+    */
+    if (miniGameActive) {
+        ballSettingsPanelHasBeenOpened = true;
+        ballSettingsPanelClosedByUser = false;
+
+        panel.style.display = "block";
+
+        if (playAttention) {
+            panel.classList.remove("attention");
+
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    panel.classList.add("attention");
+                });
+            });
+        }
+
+        return;
+    }
+
+    /*
+        Quando il minigame viene disattivato:
+        - il pannello resta visibile se era già stato aperto
+        - sparisce solo se l'utente lo ha chiuso con la X
+    */
+    if (
+        ballSettingsPanelHasBeenOpened &&
+        !ballSettingsPanelClosedByUser
+    ) {
+        panel.style.display = "block";
+    } else {
+        panel.style.display = "none";
+    }
+
+    panel.classList.remove("attention");
+}
+
+
+function closeBallSettingsPanel() {
+    var panel = document.getElementById("BallSettingsPanel");
+
+    if (!panel) {
+        return;
+    }
+
+    ballSettingsPanelClosedByUser = true;
+
+    panel.style.display = "none";
+    panel.classList.remove("attention");
+}
+///////////////////
 function updateSidePanelToggleButton() {
         var panelHidden = document.body.classList.contains("ui-panel-hidden");
 

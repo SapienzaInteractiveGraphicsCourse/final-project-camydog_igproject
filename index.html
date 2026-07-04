@@ -318,7 +318,28 @@
                                     <img id="FrisbeeIcon" src="./Icons/frisbee.png" alt="Throw Frisbee">
                                 </button>
 
-                                <details  id="BallSettingsPanel" class="control-group collapsible-panel">
+                                
+
+                                    <button id="ButtonBounceBall">Bounce Ball</button>
+
+                         </div>
+
+
+        </div>        
+        <div class="canvas-container">
+            <div class="fps-overlay">
+                FPS: <span id="FpsValue">--</span>
+            </div>
+
+            <div id="TeapotControlsLegend" class="teapot-controls-legend hidden">
+                <div class="legend-title">Teapot Chase controls</div>
+                <div><b>Left stick</b>: rotate teapot</div>
+                <div><b>Right stick</b>: move teapot</div>
+                <div><b>LT / RT</b>: lower / raise</div>
+                <div><b>A</b>: toggle rotation</div>
+            </div>
+
+            <!-- <div  id="BallSettingsPanel" class="control-group collapsible-panel">
                                         <summary>Throwing ball settings</summary>
 
                                         <div class="control-row">
@@ -382,27 +403,83 @@
                                         </div>
 
                                         
-                                    </details>
+            </div> -->
 
-                                    <button id="ButtonBounceBall">Bounce Ball</button>
+            <div id="BallSettingsPanel" class="ball-settings-hud" >
+                    <!-- <div class="ball-settings-title">Ball throw settings</div> -->
 
-                         </div>
+                    <div class="ball-settings-header">
+                        <div class="ball-settings-title">Ball throw settings</div>
+
+                        <button id="CloseBallSettingsPanel"
+                                class="ball-settings-close-button"
+                                type="button"
+                                title="Close settings">
+                            ×
+                        </button>
+                    </div>
 
 
-        </div>        
-        <div class="canvas-container">
-            <div class="fps-overlay">
-                FPS: <span id="FpsValue">--</span>
+                    <div class="ball-setting-row">
+                        <span>Vel X</span>
+                        <input id="BallVelX" type="range" min="-8" max="8" step="0.1" value="1.0">
+                        <b id="BallVelXValue">1.0</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Vel Y</span>
+                        <input id="BallVelY" type="range" min="0" max="10" step="0.1" value="4.0">
+                        <b id="BallVelYValue">4.0</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Vel Z</span>
+                        <input id="BallVelZ" type="range" min="-10" max="5" step="0.1" value="-5.0">
+                        <b id="BallVelZValue">-5.0</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Bounce</span>
+                        <input id="BallBounce" type="range" min="0" max="1" step="0.05" value="0.25">
+                        <b id="BallBounceValue">0.25</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Friction</span>
+                        <input id="BallFriction" type="range" min="0" max="1" step="0.05" value="0.80">
+                        <b id="BallFrictionValue">0.80</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Ang X</span>
+                        <input id="BallAngVelX" type="range" min="-10" max="10" step="0.1" value="4.0">
+                        <b id="BallAngVelXValue">4.00</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Ang Y</span>
+                        <input id="BallAngVelY" type="range" min="-10" max="10" step="0.1" value="0.0">
+                        <b id="BallAngVelYValue">0.00</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Ang Z</span>
+                        <input id="BallAngVelZ" type="range" min="-10" max="10" step="0.1" value="2.0">
+                        <b id="BallAngVelZValue">2.00</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Lin damp</span>
+                        <input id="BallLinearDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.35">
+                        <b id="BallLinearDampingValue">0.35</b>
+                    </div>
+
+                    <div class="ball-setting-row">
+                        <span>Ang damp</span>
+                        <input id="BallAngularDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.75">
+                        <b id="BallAngularDampingValue">0.75</b>
+                    </div>
             </div>
-
-            <div id="TeapotControlsLegend" class="teapot-controls-legend hidden">
-                <div class="legend-title">Teapot Chase controls</div>
-                <div><b>Left stick</b>: rotate teapot</div>
-                <div><b>Right stick</b>: move teapot</div>
-                <div><b>LT / RT</b>: lower / raise</div>
-                <div><b>A</b>: toggle rotation</div>
-            </div>
-
 
             <canvas id="gl-canvas"> <!-- idth="1800" height="900"> -->
                 Oops ... your browser doesn't support the HTML5 canvas element
