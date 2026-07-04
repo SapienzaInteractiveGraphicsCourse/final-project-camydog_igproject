@@ -260,6 +260,9 @@ onload = async function init() {
     var startScreen = document.getElementById("startScreen");
     var loadingScreen = document.getElementById("loadingScreen");
 
+    var loadingStartTime = performance.now();
+    var MIN_LOADING_SCREEN_TIME = 1800;
+
 
     //initialization for cursor
     callDogClickMode = false;
@@ -310,7 +313,7 @@ onload = async function init() {
     clearOldShadowMaps();
 
     // test for  GLB loading for rigged dog
-    loadGLBDebug(modelPath_shiba_glb)
+    /* loadGLBDebug(modelPath_shiba_glb)
     .then(function (result) {
         console.log("GLB debug loaded successfully");
         //debugReadSkinnedMeshData(result.gltf,result.binary);
@@ -325,7 +328,25 @@ onload = async function init() {
     })
     .catch(function (error) {
         console.error("GLB debug load error:", error);
-    });
+    }); */
+
+    try {
+            var result = await loadGLBDebug(modelPath_shiba_glb);
+
+            console.log("GLB debug loaded successfully");
+
+            skinnedDog = createSkinnedDogBuffers(
+                gl,
+                result.gltf,
+                result.binary
+            );
+
+            console.log("Skinned dog buffers created:", skinnedDog);
+            printDogJointNames();
+
+        } catch (error) {
+            console.error("GLB debug load error:", error);
+        }
 
 
 
@@ -2043,9 +2064,15 @@ onload = async function init() {
     });
 
     if (ENABLE_LOADING_SCREEN) {
+        var elapsedLoadingTime = performance.now() - loadingStartTime;
+        var remainingLoadingTime = Math.max(
+            0,
+            MIN_LOADING_SCREEN_TIME - elapsedLoadingTime
+        );
+
         setTimeout(function () {
             finishInitialLoading();
-        }, 1800);
+        }, remainingLoadingTime);
     } else {
         finishInitialLoading();
     }
