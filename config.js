@@ -2,6 +2,12 @@
 var ENABLE_START_SCREEN = true; 
 var ENABLE_LOADING_SCREEN = true;
 
+
+//loading bar variables 
+var loadingProgressValue = 0;
+var loadingProgressTarget = 0;
+var loadingProgressAnimationId = null;
+
 //current Scene either "home" or "park"
 var currentScene = "home"; 
 var sceneTransitionActive = false;

@@ -265,6 +265,10 @@ onload = async function init() {
 
     var loadingStartTime = performance.now();
     var MIN_LOADING_SCREEN_TIME = 1800;
+    setLoadingProgress(
+        5,
+        "Starting WebGL..."
+    );
 
 
     //initialization for cursor
@@ -297,10 +301,17 @@ onload = async function init() {
 
 
     program = initShaders(gl, "vertex-shader", "fragment-shader");
+
+    setLoadingProgress(
+        18,
+        "Compiling shaders..."
+    );
+    
     console.log("Program =", program);
     gl.useProgram(program);
     shadowProgram = initShaders(gl, "shadow-vertex-shader", "shadow-fragment-shader");
     console.log("shadowProgram =", shadowProgram);
+    
     initShadowMap();
 
 
@@ -331,6 +342,10 @@ onload = async function init() {
 
 
 
+    setLoadingProgress(
+        40,
+        "Loading dog model ..."
+    );
     //carico le texture per teapot e tavolo + cat
 
     //teapotTexture = loadTexture(path_img_teapot);
@@ -374,6 +389,11 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     fireflyTexture = createSolidColorTexture(
         gl,
         255, 230, 110, 255
+    );
+
+    setLoadingProgress(
+        50,
+        "Loading textures..."
     );
 
 
@@ -594,6 +614,11 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         fireflySphere.texCoords
     );
 
+    setLoadingProgress(
+        55,
+        "Loading objects..."
+    );
+
 
     //   SKYBOXX    //////////////////
     // skybox buffers &  shader program
@@ -613,6 +638,12 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
     skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
     skyboxSamplerLoc = gl.getUniformLocation(skyboxProgram, "skybox");
+
+
+    setLoadingProgress(
+        60,
+        "Loading skyboxes..."
+    );
 
 
 
@@ -858,6 +889,11 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
+
+    setLoadingProgress(
+        88,
+        "Preparing minigames..."
+    );
 
     //Sound to pet dog
     dogBreathSound = document.getElementById("dogBreathSound");
@@ -1493,7 +1529,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 //at the beginning the teapot is on the table then 
                 // when I click on the button it starts to rotate and the dog will follow it
                 objPos[1] = TEAPOT_CHASE_Y;
-                flag_rot_teapot = true;
+                flag_rot_teapot = false;
 
 
                 this.classList.add("active");
@@ -2138,6 +2174,12 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         dogBreathSound.pause();
         dogBreathSound.currentTime = 0;
     });
+
+
+    setLoadingProgress(
+        94,
+        "Almost ready..."
+    );
 
     if (ENABLE_LOADING_SCREEN) {
         var elapsedLoadingTime = performance.now() - loadingStartTime;

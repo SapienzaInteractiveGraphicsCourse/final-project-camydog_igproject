@@ -218,7 +218,75 @@ function resizeCanvasToDisplaySize() {
     }
 }
 /////////////////////////
+function setLoadingProgress(targetValue, statusText) {
+    loadingProgressTarget = Math.max(
+        loadingProgressTarget,
+        Math.min(targetValue, 100)
+    );
+
+    var textElement = document.getElementById("LoadingStatusText");
+
+    if (textElement && statusText) {
+        textElement.innerHTML = statusText;
+    }
+
+    if (!loadingProgressAnimationId) {
+        animateLoadingProgress();
+    }
+}
+
+
+function animateLoadingProgress() {
+    var fill = document.getElementById("LoadingBarFill");
+
+    if (!fill) {
+        loadingProgressAnimationId = null;
+        return;
+    }
+
+    var diff = loadingProgressTarget - loadingProgressValue;
+
+    if (Math.abs(diff) < 0.1) {
+        loadingProgressValue = loadingProgressTarget;
+    } else {
+        loadingProgressValue += diff * 0.08;
+    }
+
+    fill.style.width = loadingProgressValue.toFixed(1) + "%";
+
+    if (loadingProgressValue < 100) {
+        loadingProgressAnimationId =
+            requestAnimationFrame(animateLoadingProgress);
+    } else {
+        loadingProgressAnimationId = null;
+    }
+}
 function finishInitialLoading() {
+    /*
+        Prima porto la barra al 100%.
+        Poi, dopo un piccolo delay, nascondo il loading screen.
+    */
+
+    if (typeof setLoadingProgress === "function") {
+        setLoadingProgress(
+            100,
+            "Ready!"
+        );
+
+        setTimeout(function () {
+            finishInitialLoadingAfterProgress();
+        }, 450);
+    } else {
+        /*
+            Safety: se per qualche motivo setLoadingProgress non esiste,
+            il loading funziona comunque come prima.
+        */
+        finishInitialLoadingAfterProgress();
+    }
+}
+
+
+function finishInitialLoadingAfterProgress() {
     var loadingScreen =
         document.getElementById("loadingScreen");
 
@@ -251,6 +319,7 @@ function finishInitialLoading() {
         }
     }
 }
+
 ////////////////////////////////////////////
 function updateAutoSun(deltaTime) {
     if (!autoSunEnabled) {
@@ -1435,6 +1504,9 @@ function LoadSkyboxTexture(gl)
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
+    // code to avoid warning on Pages
+    const emptyCubemapFace = new Uint8Array(512 * 512 * 4);
+
     const faceInfos = [
         {
             target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -1474,7 +1546,7 @@ function LoadSkyboxTexture(gl)
             0,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            null
+            emptyCubemapFace
         );
 
         const image = new Image();
@@ -1511,6 +1583,9 @@ function LoadSkyboxTexturePark(gl)
 {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+    //code to avoid warning on Pages
+    const emptyCubemapFace = new Uint8Array(512 * 512 * 4);
 
     const faceInfos = [
         {
@@ -1562,7 +1637,7 @@ function LoadSkyboxTexturePark(gl)
             0,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            null
+            emptyCubemapFace
         );
 
         const image = new Image();
