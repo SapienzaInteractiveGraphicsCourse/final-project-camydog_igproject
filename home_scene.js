@@ -54,7 +54,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             curtain.applyWind(now);
         }
 
-        physicsWorld.step(fixedTimeStep, deltaTime, 3);
+        physicsWorld.step(fixedTimeStep, deltaTime, 5);
         updateKibbleSpawner(deltaTime);
         updateKibbles(deltaTime);
         

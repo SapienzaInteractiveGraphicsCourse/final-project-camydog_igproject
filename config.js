@@ -172,6 +172,11 @@ var ballBlockedOnTable = false;
 var ballSettingsPanelHasBeenOpened = false;
 var ballSettingsPanelClosedByUser = false;
 
+var ballRenderInitialized = false;
+var ballRenderX = 0.0;
+var ballRenderY = 0.0;
+var ballRenderZ = 0.0;
+
 //****************************************************** */
 /*              BUFFERS                                  */
 //****************************************************** */

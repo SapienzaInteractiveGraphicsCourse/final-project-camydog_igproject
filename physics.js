@@ -1778,6 +1778,10 @@ function startBallMiniGame() {
     // Reset posizione pallina
     ballBody.position.set(0.0, PHYSICS_FLOOR_Y + 3.0, 7.0);
 
+    //REVIEW -  MODIFICA PER PALLA CALO FPS FIREFOX
+    resetBallRenderPositionToPhysics();
+
+
     // Reset velocità
     ballBody.velocity.set(0.0, 0.0, 0.0);
     ballBody.angularVelocity.set(0.0, 0.0, 0.0);
@@ -1793,6 +1797,9 @@ function startBallMiniGame() {
 function stopBallMiniGame() {
     ballVisible = false;
     showDogMusicNote = false;
+
+    //REVIEW - MODIFICA PER PALLA CALO FPS FIREFOX
+    ballRenderInitialized = false;
 
 
     if (!ballBody) return;
@@ -3366,14 +3373,42 @@ function getBallModelMatrix() {
             scalem(ballRadius, ballRadius, ballRadius)
         );
     } else {
-        if (!ballBody) return modelMatrixBall;
+        //REVIEW -  MODIFICA POSIZIONE PALLA CALO FPS FIREFOX
+        /* if (!ballBody) return modelMatrixBall;
 
-        modelMatrixBall = mult(
+         modelMatrixBall = mult(
             modelMatrixBall,
             translate(
                 ballBody.position.x,
                 ballBody.position.y,
                 ballBody.position.z
+            )
+        );  */
+
+
+        if (!ballBody) return modelMatrixBall;
+
+        if (!ballRenderInitialized) {
+            resetBallRenderPositionToPhysics();
+        }
+
+        /*
+            Smoothing visivo controllato.
+            Non usa interpolatedPosition di Cannon, quindi non rischia
+            di pescare posizioni vecchie sotto il pavimento.
+        */
+        var smoothing = 0.45;
+
+        ballRenderX += (ballBody.position.x - ballRenderX) * smoothing;
+        ballRenderY += (ballBody.position.y - ballRenderY) * smoothing;
+        ballRenderZ += (ballBody.position.z - ballRenderZ) * smoothing;
+
+        modelMatrixBall = mult(
+            modelMatrixBall,
+            translate(
+                ballRenderX,
+                ballRenderY,
+                ballRenderZ
             )
         );
 
@@ -3381,9 +3416,27 @@ function getBallModelMatrix() {
             modelMatrixBall,
             scalem(ballRadius, ballRadius, ballRadius)
         );
+            
+
+        /* modelMatrixBall = mult(
+            modelMatrixBall,
+            scalem(ballRadius, ballRadius, ballRadius)
+        ); */
     }
 
     return modelMatrixBall;
+}
+
+function resetBallRenderPositionToPhysics() {
+    if (!ballBody) {
+        return;
+    }
+
+    ballRenderX = ballBody.position.x;
+    ballRenderY = ballBody.position.y;
+    ballRenderZ = ballBody.position.z;
+
+    ballRenderInitialized = true;
 }
 
 /*///////////////////////////////////////////////////
