@@ -261,6 +261,39 @@ function animateLoadingProgress() {
         loadingProgressAnimationId = null;
     }
 }
+
+function resetBallSettingsPanelState() {
+    var panel = document.getElementById("BallSettingsPanel");
+
+    /*
+        Reset logico del minigame palla.
+        Se resta true, updateBallSettingsOverlay può riaprire il pannello.
+    */
+    if (typeof miniGameActive !== "undefined") {
+        miniGameActive = false;
+    }
+
+    /*
+        Reset stato interno del pannello.
+    */
+    if (typeof ballSettingsPanelHasBeenOpened !== "undefined") {
+        ballSettingsPanelHasBeenOpened = false;
+    }
+
+    if (typeof ballSettingsPanelClosedByUser !== "undefined") {
+        ballSettingsPanelClosedByUser = true;
+    }
+
+    /*
+        Reset visivo forzato.
+    */
+    if (panel) {
+        panel.style.display = "none";
+        panel.classList.remove("attention");
+    }
+}
+
+
 function finishInitialLoading() {
     /*
         Prima porto la barra al 100%.
@@ -1914,6 +1947,8 @@ function LoadSkyboxTextureFromCross(gl, url)
         { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, x: 3 * faceSize, y: 1 * faceSize,rot:0, flipX: false, flipY: false }, // back
     ];
 
+    //code to avoid warning on Pages
+    const emptyCubemapFace = new Uint8Array(512 * 512 * 4);
     // Placeholder iniziale per ogni faccia
     faceInfos.forEach(function(faceInfo) {
         gl.texImage2D(
@@ -1925,7 +1960,7 @@ function LoadSkyboxTextureFromCross(gl, url)
             0,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            null
+            emptyCubemapFace
         );
     });
 
@@ -2067,6 +2102,14 @@ function initShadowMap() {
 
     shadowTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+
+
+    // code to avoid warning on Pages
+    var emptyShadowPixels = new Uint8Array(
+        POINT_SHADOW_SIZE * POINT_SHADOW_SIZE * 4
+    );
+
+
     gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -2076,7 +2119,7 @@ function initShadowMap() {
         0,
         gl.RGBA,
         gl.UNSIGNED_BYTE,
-        null
+        emptyShadowPixels
     );
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
