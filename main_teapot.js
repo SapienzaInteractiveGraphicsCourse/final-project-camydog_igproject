@@ -304,7 +304,7 @@ onload = async function init() {
 
     setLoadingProgress(
         18,
-        "Compiling shaders..."
+        "Compiling shaders & shadow maps..."
     );
     
     console.log("Program =", program);
@@ -320,6 +320,12 @@ onload = async function init() {
 
     //clear shadow map eventually for park mode
     clearOldShadowMaps();
+
+
+    setLoadingProgress(
+        40,
+        "Loading dog model..."
+    );
 
 
     try {
@@ -343,8 +349,8 @@ onload = async function init() {
 
 
     setLoadingProgress(
-        40,
-        "Loading dog model ..."
+        50,
+        "Loading Textures ..."
     );
     //carico le texture per teapot e tavolo + cat
 
@@ -393,7 +399,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     setLoadingProgress(
         50,
-        "Loading textures..."
+        "Loading lights and objects ..."
     );
 
 
@@ -489,9 +495,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     if(!curtainRodBuffers){
         console.log("ERRORE");
     }
-    else{
-        console.log("CILINDRO RIUSCITO");
-    }
+    
 
     //heart loading
      await loadOBJ(modelPath_heart);
@@ -616,7 +620,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     setLoadingProgress(
         55,
-        "Loading objects..."
+        "Loading skyboxes..."
     );
 
 
@@ -642,7 +646,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     setLoadingProgress(
         60,
-        "Loading skyboxes..."
+        "Loading dog arrays..."
     );
 
 
@@ -846,6 +850,13 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     // sooo important come back to main program after initShaders
     gl.useProgram(program);
     
+
+    setLoadingProgress(
+        70,
+        "Loading physics..."
+    );
+
+    
     //physics initialization for mini-game and curtain
     initPhysics();
    
@@ -892,7 +903,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     setLoadingProgress(
         88,
-        "Preparing minigames..."
+        "Preparing buttons & sounds..."
     );
 
     //Sound to pet dog
