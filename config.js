@@ -61,7 +61,7 @@ var pathFolderRiggedDog = "./Objects/dog_separated_model/";
 // images & textures paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
 var path_img_table="./Textures/table_tex_512.jpg";
-var path_img_cat="./Cat/cat_diffuse.jpg";
+var path_img_cat="./Cat/Cat_diffuse.jpg";
 var path_img_wall="./Textures/wall_tex.jpg";
 var path_img_floor="./Textures/parquet_tex.jpg";
 var path_img_dog = "./dog/dog_diff.jpg";
