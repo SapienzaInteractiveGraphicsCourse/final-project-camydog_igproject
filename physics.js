@@ -2265,48 +2265,40 @@ function updateDogMovementToBall(deltaTime) {
     dogAngleToBall = Math.atan2(dirX, dirZ) * 180.0 / Math.PI;
 }
 
+function isBallUnderTable() {
+    if (!ballBody) return false;
 
-function checkBallStoppedAndSendDog(deltaTime) {
-    if (!ballBody) return;
+    /*
+        Controllo se la palla è dentro l'area X/Z del tavolo.
+    */
+    var halfW = TABLE_TOP_WIDTH / 2.0 + ballRadius * 0.6;
+    var halfD = TABLE_TOP_DEPTH / 2.0 + ballRadius * 0.6;
 
-    var vx = ballBody.velocity.x;
-    var vy = ballBody.velocity.y;
-    var vz = ballBody.velocity.z;
+    var insideTableXZ =
+        ballBody.position.x > TABLE_X - halfW &&
+        ballBody.position.x < TABLE_X + halfW &&
+        ballBody.position.z > TABLE_Z - halfD &&
+        ballBody.position.z < TABLE_Z + halfD;
 
-    var speed = Math.sqrt(vx * vx + vy * vy + vz * vz);
-
-    if (speed < 0.08) {
-        ballStoppedTimer += deltaTime;
-    } else {
-        ballStoppedTimer = 0.0;
-        ballAlreadyTargeted = false;
+    if (!insideTableXZ) {
+        return false;
     }
 
-    if (ballStoppedTimer > 0.6 && !ballAlreadyTargeted) {
-       /*  dogTargetX = ballBody.position.x;
-        dogTargetZ = ballBody.position.z; */
-        initDogPositionIfNeeded();
+    /*
+        Calcolo la parte bassa del piano del tavolo.
+        Se la palla sta sotto quella quota, il cane non può raggiungerla.
+    */
+    var tableTopBottomY =
+        TABLE_Y +
+        TABLE_TOP_OFFSET_Y -
+        TABLE_TOP_HEIGHT / 2.0;
 
-         var reachableTarget = getReachableBallTarget(
-            ballBody.position.x,
-            ballBody.position.z
-        );
+    var ballTopY = ballBody.position.y + ballRadius;
 
-
-
-        dogPath = computeDogPathToBall(
-            dogCurrentX,
-            dogCurrentZ,
-            reachableTarget.x,
-            reachableTarget.z
-        );
-
-        
-        dogPathIndex = 0;
-        dogMovingToBall = true;
-        ballAlreadyTargeted = true;
-    }
+    return ballTopY < tableTopBottomY + 0.08;
 }
+
+
 
 /*
 
@@ -3189,20 +3181,107 @@ function updateSkinnedDogFetchBall_old(deltaTime) {
         }
     }
 }
+function checkBallStoppedAndSendSkinnedDog() {
+    if (!miniGameActive || !ballBody || !ballVisible) {
+        return;
+    }
 
+    var v = ballBody.velocity;
 
+    var ballSpeed = Math.sqrt(
+        v.x * v.x +
+        v.y * v.y +
+        v.z * v.z
+    );
 
-function checkBallStoppedAndSendSk_old() {
-    if (!miniGameActive || !ballBody || !ballVisible) return;
+    /*
+        Se la palla si sta ancora muovendo, resetto i warning.
+        Così se poi viene rilanciata, il messaggio può ricomparire.
+    */
+    if (ballSpeed > 0.18) {
+        ballOnTableWarningShown = false;
+        ballBlockedOnTable = false;
 
-    if (skinnedDogAlreadyTargeted) return;
+        ballUnderTableWarningShown = false;
+        ballBlockedUnderTable = false;
+
+        return;
+    }
+
+    /*
+        Caso speciale: palla ferma sul tavolo.
+        Il cane non può prenderla.
+    */
+    if (isBallOnTable()) {
+        if (!ballOnTableWarningShown) {
+            showGameMessage(
+                "The ball is on the table!\nThe dog cannot reach it.",
+                2800
+            );
+        }
+
+        ballOnTableWarningShown = true;
+        ballBlockedOnTable = true;
+
+        skinnedDogAlreadyTargeted = true;
+
+        dogFetchBallMode = false;
+        dogPath = [];
+        dogPathIndex = 0;
+
+        return;
+    }
+
+    /*
+        Caso speciale: palla ferma sotto al tavolo.
+        Il cane non può prenderla.
+    */
+    if (isBallUnderTable()) {
+        if (!ballUnderTableWarningShown) {
+            showGameMessage(
+                "The ball is under the table!\nThe dog cannot reach it.",
+                2800
+            );
+        }
+
+        ballUnderTableWarningShown = true;
+        ballBlockedUnderTable = true;
+
+        skinnedDogAlreadyTargeted = true;
+
+        dogFetchBallMode = false;
+        dogPath = [];
+        dogPathIndex = 0;
+
+        return;
+    }
+
+    /*
+        Se prima era bloccata sul tavolo o sotto al tavolo,
+        ma ora non lo è più, permetto di nuovo al cane di partire.
+    */
+    if (ballBlockedOnTable || ballBlockedUnderTable) {
+        ballBlockedOnTable = false;
+        ballOnTableWarningShown = false;
+
+        ballBlockedUnderTable = false;
+        ballUnderTableWarningShown = false;
+
+        skinnedDogAlreadyTargeted = false;
+    }
+
+    if (skinnedDogAlreadyTargeted) {
+        return;
+    }
 
     if (isBallAlmostStopped()) {
         startSkinnedDogFetchBall();
         skinnedDogAlreadyTargeted = true;
     }
 }
-function checkBallStoppedAndSendSkinnedDog() {
+
+
+function checkBallStoppedAndSendSkinnedDog_old_OLD() {
     if (!miniGameActive || !ballBody || !ballVisible) {
         return;
     }
