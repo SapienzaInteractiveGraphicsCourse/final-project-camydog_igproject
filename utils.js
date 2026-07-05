@@ -89,25 +89,69 @@ function updateTeapotControlsLegend() {
     }
 }
 ///////////////////////
+function updateRotationDemoButtons() {
+    var buttonTeapotRotation =
+        document.getElementById("ButtonT");
+
+    var buttonTableRotation =
+        document.getElementById("ButtonTableRotation");
+
+    if (buttonTeapotRotation) {
+        var teapotRotationOn =
+            typeof flag_rot_teapot !== "undefined" &&
+            flag_rot_teapot;
+
+        buttonTeapotRotation.textContent =
+            teapotRotationOn
+                ? "Teapot rotation: ON"
+                : "Teapot rotation: OFF";
+
+        buttonTeapotRotation.classList.toggle(
+            "active",
+            teapotRotationOn
+        );
+    }
+
+    if (buttonTableRotation) {
+        var tableRotationOn =
+            typeof flag_rot_table !== "undefined" &&
+            flag_rot_table;
+
+        buttonTableRotation.textContent =
+            tableRotationOn
+                ? "Table rotation: ON"
+                : "Table rotation: OFF";
+
+        buttonTableRotation.classList.toggle(
+            "active",
+            tableRotationOn
+        );
+    }
+}
+
+
+////////////////////////
 function showCameraControlsLegend() {
     var legend = document.getElementById("CameraControlsLegend");
 
-    if (!legend) {
-        console.log("CameraControlsLegend not found");
+    if (!legend) return;
+
+    legend.classList.remove("hidden");
+}
+function closeCameraControlsLegend() {
+    var legend = document.getElementById("CameraControlsLegend");
+
+    if (!legend) return;
+
+    cameraControlsLegendClosedByUser = true;
+    legend.classList.add("hidden");
+}
+function showInitialCameraControlsLegend() {
+    if (cameraControlsLegendClosedByUser) {
         return;
     }
 
-    console.log("Showing camera controls legend");
-
-    legend.classList.remove("hidden");
-
-    if (cameraLegendTimeout) {
-        clearTimeout(cameraLegendTimeout);
-    }
-
-    cameraLegendTimeout = setTimeout(function () {
-        legend.classList.add("hidden");
-    }, 4200);
+    showCameraControlsLegend();
 }
 ///////////////////////////////////////
 function updateBallSettingsOverlay(playAttention) {

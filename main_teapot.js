@@ -293,9 +293,15 @@ onload = async function init() {
 
             startScreen.classList.add("hidden");
 
+            
+
             setTimeout(function () {
                 startScreen.style.display = "none";
             }, 500);
+
+            setTimeout(function () {
+                showInitialCameraControlsLegend();
+            }, 400);
         };
     }
 
@@ -322,11 +328,7 @@ onload = async function init() {
     clearOldShadowMaps();
 
 
-    setLoadingProgress(
-        40,
-        "Loading dog model..."
-    );
-
+    
 
     /* try {
             var result = await loadGLBDebug(modelPath_shiba_glb);
@@ -349,6 +351,11 @@ onload = async function init() {
     try {
         skinnedDogLoadState = "loading";
         skinnedDogLoadErrorMessage = "";
+
+        setLoadingProgress(
+            40,
+            "Loading dog model..."
+        );
 
         var result = await loadGLBDebug(modelPath_shiba_glb);
 
@@ -406,7 +413,7 @@ onload = async function init() {
     catTexture = loadTexture(path_img_cat);
     wallTexture = loadTexture(path_img_wall);
     floorTexture = loadTexture(path_img_floor);
-    dogTexture = loadTexture(path_img_dog);
+    //dogTexture = loadTexture(path_img_dog);
     paintingTexture = loadTexture(path_img_painting);
     corniceTexture = loadTexture(path_img_cornice);
     ballTexture = loadTexture(path_img_ball);
@@ -592,14 +599,14 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     var catTex = texCoordsArray.slice();
     catBuffers = createBuffers(catPoints, catNormals, catTex);
 
-    await loadOBJ(modelPath_dog);
+    /* await loadOBJ(modelPath_dog);
     console.log("OBJ Dog loaded");
 
     var dogPoints = pointsArray.slice();
     var dogNormals = normalsArray.slice();
     var dogTex = texCoordsArray.slice();
 
-    dogBuffers = createBuffers(dogPoints, dogNormals, dogTex);
+    dogBuffers = createBuffers(dogPoints, dogNormals, dogTex); */
 
     //rigged dog parts loading
     //Non serve await per forza, perché la funzione imposta separatedDogLoaded = true quando ha finito.
@@ -958,10 +965,20 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             event.preventDefault();
             event.stopPropagation();
 
+            cameraControlsLegendClosedByUser = false;
             showCameraControlsLegend();
         };
-    } else {
-        console.log("CameraControlsHelpButton not found");
+    } 
+    var closeCameraControlsButton =
+        document.getElementById("CloseCameraControlsLegend");
+
+    if (closeCameraControlsButton) {
+        closeCameraControlsButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            closeCameraControlsLegend();
+        };
     }
 
 
@@ -1701,8 +1718,32 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
-    document.getElementById("ButtonT").onclick = () => flag_rot_teapot = !flag_rot_teapot;
-    document.getElementById("ButtonTableRotation").onclick = () => flag_rot_table = !flag_rot_table;
+
+
+    var buttonTeapotRotation =
+        document.getElementById("ButtonT");
+
+    if (buttonTeapotRotation) {
+        buttonTeapotRotation.onclick = function () {
+            flag_rot_teapot = !flag_rot_teapot;
+            updateRotationDemoButtons();
+        };
+    }
+
+    var buttonTableRotation =
+        document.getElementById("ButtonTableRotation");
+
+    if (buttonTableRotation) {
+        buttonTableRotation.onclick = function () {
+            flag_rot_table = !flag_rot_table;
+            updateRotationDemoButtons();
+        };
+    }
+
+    updateRotationDemoButtons();
+
+
+
     document.getElementById("ButtonTex").onclick = function() {
         useTexture_teapot = !useTexture_teapot;
         console.log("Texture teapot :", useTexture_teapot);
@@ -2024,6 +2065,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         /*
             1) Teapot keyboard controls
             Attivi solo quando sei in modalità teapot.
+            Questi NON usano WASD, quindi non entrano in conflitto
+            con la camera.
         */
         if (isTeapotKeyboardControlActive()) {
             var isTeapotKey =
@@ -2050,22 +2093,22 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 */
                 if (code === "KeyR" && !event.repeat) {
                     flag_rot_teapot = !flag_rot_teapot;
-                    console.log("Keyboard toggle teapot rotation:", flag_rot_teapot);
+                    updateRotationDemoButtons();
+
+                    console.log(
+                        "Keyboard toggle teapot rotation:",
+                        flag_rot_teapot
+                    );
                 }
 
                 return;
             }
-
-            /*
-                Se sono in teapot mode, non uso WASD per la camera.
-                Così evitiamo controlli sovrapposti.
-            */
-            return;
         }
 
         /*
             2) Camera keyboard pan
-            Attivo solo fuori dalla modalità teapot.
+            Ora è attivo anche durante Teapot Chase.
+            WASD muove sempre la camera.
         */
         var isCameraKey =
             code === "KeyW" ||
@@ -2078,7 +2121,6 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             cameraKeyboardKeys[code] = true;
         }
     });
-
     window.addEventListener("keyup", function (event) {
         teapotKeyboardKeys[event.code] = false;
         cameraKeyboardKeys[event.code] = false;
@@ -2969,6 +3011,8 @@ function readGamepad() {
 
     if (pressedA && !lastButtonA) {
         flag_rot_teapot = !flag_rot_teapot;
+        updateRotationDemoButtons();
+
         console.log("Toggle rotation:", flag_rot_teapot);
     }
 

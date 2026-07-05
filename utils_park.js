@@ -779,20 +779,26 @@ function showGameMessage(messageText, duration) {
 
         // centrato rispetto al canvas
         msg.style.left = (rect.left + rect.width / 2) + "px";
-        msg.style.bottom = "34px";
-        msg.style.transform = "translateX(-50%) translateY(20px)";
 
-        msg.style.width = "min(680px, 72vw)";
-        msg.style.minHeight = "86px";
-        msg.style.padding = "20px 38px";
+
+        msg.style.bottom = "24px";
+        msg.style.transform = "translateX(-50%) translateY(14px)";
+
+        msg.style.width = "min(430px, 48vw)";
+        msg.style.minHeight = "46px";
+        msg.style.padding = "10px 22px";
+        msg.style.borderRadius = "18px";
+
         msg.style.boxSizing = "border-box";
 
         // stile tipo Pokopia
         msg.style.background = "rgba(65, 76, 175, 0.96)";
         msg.style.color = "white";
-        msg.style.borderRadius = "36px";
-        msg.style.border = "2px solid rgba(130, 145, 255, 0.65)";
-        msg.style.boxShadow = "0 8px 22px rgba(0, 0, 0, 0.35)";
+
+
+       
+        msg.style.border = "1.5px solid rgba(130, 145, 255, 0.65)";
+        msg.style.boxShadow = "0 5px 14px rgba(0, 0, 0, 0.25)";
 
         // testo centrato
         msg.style.display = "flex";
@@ -801,9 +807,11 @@ function showGameMessage(messageText, duration) {
         msg.style.textAlign = "center";
 
         msg.style.fontFamily = "Arial, sans-serif";
-        msg.style.fontSize = "20px";
-        msg.style.fontWeight = "600";
-        msg.style.lineHeight = "1.4";
+
+
+        msg.style.fontSize = "14px";
+        msg.style.fontWeight = "650";
+        msg.style.lineHeight = "1.2";
 
         msg.style.zIndex = "9999";
         msg.style.pointerEvents = "none";
@@ -829,7 +837,7 @@ function showGameMessage(messageText, duration) {
 
     gameMessageTimeout = setTimeout(function () {
         msg.style.opacity = "0";
-        msg.style.transform = "translateX(-50%) translateY(20px)";
+        msg.style.transform = "translateX(-50%) translateY(12px)";
     }, duration);
 }
 

@@ -16,6 +16,7 @@ var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 
 // some camera settings
 var cameraLegendTimeout = null;
+var cameraControlsLegendClosedByUser = false;
 
 var cameraKeyboardKeys = {};
 var cameraFocusMode = "free";
@@ -75,7 +76,7 @@ var path_img_table="./Textures/table_tex_512.jpg";
 var path_img_cat="./Cat/Cat_diffuse.jpg";
 var path_img_wall="./Textures/wall_tex.jpg";
 var path_img_floor="./Textures/parquet_tex.jpg";
-var path_img_dog = "./dog/dog_diff.jpg";
+var path_img_dog =null;
 var path_img_heart = "./Textures/red.jpg";
 var path_folder_skyboxes = "./Skyboxes/";
 var path_img_skybox = "./Skyboxes/Skybox/skybox.jpg";

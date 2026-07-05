@@ -3,9 +3,10 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PetRoom</title>
-    <link rel="icon" type="image/png" href="./Textures/nintendogs_logo.jpg">
+ <link rel="icon" type="image/png" sizes="64x64"  href="./Icons/paw.png">
     <!-- link rel="stylesheet" href="./liquid-glass-js/glass.css">
     <link rel="stylesheet" href="./liquid-glass-js/styles.css"> -->
+   
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -62,7 +63,11 @@
 <body  class="game-not-started">
     <div id="loadingScreen">
         <div class="loading-card">
-            <img src="./Textures/nintendogs_logo.jpg" class="loading-logo" alt="Logo">
+            <img 
+                id="StartDogLogo"
+                src="./Icons/shiba_cartoon.png" 
+                alt="Virtual pet icon"
+            >
 
             <h1>Loading Pet Room...</h1>
 
@@ -85,19 +90,57 @@
    
     <div id="startScreen">
         <div class="start-card">
-            <img src="./Textures/nintendogs_logo.jpg" class="start-logo" alt="Logo">
+            <img 
+                id="StartDogLogo"
+                src="./Icons/shiba_cartoon.png" 
+                alt="Virtual pet icon"
+            >
 
             <h1>Virtual Pet Room</h1>
 
-            <p>
-                Explore the room, interact with pets, play with the ball,
-                and test dynamic lights and shadows.
+            <!-- <p>
+               Explore the room, interact with your virtual pet,
+                play minigames, and observe dynamic lights and shadows.
             </p>
 
             <button id="ButtonStartGame">Start Game</button>
             <p class="device-warning">
                 Desktop recommended: some interactions may not work properly on mobile or tablet devices.
+            </p> -->
+            <div class="inspiration-badge">
+                <div class="inspiration-icon">
+                    <img src="./Textures/nintendogs_logo.jpg" alt="Inspiration">
+                </div>
+
+                <div class="inspiration-text">
+                    <span class="inspiration-label">Inspired by</span>
+                    <span class="inspiration-title">Nintendogs-style virtual pet games</span>
+                </div>
+            </div>
+
+            <p class="start-description">
+                Explore the room, interact with your virtual pet, play minigames,
+                and experience dynamic lights and shadows.
             </p>
+
+            
+
+            <button id="ButtonStartGame">Start Game</button>
+
+            <div class="recommended-setup">
+                <div class="setup-title">Recommended setup</div>
+
+                <div class="setup-tags">
+                    <span>🖥️ Desktop</span>
+                    <span>⌨️ Keyboard</span>
+                    <span>🖱️ Mouse</span>
+                    <span>🎮 Joystick / Gamepad</span>
+                </div>
+
+                <p>
+                    Desktop recommended. Some interactions may not work properly on mobile or tablet devices.
+                </p>
+            </div>
 
             <div class="student-credit">
                 <span>Camilla Giuliani</span>
@@ -174,7 +217,7 @@
                     <button  id="ButtonCatMove">Toggle Cat Walk</button>
                     <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
                     <button hidden  id="ButtonLightDir">Show Light Direction</button>
-                    <button id="ButtonCollision">Show Collisions</button>
+                    <button id="ButtonCollision">Show Colliders</button>
                     <button id="ButtonCallDogMode" alt="Call Dog Mode" title="Call Dog Mode">
                         Call Dog Mode 
                     </button>
@@ -188,6 +231,11 @@
 
             </div>
             <div id="CameraControlsLegend" class="camera-controls-legend hidden">
+
+                        <button id="CloseCameraControlsLegend" class="camera-controls-close-button">
+                            ×
+                        </button>
+
                         <div class="legend-title">Camera controls</div>
                         <div><b>Left mouse</b>: orbit camera</div>
                         <div><b>Right mouse</b>: pan camera</div>
@@ -277,46 +325,51 @@
             </div>
 
               
-             <div id="RotationSettingsPanel" class="control-group">
-                          <h3>Debug for shadows: rotation</h3>
+            <details id="RotationSettingsPanel" class="control-group collapsible-panel shadow-demo-panel">
+                <summary>Shadow demo controls</summary>
 
-                            <details class="control-group collapsible-panel">
-                                <summary>Rotation of objects settings</summary>
-                             <div class="control-row">
-                            <label for="RotationSpeed_teapot">Rotation speed teapot:</label>
-                            <input 
-                                id="RotationSpeed_teapot" 
-                                type="range" 
-                                min="0" 
-                                max="9" 
-                                step="0.1" 
-                                value="1"
-                            >
-                            <span id="RotationSpeedValue_teapot">1.0x</span>
+                <p class="shadow-demo-description">
+                    Rotate objects to show dynamic shadows.
+                </p>
 
-                            
-                            </div>
+                <button id="ButtonT" class="rotation-demo-button">
+                    Teapot rotation: OFF
+                </button>
 
-                            <div class="control-row">
-                                <label for="RotationSpeed_table">Rotation speed table:</label>
-                                <input 
-                                            id="RotationSpeed_table" 
-                                          type="range" 
-                                            min="0" 
-                                            max="5" 
-                                            step="0.1" 
-                                            value="1"
-                                        >
-                                <span id="RotationSpeedValue_table">1.0x</span>
+                <button id="ButtonTableRotation" class="rotation-demo-button">
+                    Table rotation: OFF
+                </button>
 
-                            </div>
-                            </details>
-                            <button hidden id = "ButtonX">Rotate T. X</button>
-                            <button hidden id = "ButtonY">Rotate T. Y</button>
-                            <button hidden id = "ButtonZ">Rotate T. Z</button>
-                            <button hidden id = "ButtonT">Toggle Teapot Rotation</button>
-                            <button hideen id="ButtonTableRotation">Toggle Table Rotation</button>
-             </div>
+                <div class="control-row">
+                    <label for="RotationSpeed_teapot">Teapot speed:</label>
+                    <input 
+                        id="RotationSpeed_teapot" 
+                        type="range" 
+                        min="0" 
+                        max="9" 
+                        step="0.1" 
+                        value="1"
+                    >
+                    <span id="RotationSpeedValue_teapot">1.0x</span>
+                </div>
+
+                <div class="control-row">
+                    <label for="RotationSpeed_table">Table speed:</label>
+                    <input 
+                        id="RotationSpeed_table" 
+                        type="range" 
+                        min="0" 
+                        max="5" 
+                        step="0.1" 
+                        value="1"
+                    >
+                    <span id="RotationSpeedValue_table">1.0x</span>
+                </div>
+
+                <button hidden id="ButtonX">Rotate T. X</button>
+                <button hidden id="ButtonY">Rotate T. Y</button>
+                <button hidden id="ButtonZ">Rotate T. Z</button>
+            </details>
                         <div class="control-group">
                                 <h3>Camera views</h3>
 
@@ -332,20 +385,22 @@
                                 
                                 <button id="ButtonResetCamera">Reset Camera</button>
                          </div>
+
                          <div class="control-group">
                                 <h3>Night&Day</h3>
+                                 <div class="side-icon-row"> 
+                                    <button id="ButtonNightDay" class="night-day-icon-button" title="Switch to Night Mode">
+                                        <img id="NightDayIcon" src="./Icons/fullmoon.png" alt="Night / Day">
+                                    </button>
 
-                                <button id="ButtonNightDay" class="night-day-icon-button" title="Switch to Night Mode">
-                                    <img id="NightDayIcon" src="./Icons/fullmoon.png" alt="Night / Day">
-                                </button>
-
-                                 <button id="ButtonAutoSun" class="auto-sun-button" title="Auto Sun: OFF">
-                                    <img id="AutoSunIcon" src="./Icons/auto_moving_sun.png" alt="Auto Sun">
-                                </button>
+                                    <button id="ButtonAutoSun" class="auto-sun-button" title="Auto Sun: OFF">
+                                        <img id="AutoSunIcon" src="./Icons/auto_moving_sun.png" alt="Auto Sun">
+                                    </button>
+                                </div>
                          </div>
                          <div class="control-group">
                                 <h3>Minigames</h3>
-
+                                 <div class="side-icon-row"> 
                                 <button id="ButtonMiniGame" class="water-button minigame-icon-button" title="Start Ball">
                                     <img id="MiniGameIcon" src="./Icons/ball.png" alt="Start Ball">
                                 </button>
@@ -360,6 +415,8 @@
                                 
 
                                     <button id="ButtonBounceBall">Bounce Ball</button>
+
+                                </div>
 
                          </div>
 

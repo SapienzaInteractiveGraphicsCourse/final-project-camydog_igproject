@@ -100,3 +100,5 @@ From FlatIcon
 yes_audio : https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912
 teapot icon : "https://www.flaticon.com/free-icons/teapot"
 camera icon: https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651
+shiba icon :  https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763
+paw icon :  https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576
