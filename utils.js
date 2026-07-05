@@ -89,6 +89,27 @@ function updateTeapotControlsLegend() {
     }
 }
 ///////////////////////
+function showCameraControlsLegend() {
+    var legend = document.getElementById("CameraControlsLegend");
+
+    if (!legend) {
+        console.log("CameraControlsLegend not found");
+        return;
+    }
+
+    console.log("Showing camera controls legend");
+
+    legend.classList.remove("hidden");
+
+    if (cameraLegendTimeout) {
+        clearTimeout(cameraLegendTimeout);
+    }
+
+    cameraLegendTimeout = setTimeout(function () {
+        legend.classList.add("hidden");
+    }, 4200);
+}
+///////////////////////////////////////
 function updateBallSettingsOverlay(playAttention) {
     var panel = document.getElementById("BallSettingsPanel");
 

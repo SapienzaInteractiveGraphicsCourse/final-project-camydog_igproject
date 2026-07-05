@@ -2111,3 +2111,88 @@ body.ui-panel-hidden .toggle-side-panel-button {
 
     transition: width 0.35s ease;
 }
+
+
+.camera-help-top-button {
+    margin-left: auto;
+
+    width: 48px !important;
+    height: 42px !important;
+
+    border: none;
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 2px !important;
+
+    box-shadow: 0 3px 8px rgba(255, 255, 255, 0.18);
+
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.camera-help-top-button:hover {
+    transform: scale(1.06);
+    background: rgba(255, 255, 255, 1.0);
+}
+
+.camera-help-top-button img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.camera-help-top-button span {
+    margin-top: -3px;
+
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+
+    color: #2b2b2b;
+
+    pointer-events: none;
+}
+
+
+/*************CAMERA HELP LEGEND **********/
+.camera-controls-legend {
+    position: fixed;
+
+    top: 58px;
+    right: 12px;
+
+    z-index: 9999;
+
+    padding: 10px 12px;
+    border-radius: 12px;
+
+    background: rgba(0, 0, 0, 0.72);
+    color: white;
+
+    font-size: 13px;
+    line-height: 1.55;
+
+    min-width: 220px;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    opacity: 1;
+    transform: translateY(0);
+
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.camera-controls-legend.hidden {
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+}

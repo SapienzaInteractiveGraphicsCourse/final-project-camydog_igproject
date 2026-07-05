@@ -906,6 +906,22 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         "Preparing buttons & sounds..."
     );
 
+
+    var cameraHelpButton =
+        document.getElementById("CameraControlsHelpButton");
+
+    if (cameraHelpButton) {
+        cameraHelpButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            showCameraControlsLegend();
+        };
+    } else {
+        console.log("CameraControlsHelpButton not found");
+    }
+
+
     //Sound to pet dog
     dogBreathSound = document.getElementById("dogBreathSound");
     dogBreathSound.loop = false;
@@ -1883,7 +1899,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         event.preventDefault();
     });
 
-   canvas.addEventListener("mousedown", function(event) {
+ /*   canvas.addEventListener("mousedown", function(event) {
         // In call dog mode -> do not start rotation
         if (callDogClickMode) {
             return;
@@ -1905,14 +1921,47 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
 
         updateCanvasCursor();
+    }); */
+
+
+    canvas.addEventListener("mousedown", function(event) {
+        if (callDogClickMode) {
+            return;
+        }
+
+        /*
+            Evita selezioni, menu contestuale e comportamenti strani
+            del browser mentre controlli la camera.
+        */
+        event.preventDefault();
+
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+        // Tasto sinistro: orbit
+        if (event.button === 0) {
+            isDraggingCamera = true;
+            isPanningCamera = false;
+        }
+
+        // Tasto destro: pan
+        else if (event.button === 2) {
+            isDraggingCamera = false;
+            isPanningCamera = true;
+        }
+
+        // Altri tasti mouse: ignora
+        else {
+            isDraggingCamera = false;
+            isPanningCamera = false;
+            return;
+        }
+
+        updateCanvasCursor();
     });
 
 
     window.addEventListener("keydown", function (event) {
-        if (!isTeapotKeyboardControlActive()) {
-            return;
-        }
-
         /*
             Se sto usando uno slider/input, non intercetto la tastiera.
             Così non disturbo altri controlli.
@@ -1929,40 +1978,67 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
         var code = event.code;
 
-        var isTeapotKey =
-            code === "KeyI" ||
-            code === "KeyK" ||
-            code === "KeyJ" ||
-            code === "KeyL" ||
-            code === "KeyQ" ||
-            code === "KeyE" ||
-            code === "KeyR" ||
-            code === "ArrowUp" ||
-            code === "ArrowDown" ||
-            code === "ArrowLeft" ||
-            code === "ArrowRight";
+        /*
+            1) Teapot keyboard controls
+            Attivi solo quando sei in modalità teapot.
+        */
+        if (isTeapotKeyboardControlActive()) {
+            var isTeapotKey =
+                code === "KeyI" ||
+                code === "KeyK" ||
+                code === "KeyJ" ||
+                code === "KeyL" ||
+                code === "KeyQ" ||
+                code === "KeyE" ||
+                code === "KeyR" ||
+                code === "ArrowUp" ||
+                code === "ArrowDown" ||
+                code === "ArrowLeft" ||
+                code === "ArrowRight";
 
-        if (!isTeapotKey) {
+            if (isTeapotKey) {
+                event.preventDefault();
+
+                teapotKeyboardKeys[code] = true;
+
+                /*
+                    R funziona come A del joystick:
+                    toggle della rotazione automatica.
+                */
+                if (code === "KeyR" && !event.repeat) {
+                    flag_rot_teapot = !flag_rot_teapot;
+                    console.log("Keyboard toggle teapot rotation:", flag_rot_teapot);
+                }
+
+                return;
+            }
+
+            /*
+                Se sono in teapot mode, non uso WASD per la camera.
+                Così evitiamo controlli sovrapposti.
+            */
             return;
         }
 
-        event.preventDefault();
-
-        teapotKeyboardKeys[code] = true;
-
         /*
-            R funziona come A del joystick:
-            toggle della rotazione automatica.
-            event.repeat evita che tenga premuto R e faccia mille toggle.
+            2) Camera keyboard pan
+            Attivo solo fuori dalla modalità teapot.
         */
-        if (code === "KeyR" && !event.repeat) {
-            flag_rot_teapot = !flag_rot_teapot;
-            console.log("Keyboard toggle teapot rotation:", flag_rot_teapot);
+        var isCameraKey =
+            code === "KeyW" ||
+            code === "KeyA" ||
+            code === "KeyS" ||
+            code === "KeyD";
+
+        if (isCameraKey) {
+            event.preventDefault();
+            cameraKeyboardKeys[code] = true;
         }
     });
 
     window.addEventListener("keyup", function (event) {
         teapotKeyboardKeys[event.code] = false;
+        cameraKeyboardKeys[event.code] = false;
     });
 
     window.addEventListener("blur", function () {
@@ -1971,11 +2047,15 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             non resta bloccato.
         */
         teapotKeyboardKeys = {};
+
+        isDraggingCamera = false;
+        isPanningCamera = false;
+        cameraKeyboardKeys = {};
+        updateCanvasCursor();
     });
 
     window.addEventListener("mouseup", function() {
         isDraggingCamera = false;
-
         isPanningCamera = false;
         updateCanvasCursor();
     });
@@ -2394,6 +2474,59 @@ function updateOrbitCameraFromSliders_old() {
     cameraAngleValue.innerHTML = cameraAngle.toFixed(0) + "°";
     cameraHeightValue.innerHTML = cameraHeight.toFixed(1);
     cameraDistanceValue.innerHTML = cameraDistance.toFixed(1);
+}
+
+function updateCameraKeyboardPan(deltaTime) {
+    if (!cameraKeyboardKeys) return;
+
+    var dt =
+        typeof deltaTime === "number" && isFinite(deltaTime)
+            ? deltaTime
+            : 1.0 / 60.0;
+
+    dt = Math.min(dt, 0.05);
+
+    var moveForward = 0.0;
+    var moveRight = 0.0;
+
+    if (cameraKeyboardKeys["KeyW"]) moveForward -= 1.0;
+    if (cameraKeyboardKeys["KeyS"]) moveForward += 1.0;
+    if (cameraKeyboardKeys["KeyD"]) moveRight += 1.0;
+    if (cameraKeyboardKeys["KeyA"]) moveRight -= 1.0;
+
+    if (moveForward === 0.0 && moveRight === 0.0) {
+        return;
+    }
+
+    var len = Math.sqrt(
+        moveForward * moveForward +
+        moveRight * moveRight
+    );
+
+    moveForward /= len;
+    moveRight /= len;
+
+    var rad = radians(cameraAngle);
+
+    var rightX = Math.cos(rad);
+    var rightZ = -Math.sin(rad);
+
+    var forwardX = Math.sin(rad);
+    var forwardZ = Math.cos(rad);
+
+    /*
+        Velocità proporzionale allo zoom:
+        se sei lontana, il pan è un po' più veloce.
+    */
+    var speed = Math.max(1.8, cameraDistance * 0.65) * dt;
+
+    cameraPanOffset[0] += rightX * moveRight * speed;
+    cameraPanOffset[2] += rightZ * moveRight * speed;
+
+    cameraPanOffset[0] += forwardX * moveForward * speed;
+    cameraPanOffset[2] += forwardZ * moveForward * speed;
+
+    updateOrbitCameraFromSliders();
 }
 
 
@@ -2905,6 +3038,8 @@ function render() {
     readGamepad();
     updateTeapotKeyboardControls(deltaTime);
     clampTeapotToTable();
+
+    updateCameraKeyboardPan(deltaTime);
 
    if (cameraFocusMode === "dog") {
         if (cameraDogMode === "autoAngle") {

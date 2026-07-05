@@ -13,6 +13,11 @@ var currentScene = "home";
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 
+
+// some camera settings
+var cameraLegendTimeout = null;
+
+var cameraKeyboardKeys = {};
 var cameraFocusMode = "free";
 var cameraPanOffset = vec3(0.0, 0.0, 0.0);
 var cameraDogAutoAngle = false;
@@ -176,6 +181,9 @@ var ballRenderInitialized = false;
 var ballRenderX = 0.0;
 var ballRenderY = 0.0;
 var ballRenderZ = 0.0;
+
+var ballUnderTableWarningShown = false;
+var ballBlockedUnderTable = false;
 
 //****************************************************** */
 /*              BUFFERS                                  */
