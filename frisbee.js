@@ -254,7 +254,9 @@ function getFrisbeeModelMatrix() {
     var arcHeight = Math.sin(Math.PI * t) * 2.0;
     var y = frisbeeStartPos[1] + (frisbeeEndPos[1] - frisbeeStartPos[1]) * s + arcHeight;
 
-    frisbeeSpin += 22.0;
+    //frisbeeSpin += 22.0;
+    var elapsedSeconds = (now - frisbeeStartTime) / 1000.0;
+    frisbeeSpin = elapsedSeconds * 900.0;
 
     modelMatrixFrisbee = mult(
         modelMatrixFrisbee,

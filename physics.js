@@ -2491,11 +2491,11 @@ function updateSkinnedDogFetchBall(deltaTime) {
     var dogSpeedPerSecond = 2.1;
 
     if (dogFetchObjectType === "frisbee") {
-        dogSpeedPerSecond = 2.7;
+        dogSpeedPerSecond = 3.0;
     }
 
     if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
-        dogSpeedPerSecond = 2.5;
+        dogSpeedPerSecond = 2.7;
     }
 
     var speed = dogSpeedPerSecond * safeDeltaTime;
