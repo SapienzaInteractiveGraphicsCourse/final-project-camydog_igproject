@@ -67,7 +67,7 @@ var ballBody = null;
 
 var fixedTimeStep = 1.0 / 60.0;
 
-//variabili per ombre dinamiche
+//variables for dynamic shadow mapping
 
 var shadowFramebuffer;
 var shadowTexture;
@@ -79,7 +79,7 @@ var lightViewMatrix;
 var lightProjectionMatrix;
 
 
-// variabile per rotazione automatica
+// auto rotation variables
 var rotationSpeed_teapot = 1.0;
 var rotationSpeed_table = 1.0;
 var tableTheta = 0.0;
@@ -148,7 +148,7 @@ var pointShadowUps = [
 
 
 
-//var per collisioni
+//variables for collisions
 var tableColliderX = 0.0;
 var tableColliderY = -1.3;
 var tableColliderZ = 0.0;
@@ -235,7 +235,7 @@ function initPointShadowMaps()
 }
 
 
-// comandi col cursore
+// cursor commands
 var isDraggingCamera = false;
 var lastMouseX = 0;
 var lastMouseY = 0;
@@ -251,8 +251,6 @@ onload = async function init() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     aspect = canvas.width / canvas.height;
 
-    // bianco clear color gl.clearColor(1.0, 1.0, 1.0, 1.0);
-    // arancione gl.clearColor(0.9, 0.5, 0.3, 1.0);
     gl.clearColor(0.7, 0.9,0.7, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
@@ -275,21 +273,16 @@ onload = async function init() {
 
     updateCanvasCursor();
 
-    // All'inizio nascondo la start screen.
-    // Prima deve vedersi il loading.
-    if (startScreen) {
+    // loading comes before start screen
+        if (startScreen) {
         startScreen.style.display = "none";
         startScreen.classList.remove("hidden");
     }
 
-    // se loading disattivato, lo nascondo subito
     if (!ENABLE_LOADING_SCREEN && loadingScreen) {
         loadingScreen.style.display = "none";
     }
 
-
-    // Il bottone Start serve solo se ENABLE_START_SCREEN è true.
-    // Però lo preparo subito.
     if (startButton && startScreen) {
         startButton.onclick = function () {
             document.body.classList.remove("game-not-started");
@@ -317,23 +310,6 @@ onload = async function init() {
     //clear shadow map eventually for park mode
     clearOldShadowMaps();
 
-    // test for  GLB loading for rigged dog
-    /* loadGLBDebug(modelPath_shiba_glb)
-    .then(function (result) {
-        console.log("GLB debug loaded successfully");
-        //debugReadSkinnedMeshData(result.gltf,result.binary);
-        skinnedDog = createSkinnedDogBuffers(
-            gl,
-            result.gltf,
-            result.binary
-        );
-
-        console.log("Skinned dog buffers created:", skinnedDog);
-        printDogJointNames();
-    })
-    .catch(function (error) {
-        console.error("GLB debug load error:", error);
-    }); */
 
     try {
             var result = await loadGLBDebug(modelPath_shiba_glb);
@@ -359,7 +335,7 @@ onload = async function init() {
 
     //teapotTexture = loadTexture(path_img_teapot);
     
-// ocra più elegante
+    // ocra più elegante
     //teapotTexture = createSolidColorTexture(gl, 205, 150, 65, 255);
     teapotTexture = createSolidColorTexture(gl, 55, 125, 150, 255);
     tableTexture = loadTexture(path_img_table);
@@ -434,7 +410,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     
     gl.uniform1i(gl.getUniformLocation(program, "uTexture"), 0);
 
-    //Buffers per luce 
+    //light buffers
     var lightSphere = createSphere(1.0, 16,15);
     lightSphereBuffers = createBuffers(
         lightSphere.points,
@@ -452,12 +428,6 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     waterDiskBuffers = createWaterDiskObject(gl, 64);
 
     //loading kibbles
-    /* var kibbleSphere = createSphere(1.0, 16,15);
-    kibbleBuffers = createBuffers(
-        kibbleSphere.points,
-        kibbleSphere.normals,
-        kibbleSphere.texCoords
-    ); */
 
     kibbleObjects = [
         createKibbleObject(gl, 1.0, 8, 10, 1),
@@ -469,7 +439,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     
     
 
-    //carico moon
+    //moon loading
     await loadOBJ(modelPath_moon);
     console.log("OBJ Moon loaded");
     var moonPoints = pointsArray.slice();
@@ -478,7 +448,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     moonBuffers = createBuffers(moonPoints, moonNormals, moonTex);
 
 
-    //carico sun
+    //sun loading
     await loadOBJ(modelPath_sun);
     console.log("OBJ Sun loaded");
     var sunPoints = pointsArray.slice();
@@ -503,9 +473,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         console.log("CILINDRO RIUSCITO");
     }
 
-
-
-    //carico heart
+    //heart loading
      await loadOBJ(modelPath_heart);
     console.log("OBJ Heart loaded");
     var heartPoints = pointsArray.slice();
@@ -527,7 +495,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         console.log("Music Note buffers not created successfully"); 
     }
 
-    //carico teapot
+    //teapot loading
     await loadOBJ(modelPath_teapot);
     console.log("OBJ  Teapot loaded");
         
@@ -639,8 +607,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     skyboxTexture = LoadSkyboxTextureFromCross(gl,path_img_skybox_day);
     parkSkyboxTexture = LoadSkyboxTexturePark(gl);
     
-    nightSkyboxTexture = LoadSkyboxTextureFromCross(gl,
-       path_img_skybox_night);
+    nightSkyboxTexture = 
+        LoadSkyboxTextureFromCross(gl,path_img_skybox_night);
 
     skyboxPosLoc = gl.getAttribLocation(skyboxProgram, "pos");
     skyboxMvpLoc = gl.getUniformLocation(skyboxProgram, "mvp");
@@ -844,10 +812,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     tableMaterialUniforms.pointLightProjectionMatrix =
         gl.getUniformLocation(tableMaterialProgram, "pointLightProjectionMatrix");
 
-    // IMPORTANTISSIMO: torna al programma principale dopo initShaders
+    // sooo important come back to main program after initShaders
     gl.useProgram(program);
     
-    //inizializzazione fisica per mini-game
+    //physics initialization for mini-game and curtain
     initPhysics();
    
     //creation curtain
@@ -939,7 +907,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     waterButton.addEventListener("click", function () {
         if (!waterVisible) {
-            // se il cibo è attivo, lo spengo
+            //if food is active, deactivate it
             if (kibbleVisible) {
                 deactivateFood();
             }
@@ -969,7 +937,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     foodButton.addEventListener("click", function () {
         if (!kibbleVisible) {
-            // se l'acqua è attiva, la spengo
+            //if water is active, deactivate it
             if (waterVisible) {
                 deactivateWater();
             }
@@ -992,7 +960,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     callDogButton.onclick = function () {
         callDogClickMode = !callDogClickMode;
 
-        // Blocca qualsiasi trascinamento rimasto attivo
+        // Block any remaining active dragging
         isDraggingCamera = false;
 
         this.textContent = callDogClickMode
@@ -1057,7 +1025,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     }
 
 
-    // Volume iniziale
+    // initial volume setup
     var initialMusicVolume = parseFloat(musicVolumeSlider.value);
 
     setAllBackgroundMusicVolume(initialMusicVolume);
@@ -1226,7 +1194,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 "Going out...",
                 "Loading the park...",
                 function () {
-                    // Prima di uscire dalla home, chiudo il minigame della palla
+                    // before going to park-> if the ball minigame is active, stop it
                     miniGameActive = false;
                     updateTeapotControlsLegend();
 
@@ -1240,7 +1208,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                     dogHasBall = false;
                     skinnedDogAlreadyTargeted = false;
 
-                    // Reset visuale del bottone della palla
+                    // visual reset of the ball minigame button and icon
                     var miniGameButton = document.getElementById("ButtonMiniGame");
                     var miniGameIcon = document.getElementById("MiniGameIcon");
 
@@ -2063,7 +2031,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
         var distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Raggio della zona in cui il cane percepisce la carezza
+        // radius within which the dog reacts to being petted
         var petRadius = 180.0;
 
         if (distance > petRadius) {
@@ -2073,14 +2041,14 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             dogIsBeingPetted = false;
 
             /*
-                Non fermiamo l'audio qui.
-                Altrimenti, appena la mano esce e rientra dal raggio,
-                l'audio riparte da capo.
+                Do not stop the audio here.
+                Otherwise, as soon as the hand leaves and re-enters the radius,
+                the audio restarts from the beginning.
             */
             return;
         }
 
-        // La mano è vicina alla testa
+        // The hand is close to the head
         dogIsBeingPetted = true;
 
         if (!dogPetAudioPlayed) {
@@ -2790,7 +2758,7 @@ function render() {
         drawHomeScene(gl,viewMatrix, projectionMatrix);
 
     } else if (currentScene === "park") {
-        drawParkScene(gl,viewMatrix, projectionMatrix);
+        drawParkScene(gl,viewMatrix, projectionMatrix,deltaTime);
     }
 
     requestAnimFrame(render);

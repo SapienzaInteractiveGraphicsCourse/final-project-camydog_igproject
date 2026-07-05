@@ -1,5 +1,16 @@
-function drawParkScene(gl,viewMatrix, projectionMatrix) {
-    console.log("[function drawParkScene]");
+function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
+    //console.log("[function drawParkScene]");
+
+    var parkDeltaTime =
+        typeof deltaTime === "number" && isFinite(deltaTime)
+            ? deltaTime
+            : 1.0 / 60.0;
+
+    /*
+        Evita salti enormi se il browser si blocca un attimo,
+        ma permette comunque di adattarsi a FPS bassi.
+    */
+    parkDeltaTime = Math.min(parkDeltaTime, 0.05);
 
     // Skybox del parco
     DrawSkybox(gl, viewMatrix, projectionMatrix,flipSkyboxY = false);
@@ -20,11 +31,6 @@ function drawParkScene(gl,viewMatrix, projectionMatrix) {
     modelMatrixLight = mult(modelMatrixLight, scalem(1.0, 1.0, 1.0));
 
 
-    var parkDeltaTime = 0.016;
-
-    if (typeof deltaTime !== "undefined") {
-        parkDeltaTime = deltaTime;
-    }
 
     if (!isNight) { // it' day time
         updateFallingLeaves(parkDeltaTime);

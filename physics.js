@@ -2538,7 +2538,35 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    var speed = 0.035;
+    //REVIEW -  MODIFICA TEMPO DI MOVIMENTO DEL CANE
+    //var speed = 0.035;
+
+    var safeDeltaTime =
+    typeof deltaTime === "number" && isFinite(deltaTime)
+        ? deltaTime
+        : 1.0 / 60.0;
+
+    safeDeltaTime = Math.min(safeDeltaTime, 0.05);
+
+    /*
+        Prima il cane faceva circa 0.035 unità per frame.
+        A 60 FPS equivale a:
+        0.035 * 60 = 2.1 unità al secondo.
+
+        Ora quindi la velocità è in unità/secondo,
+        e si adatta automaticamente agli FPS reali.
+    */
+    var dogSpeedPerSecond = 2.1;
+
+    if (dogFetchObjectType === "frisbee") {
+        dogSpeedPerSecond = 2.7;
+    }
+
+    if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
+        dogSpeedPerSecond = 2.5;
+    }
+
+    var speed = dogSpeedPerSecond * safeDeltaTime;
 
     /*
         Per la Teapot Chase non voglio che il cane arrivi
@@ -2558,8 +2586,14 @@ function updateSkinnedDogFetchBall(deltaTime) {
     }
 
     if (dist > waypointRadius) {
-        var nextX = dogFetchX + (dx / dist) * speed;
-        var nextZ = dogFetchZ + (dz / dist) * speed;
+        /* var nextX = dogFetchX + (dx / dist) * speed;
+        var nextZ = dogFetchZ + (dz / dist) * speed; */
+        var step = Math.min(speed, dist);
+
+        var nextX = dogFetchX + (dx / dist) * step;
+        var nextZ = dogFetchZ + (dz / dist) * step;
+
+        
 
         // safety: keep the dog outside the table area, even if the path is wrong
         if (currentScene === "home") {
