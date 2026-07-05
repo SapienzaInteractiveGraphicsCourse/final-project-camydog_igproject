@@ -1510,6 +1510,8 @@ function updateDogFollowTeapot(deltaTime) {
 
         dogFetchObjectType = "teapot";
 
+        showDogMusicNote = false;
+
         return;
     }
 
@@ -1562,79 +1564,7 @@ function updateDogFollowTeapot(deltaTime) {
 
     dogFetchObjectType = "teapot";
 
-    dogFetchLoweringActive = false;
-    dogFetchLowerAmount = 0.0;
-
-    dogCrouchActive = false;
-    dogCrouchAmount = 0.0;
-
-    dogFollowTeapotLastX = teapotX;
-    dogFollowTeapotLastZ = teapotZ;
-    dogFollowTeapotRepathTimer = 0.0;
-}
-
-function updateDogFollowTeapot_old(deltaTime) {
-    if (!dogFollowTeapotMode) {
-        return;
-    }
-
-    if (currentScene !== "home") {
-        return;
-    }
-
-    var teapotX = objPos[0];
-    var teapotZ = objPos[2];
-
-    /*
-        Il cane guarda la teapot vera,
-        ma si muove verso un target sicuro sul pavimento.
-    */
-    dogLookAtBallX = teapotX;
-    dogLookAtBallZ = teapotZ;
-
-    dogFetchTarget = {
-        x: teapotX,
-        z: teapotZ
-    };
-
-    dogFollowTeapotRepathTimer += deltaTime;
-
-    var movedX = teapotX - dogFollowTeapotLastX;
-    var movedZ = teapotZ - dogFollowTeapotLastZ;
-
-    var teapotMoved = Math.sqrt(
-        movedX * movedX +
-        movedZ * movedZ
-    );
-
-    /*
-        Non ricalcolo il path ogni frame,
-        altrimenti il cane può tremare.
-    */
-    if (
-        dogFetchBallMode &&
-        dogFollowTeapotRepathTimer < DOG_TEAPOT_REPATH_INTERVAL &&
-        teapotMoved < DOG_TEAPOT_MIN_MOVE_TO_REPATH
-    ) {
-        return;
-    }
-
-    var safeTarget = getSafeDogTargetNearTeapot(
-        teapotX,
-        teapotZ
-    );
-
-    dogPath = computeDogPathToTeapot(
-        dogFetchX,
-        dogFetchZ,
-        safeTarget.x,
-        safeTarget.z
-);
-
-    dogPathIndex = 0;
-    dogFetchBallMode = true;
-
-    dogFetchObjectType = "teapot";
+    showDogMusicNote = true;
 
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
@@ -1646,6 +1576,8 @@ function updateDogFollowTeapot_old(deltaTime) {
     dogFollowTeapotLastZ = teapotZ;
     dogFollowTeapotRepathTimer = 0.0;
 }
+
+
 //////////////////////////////////////////////
 
 
@@ -2687,7 +2619,7 @@ function updateSkinnedDogFetchBall(deltaTime) {
                     z: objPos[2]
                 };
 
-                showDogMusicNote = true;
+                showDogMusicNote = false;
 
                 return;
             }

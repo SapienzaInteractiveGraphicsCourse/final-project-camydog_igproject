@@ -1519,7 +1519,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 dogCrouchActive = false;
                 dogCrouchAmount = 0.0;
 
-                showDogMusicNote = true;
+                showDogMusicNote = false;
 
                 showGameMessage(
                     "Teapot chase mode active!\nMove the teapot with the gamepad.",
@@ -1852,13 +1852,71 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         updateCanvasCursor();
     });
 
-    /* window.addEventListener("gamepadconnected", function (event) {
-        console.log("GAMEPAD CONNECTED:", event.gamepad.index, event.gamepad.id);
+
+    window.addEventListener("keydown", function (event) {
+        if (!isTeapotKeyboardControlActive()) {
+            return;
+        }
+
+        /*
+            Se sto usando uno slider/input, non intercetto la tastiera.
+            Così non disturbo altri controlli.
+        */
+        var tag = event.target.tagName;
+
+        if (
+            tag === "INPUT" ||
+            tag === "TEXTAREA" ||
+            tag === "SELECT"
+        ) {
+            return;
+        }
+
+        var code = event.code;
+
+        var isTeapotKey =
+            code === "KeyI" ||
+            code === "KeyK" ||
+            code === "KeyJ" ||
+            code === "KeyL" ||
+            code === "KeyQ" ||
+            code === "KeyE" ||
+            code === "KeyR" ||
+            code === "ArrowUp" ||
+            code === "ArrowDown" ||
+            code === "ArrowLeft" ||
+            code === "ArrowRight";
+
+        if (!isTeapotKey) {
+            return;
+        }
+
+        event.preventDefault();
+
+        teapotKeyboardKeys[code] = true;
+
+        /*
+            R funziona come A del joystick:
+            toggle della rotazione automatica.
+            event.repeat evita che tenga premuto R e faccia mille toggle.
+        */
+        if (code === "KeyR" && !event.repeat) {
+            flag_rot_teapot = !flag_rot_teapot;
+            console.log("Keyboard toggle teapot rotation:", flag_rot_teapot);
+        }
     });
 
-    window.addEventListener("gamepaddisconnected", function (event) {
-        console.log("GAMEPAD DISCONNECTED:", event.gamepad.index, event.gamepad.id);
-    }); */
+    window.addEventListener("keyup", function (event) {
+        teapotKeyboardKeys[event.code] = false;
+    });
+
+    window.addEventListener("blur", function () {
+        /*
+            Safety: se cambio tab mentre tengo premuto un tasto,
+            non resta bloccato.
+        */
+        teapotKeyboardKeys = {};
+    });
 
     window.addEventListener("mouseup", function() {
         isDraggingCamera = false;
@@ -2484,6 +2542,155 @@ async function loadOBJ(url) {
     //console.log("Loaded texCoords:", texCoordsArray.length);
 }
 
+function updateTeapotKeyboardControls(deltaTime) {
+    if (!isTeapotKeyboardControlActive()) {
+        return;
+    }
+
+    var dt =
+        typeof deltaTime === "number" && isFinite(deltaTime)
+            ? deltaTime
+            : 1.0 / 60.0;
+
+    /*
+        Evito salti enormi se il browser lagga per un frame.
+    */
+    dt = Math.min(dt, 0.05);
+
+    /*
+        Valori equivalenti circa al joystick:
+        - movement joystick: 0.06 per frame * 60 = 3.6 unità/sec
+        - rotation joystick: 2.0 per frame * 60 = 120 gradi/sec
+        - height joystick: 0.045 per frame * 60 = 2.7 unità/sec
+    */
+    var moveSpeed = 3.6 * dt;
+    var rotateSpeed = 120.0 * dt;
+    var heightSpeed = 2.7 * dt;
+
+    /*
+        Frecce: rotazione teapot.
+    */
+    if (teapotKeyboardKeys["ArrowLeft"]) {
+        theta[1] -= rotateSpeed;
+    }
+
+    if (teapotKeyboardKeys["ArrowRight"]) {
+        theta[1] += rotateSpeed;
+    }
+
+    if (teapotKeyboardKeys["ArrowUp"]) {
+        theta[0] -= rotateSpeed;
+    }
+
+    if (teapotKeyboardKeys["ArrowDown"]) {
+        theta[0] += rotateSpeed;
+    }
+
+    /*
+        Movimento rispetto alla camera, come nel joystick.
+    */
+    var forwardX = at[0] - eye[0];
+    var forwardZ = at[2] - eye[2];
+
+    var forwardLen = Math.sqrt(
+        forwardX * forwardX +
+        forwardZ * forwardZ
+    );
+
+    if (forwardLen < 0.001) {
+        forwardX = 0.0;
+        forwardZ = -1.0;
+        forwardLen = 1.0;
+    }
+
+    forwardX /= forwardLen;
+    forwardZ /= forwardLen;
+
+    var rightX = -forwardZ;
+    var rightZ = forwardX;
+
+    /*
+        I / K / J / L:
+        I avanti
+        K indietro
+        J sinistra
+        L destra
+    */
+    var moveForward = 0.0;
+    var moveRight = 0.0;
+
+    if (teapotKeyboardKeys["KeyI"]) {
+        moveForward += 1.0;
+    }
+
+    if (teapotKeyboardKeys["KeyK"]) {
+        moveForward -= 1.0;
+    }
+
+    if (teapotKeyboardKeys["KeyL"]) {
+        moveRight += 1.0;
+    }
+
+    if (teapotKeyboardKeys["KeyJ"]) {
+        moveRight -= 1.0;
+    }
+
+    /*
+        Normalizzo la diagonale.
+        Così I+L non va più veloce di I da solo.
+    */
+    var moveLen = Math.sqrt(
+        moveForward * moveForward +
+        moveRight * moveRight
+    );
+
+    if (moveLen > 0.001) {
+        moveForward /= moveLen;
+        moveRight /= moveLen;
+
+        objPos[0] += moveRight * moveSpeed * rightX;
+        objPos[2] += moveRight * moveSpeed * rightZ;
+
+        objPos[0] += moveForward * moveSpeed * forwardX;
+        objPos[2] += moveForward * moveSpeed * forwardZ;
+    }
+
+    /*
+        Q / E: altezza.
+    */
+    if (teapotKeyboardKeys["KeyE"]) {
+        objPos[1] += heightSpeed;
+    }
+
+    if (teapotKeyboardKeys["KeyQ"]) {
+        objPos[1] -= heightSpeed;
+    }
+
+    /*
+        Stessi limiti del gamepad.
+    */
+    if (dogFollowTeapotMode) {
+        var minTeapotY =
+            typeof TEAPOT_CHASE_MIN_Y !== "undefined"
+                ? TEAPOT_CHASE_MIN_Y
+                : -0.7;
+
+        var maxTeapotY =
+            typeof TEAPOT_CHASE_MAX_Y !== "undefined"
+                ? TEAPOT_CHASE_MAX_Y
+                : 1.8;
+
+        objPos[1] = clampValue(
+            objPos[1],
+            minTeapotY,
+            maxTeapotY
+        );
+    }
+
+    objPos[0] = clampValue(objPos[0], -6.2, 6.2);
+    objPos[2] = clampValue(objPos[2], -4.6, 7.4);
+}
+
 
 function readGamepad() {
     var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -2613,103 +2820,9 @@ function readGamepad() {
     objPos[2] = clampValue(objPos[2], -4.6, 7.4);
 }
 
-
-function readGamepad_old() {
-    var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    var gp = gamepads[0];
-    if (!gp) return;
-
-    // -----------------------------
-    // 1) Tasto A -> toggle rotazione automatica
-    // -----------------------------
-    var pressedA = gp.buttons[0].pressed;
-    if (pressedA && !lastButtonA) {
-        flag_rot_teapot = !flag_rot_teapot;
-        console.log("Toggle rotation:", flag_rot_teapot);
-    }
-    lastButtonA = pressedA;
-
-    // -----------------------------
-    // 2) Stick sinistro -> rotazione teapot
-    // -----------------------------
-    var lx = gp.axes[0];
-    var ly = gp.axes[1];
-
-    if (Math.abs(lx) < 0.15) lx = 0.0;
-    if (Math.abs(ly) < 0.15) ly = 0.0;
-
-    theta[1] += lx * 2.0;   // Y
-    theta[0] += ly * 2.0;   // X
-
-    // -----------------------------
-    // 3) D-pad -> camera
-    // -----------------------------
-    var camSpeed = 0.04;
-
-    // D-pad left/right
-    if (gp.buttons[14].pressed) camAngle -= camSpeed;
-    if (gp.buttons[15].pressed) camAngle += camSpeed;
-
-    // D-pad up/down
-    if (gp.buttons[12].pressed) camPitch += camSpeed;
-    if (gp.buttons[13].pressed) camPitch -= camSpeed;
-
-    // clamp per evitare ribaltamenti strani
-    camPitch = Math.max(-1.2, Math.min(1.2, camPitch));
-    console.log("angle:", camAngle, "pitch:", camPitch);
-
-    // -----------------------------
-    // 4) Assi locali della camera
-    // -----------------------------
-    // eye della camera orbitale
-    var eye = vec3(
-        camRadius * Math.sin(camAngle) * Math.cos(camPitch),
-        camRadius * Math.sin(camPitch),
-        camRadius * Math.cos(camAngle) * Math.cos(camPitch)
-    );
-
-    var at = vec3(0.0, 0.0, 0.0);
-    var up = vec3(0.0, 1.0, 0.0);
-
-    // forward = direzione dalla camera verso il target
-    var forward = normalize(subtract(at, eye));
-
-    // right = destra della camera
-    var right = normalize(cross(forward, up));
-
-    // up corretto della camera
-    var camUp = normalize(cross(right, forward));
-
-    // -----------------------------
-    // 5) Stick destro -> traslazione relativa alla camera
-    // -----------------------------
-    var rx = gp.axes[2];
-    var ry = gp.axes[3];
-
-    if (Math.abs(rx) < 0.15) rx = 0.0;
-    if (Math.abs(ry) < 0.15) ry = 0.0;
-
-    var moveSpeed = 0.06;
-
-    // destra/sinistra relativa alla vista attuale
-    objPos = add(objPos, scale(rx * moveSpeed, right));
-
-    // su/giu relativa alla camera
-    objPos = add(objPos, scale(-ry * moveSpeed, camUp));
-
-    // -----------------------------
-    // 6) RT / LT -> avanti / indietro relativi alla camera
-    // -----------------------------
-    var zOut = gp.buttons[6].value; // LT
-    var zIn  = gp.buttons[7].value; // RT
-
-    objPos = add(objPos, scale((zIn - zOut) * 0.08, forward));
+function isTeapotKeyboardControlActive() {
+    return dogFollowTeapotMode || teapotFocus;
 }
-
-
-
-
-
 
 
 function render() {
@@ -2729,6 +2842,7 @@ function render() {
     
     //controllo se è stato premuto il tasto A del gamepad per attivare/disattivare la rotazione
     readGamepad();
+    updateTeapotKeyboardControls(deltaTime);
     clampTeapotToTable();
 
    if (cameraFocusMode === "dog") {

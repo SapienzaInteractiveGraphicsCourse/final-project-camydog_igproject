@@ -638,6 +638,7 @@ var dogFireflyRearDuration = 3.0;
 /************************** */
 //      TEAPOT PLAY DOG     //
 /************************** */
+var teapotKeyboardKeys = {};
 
 var TEAPOT_REST_X = 0.85;
 var TEAPOT_REST_Y = -1.05;
