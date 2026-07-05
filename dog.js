@@ -1,3 +1,131 @@
+function isSkinnedDogReady() {
+    /*
+        Check robusto ma non troppo rigido:
+        il cane deve esistere ed essere un oggetto.
+    */
+    if (!skinnedDog) {
+        return false;
+    }
+
+    if (typeof skinnedDog !== "object") {
+        return false;
+    }
+
+    /*
+        Se gli assegniamo noi questa flag dopo il caricamento,
+        questo è il controllo più affidabile.
+    */
+    if (skinnedDog.isReady === true) {
+        return true;
+    }
+
+    /*
+        Fallback: provo a vedere se contiene almeno qualche dato
+        disegnabile o qualche lista interna.
+        Così non dipendiamo troppo dal nome esatto dei campi.
+    */
+    var possibleArrays = [
+        "meshes",
+        "meshBuffers",
+        "primitives",
+        "parts",
+        "drawParts",
+        "nodes",
+        "jointNodes",
+        "boneMatrices",
+        "inverseBindMatrices"
+    ];
+
+    for (var i = 0; i < possibleArrays.length; i++) {
+        var key = possibleArrays[i];
+
+        if (
+            skinnedDog[key] &&
+            skinnedDog[key].length &&
+            skinnedDog[key].length > 0
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function showDogLoadErrorOverlay(message) {
+    if (dogLoadErrorShown) {
+        return;
+    }
+
+    dogLoadErrorShown = true;
+
+    var overlay = document.getElementById("DogLoadErrorOverlay");
+    var refreshButton = document.getElementById("ButtonRefreshAfterDogError");
+
+    if (overlay) {
+        overlay.classList.remove("hidden");
+    }
+
+    if (refreshButton) {
+        refreshButton.onclick = function () {
+            window.location.reload();
+        };
+    }
+
+    console.error(
+        "Dog model loading error:",
+        message || skinnedDogLoadErrorMessage
+    );
+}
+
+function checkDogModelHealth(deltaTime) {
+    /*
+        Se ho già mostrato errore, basta.
+    */
+    if (dogLoadErrorShown) {
+        return;
+    }
+
+    /*
+        Se il caricamento è fallito esplicitamente.
+    */
+    if (skinnedDogLoadState === "failed") {
+        showDogLoadErrorOverlay(
+            skinnedDogLoadErrorMessage ||
+            "The dog model failed to load."
+        );
+        return;
+    }
+
+    /*
+        Se è ancora pending/loading, aspetto.
+    */
+    if (
+        skinnedDogLoadState === "pending" ||
+        skinnedDogLoadState === "loading"
+    ) {
+        return;
+    }
+
+    /*
+        Se dovrebbe essere pronto ma non lo è,
+        aspetto un attimo per evitare falsi positivi.
+    */
+    if (skinnedDogLoadState === "ready" && !isSkinnedDogReady()) {
+        dogMissingCheckTimer += deltaTime;
+
+        if (dogMissingCheckTimer > 1.0) {
+            showDogLoadErrorOverlay(
+                "The dog model was loaded, but its buffers are incomplete."
+            );
+        }
+
+        return;
+    }
+
+    dogMissingCheckTimer = 0.0;
+}
+
+/////////////////////////////////////////////////
 function initDogPositionIfNeeded() {
     if (dogCurrentX === null || dogCurrentZ === null) {
         dogCurrentX = dogBasePos[0];

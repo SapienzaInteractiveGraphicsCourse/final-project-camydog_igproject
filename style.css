@@ -2196,3 +2196,116 @@ body.ui-panel-hidden .toggle-side-panel-button {
     transform: translateY(-6px);
     pointer-events: none;
 }
+
+
+/* Start screen button should not inherit compact UI button size */
+#ButtonStartGame {
+    min-width: 220px !important;
+    height: 64px !important;
+
+    padding: 14px 34px !important;
+
+    font-size: 20px !important;
+    font-weight: 900 !important;
+
+    border-radius: 18px !important;
+}
+
+/* Matricola and name ***********/
+.student-credit {
+    margin-top: 18px;
+    padding-top: 14px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+
+    color: rgba(40, 40, 40, 0.68);
+}
+
+.student-dot {
+    opacity: 0.55;
+}
+
+/********** Error if dog model is not loaded **********/
+.dog-load-error-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 20000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(20, 20, 28, 0.55);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.dog-load-error-overlay.hidden {
+    display: none;
+}
+
+.dog-load-error-card {
+    width: 430px;
+    max-width: 88vw;
+
+    padding: 30px 34px;
+
+    border-radius: 24px;
+
+    background: rgba(255, 255, 255, 0.92);
+    color: #2f2f2f;
+
+    text-align: center;
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.dog-load-error-icon {
+    font-size: 46px;
+    margin-bottom: 10px;
+}
+
+.dog-load-error-card h2 {
+    margin: 0 0 12px 0;
+
+    font-size: 26px;
+    font-weight: 900;
+
+    color: #90027d;
+}
+
+.dog-load-error-card p {
+    margin: 0 0 24px 0;
+
+    font-size: 16px;
+    line-height: 1.5;
+
+    color: rgba(30, 30, 30, 0.78);
+}
+
+#ButtonRefreshAfterDogError {
+    min-width: 170px !important;
+    height: 48px !important;
+
+    padding: 10px 22px !important;
+
+    border-radius: 15px !important;
+
+    background: rgba(255, 34, 126, 0.82) !important;
+    color: white !important;
+
+    font-size: 16px !important;
+    font-weight: 900 !important;
+}

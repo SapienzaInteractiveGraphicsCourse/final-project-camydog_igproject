@@ -328,7 +328,7 @@ onload = async function init() {
     );
 
 
-    try {
+    /* try {
             var result = await loadGLBDebug(modelPath_shiba_glb);
 
             console.log("GLB debug loaded successfully");
@@ -344,7 +344,50 @@ onload = async function init() {
 
         } catch (error) {
             console.error("GLB debug load error:", error);
+        } */
+
+    try {
+        skinnedDogLoadState = "loading";
+        skinnedDogLoadErrorMessage = "";
+
+        var result = await loadGLBDebug(modelPath_shiba_glb);
+
+        if (!result || !result.gltf || !result.binary) {
+            throw new Error("Invalid GLB result: missing gltf or binary data.");
         }
+
+        console.log("GLB debug loaded successfully");
+
+        skinnedDog = createSkinnedDogBuffers(
+            gl,
+            result.gltf,
+            result.binary
+        );
+
+        if (!skinnedDog) {
+            throw new Error("createSkinnedDogBuffers returned null or undefined.");
+        }
+
+        /*
+            Flag esplicita: da ora sappiamo che il cane è stato creato.
+        */
+        skinnedDog.isReady = true;
+
+        skinnedDogLoadState = "ready";
+
+        console.log("Skinned dog buffers created:", skinnedDog);
+        printDogJointNames();
+
+    } catch (error) {
+        skinnedDogLoadState = "failed";
+
+        skinnedDogLoadErrorMessage =
+            error && error.message
+                ? error.message
+                : String(error);
+
+        console.error("GLB debug load error:", error);
+    }
 
 
 
@@ -3029,6 +3072,7 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     updateFPSCounter();
+    checkDogModelHealth(deltaTime);
 
 
     updateAutoSun(deltaTime);

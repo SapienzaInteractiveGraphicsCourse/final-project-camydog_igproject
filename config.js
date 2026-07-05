@@ -323,6 +323,13 @@ var skinnedDogProgram = null;
 var skinnedDogAttribs = {};
 var skinnedDogUniforms = {};
 
+var skinnedDogLoadState = "pending";
+// pending | loading | ready | failed
+
+var skinnedDogLoadErrorMessage = "";
+var dogLoadErrorShown = false;
+var dogMissingCheckTimer = 0.0;
+
 // Front legs
 var FRONT_LEFT_HIP   = 4;
 var FRONT_LEFT_KNEE  = 3;
