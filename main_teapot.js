@@ -1227,12 +1227,12 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     document.getElementById("ButtonGoOut").onclick = function () {
 
-             if (currentScene === "park") {
+            if (currentScene === "park") {
                 showGameMessage(
                     "You are already at the park!",
                     2200
                 );
-   
+                
                 return;
             }
 
@@ -1243,9 +1243,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 function () {
                     // before going to park-> if the ball minigame is active, stop it
                     miniGameActive = false;
+                    resetBallSettingsPanelState();
+
                     updateTeapotControlsLegend();
 
-                    updateBallSettingsOverlay();
 
                     stopBallMiniGame();
 
@@ -1274,15 +1275,14 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
    
 
-    document.getElementById("ButtonGoHome").onclick = function () {
-          
+    document.getElementById("ButtonGoHome").onclick = function () {          
         if (currentScene === "home") {
-                showGameMessage(
+            showGameMessage(
                     "You are already at home!",
                     2200
-                );
-      
-                return;
+            );
+            
+            return;
         }
 
         if (
@@ -1303,21 +1303,29 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             "Going home...",
             "Loading the room...",
             function () {
-                 currentScene = "home";
+                    currentScene = "home";
 
-                resetDogForHomeScene();
+                    miniGameActive = false;
+                    resetBallSettingsPanelState();
+                    
 
-                updateSceneButtonsVisibility();
+                    resetDogForHomeScene();
 
-                if (musicButton && musicButton.classList.contains("music-on")) {
-                    startBackgroundMusic();
-                }
-                clearOldShadowMaps();
+                    updateSceneButtonsVisibility();
+
+                    setTimeout(function () {
+                        resetBallSettingsPanelState();
+                    }, 0);
+
+                    if (musicButton && musicButton.classList.contains("music-on")) {
+                        startBackgroundMusic();
                     }
+                    clearOldShadowMaps();
+                }
             );
     };
 
-  
+
     document.getElementById("windSlider").oninput = function () {
         currentWind = parseFloat(this.value);
 
@@ -2209,7 +2217,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     
     updateSceneButtonsVisibility();
 
-    updateBallSettingsOverlay();
+    resetBallSettingsPanelState();
 
 
     render();
