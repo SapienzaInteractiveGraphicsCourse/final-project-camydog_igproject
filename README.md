@@ -1,7 +1,14 @@
 # prova_project_IG
 <!-- Badge -->
-[![Python](https://img.shields.io/badge/python-3.12.3-blue)](https://www.python.org/)
+<!-- Badge -->
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=plastic&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![WebGL](https://img.shields.io/badge/WebGL-1.0-990000?style=plastic&logo=webgl&logoColor=white)](https://www.khronos.org/webgl/)
+[![HTML5](https://img.shields.io/badge/HTML5-Canvas-E34F26?style=plastic&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-UI%20Design-1572B6?style=plastic&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Cannon.js](https://img.shields.io/badge/Cannon.js-Physics-8A2BE2?style=plastic)](https://schteppe.github.io/cannon.js/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-222222?style=plastic&logo=githubpages&logoColor=white)](https://pages.github.com/)
 [![Camilla Giuliani on GitHub](https://img.shields.io/badge/Camilla–Giuliani–GitHub-181717?style=plastic&logo=github)](https://github.com/camygiuliani)
+
 
 # Demo
 https://sapienzainteractivegraphicscourse.github.io/final-project-camydog_igproject/

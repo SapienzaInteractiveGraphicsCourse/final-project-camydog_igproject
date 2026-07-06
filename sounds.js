@@ -215,7 +215,7 @@ function playBallThrowSound() {
 
     if (!sound) return;
 
-    sound.currentTime = 0;
+    sound.currentTime = 0.1;
     sound.volume = 1.0;
 
     sound.play().catch(function(error) {

@@ -615,7 +615,7 @@ function startSkinnedDogReturnFrisbeeToCamera() {
         targetZ = Math.max(-6.0, Math.min(6.0, targetZ));
     }
 
-    dogPath = [
+    /* dogPath = [
         {
             x: targetX,
             z: targetZ
@@ -628,7 +628,42 @@ function startSkinnedDogReturnFrisbeeToCamera() {
         x: targetX,
         z: targetZ
     };
+    */
 
+        /*
+        Anche quando torna con il frisbee, il cane deve evitare la panchina.
+        Prima andava diretto verso la camera e poteva sfiorare il collider.
+    */
+    var safeReturnTarget = keepDogOutsideParkObstacles(
+        targetX,
+        targetZ
+    );
+
+    dogPath = computeDogPathAroundBench(
+        dogFetchX,
+        dogFetchZ,
+        safeReturnTarget.x,
+        safeReturnTarget.z
+    );
+
+    dogPathIndex = 0;
+    dogFetchBallMode = dogPath && dogPath.length > 0;
+
+    /*
+        Mentre cammina guarda il primo waypoint,
+        non direttamente il target finale.
+    */
+    if (dogFetchBallMode) {
+        dogFetchTarget = {
+            x: dogPath[0].x,
+            z: dogPath[0].z
+        };
+    } else {
+        dogFetchTarget = {
+            x: safeReturnTarget.x,
+            z: safeReturnTarget.z
+        };
+    }
     console.log("Dog returns frisbee to saved target:", dogPath);
 }
 
