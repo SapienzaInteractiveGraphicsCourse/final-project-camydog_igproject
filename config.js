@@ -166,11 +166,15 @@ var tableColorTexture = null;
 var tableSpecularTexture = null;
 var tableAOTexture = null;
 
+//heart specific variables
+var heartMtlTexture = null;
+
 //ball specific variables
 var ballMtlTexture = null;
 
-//heart specific variables
-var heartMtlTexture = null;
+var ballOutsideHomeWarningShown = false;
+var ballOutsideHomeActive = false;
+var ballBlockedOutsideHome = false;
 
 var ballOnTableWarningShown = false;
 var ballBlockedOnTable = false;
@@ -326,6 +330,10 @@ var skinnedDogUniforms = {};
 
 var skinnedDogLoadState = "pending";
 // pending | loading | ready | failed
+
+var DOG_WALL_PICKUP_MARGIN = 1.70;
+
+
 
 var skinnedDogLoadErrorMessage = "";
 var dogLoadErrorShown = false;
@@ -670,6 +678,8 @@ var teapotKeyboardKeys = {};
 var TEAPOT_REST_X = 0.85;
 var TEAPOT_REST_Y = -1.05;
 var TEAPOT_REST_Z = 0.15;
+
+var TEAPOT_ROTATION_DEMO_Y = TEAPOT_REST_Y + 0.65;
 
 var TEAPOT_CHASE_Y = 0.45;
 

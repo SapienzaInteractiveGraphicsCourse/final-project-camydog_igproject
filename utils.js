@@ -130,6 +130,58 @@ function updateRotationDemoButtons() {
 }
 
 
+function resetTableRotationToStart() {
+    tableTheta = 0.0;
+
+    if (tableBody) {
+        tableBody.quaternion.setFromAxisAngle(
+            new CANNON.Vec3(0, 1, 0),
+            0.0
+        );
+
+        tableBody.angularVelocity.set(0, 0, 0);
+        tableBody.velocity.set(0, 0, 0);
+    }
+}
+
+
+////////////////////
+function setTeapotRotationDemoActive(active) {
+    flag_rot_teapot = active;
+
+    /*
+        Se sono dentro Teapot Chase o Focus Teapot,
+        il bottone deve solo accendere/spegnere la rotazione.
+        NON deve spostare la teapot, altrimenti durante il minigioco
+        torna sul tavolo.
+    */
+    if (dogFollowTeapotMode || teapotFocus) {
+        updateRotationDemoButtons();
+        return;
+    }
+
+    if (flag_rot_teapot) {
+        /*
+            Demo normale:
+            alzo la teapot per evitare che ruotando entri nel tavolo.
+        */
+        objPos[1] = TEAPOT_ROTATION_DEMO_Y;
+    } else {
+        /*
+            Solo fuori dal minigioco:
+            quando spengo la demo, torno alla posa iniziale.
+        */
+        objPos[0] = TEAPOT_REST_X;
+        objPos[1] = TEAPOT_REST_Y;
+        objPos[2] = TEAPOT_REST_Z;
+
+        theta[0] = 0.0;
+        theta[1] = 0.0;
+        theta[2] = 0.0;
+    }
+
+    updateRotationDemoButtons();
+}
 ////////////////////////
 function showCameraControlsLegend() {
     var legend = document.getElementById("CameraControlsLegend");

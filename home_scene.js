@@ -1144,7 +1144,7 @@ function rotateOffsetY(x, z, angleDeg) {
     };
 }
 
-function getTableLegDebugMatrix(offsetX, offsetZ) {
+function getTableLegDebugMatrix_old(offsetX, offsetZ) {
     var r = rotateOffsetY(offsetX, offsetZ, tableTheta);
 
     var m = mat4();
@@ -1156,6 +1156,40 @@ function getTableLegDebugMatrix(offsetX, offsetZ) {
     ));
 
     m = mult(m, rotate(tableTheta, [0, 1, 0]));
+
+    m = mult(m, scalem(
+        TABLE_LEG_WIDTH,
+        TABLE_LEG_HEIGHT,
+        TABLE_LEG_DEPTH
+    ));
+
+    return m;
+}
+
+function getTableLegDebugMatrix(offsetX, offsetZ) {
+    var m = mat4();
+
+    /*
+        Stessa logica del compound collider Cannon:
+        1. posizione del corpo tavolo
+        2. rotazione del corpo tavolo
+        3. offset locale della singola gamba
+        4. scala della gamba
+    */
+
+    m = mult(m, translate(
+        TABLE_X,
+        TABLE_Y,
+        TABLE_Z
+    ));
+
+    m = mult(m, rotate(tableTheta, [0, 1, 0]));
+
+    m = mult(m, translate(
+        offsetX,
+        TABLE_LEG_OFFSET_Y,
+        offsetZ
+    ));
 
     m = mult(m, scalem(
         TABLE_LEG_WIDTH,

@@ -1445,6 +1445,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 resetSkinnedDogFetchState();   
 
 
+                ballOutsideHomeWarningShown = false;
+                ballBlockedOutsideHome = false;
+
+
                 startBallMiniGame();
                 playBallThrowSound();
 
@@ -1464,6 +1468,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 }
 
                 stopBallMiniGame();
+                ballOutsideHomeWarningShown = false;
+                ballBlockedOutsideHome = false;
 
                 dogFetchObjectType = null;
                 dogFetchBallMode = false;
@@ -1725,23 +1731,27 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     if (buttonTeapotRotation) {
         buttonTeapotRotation.onclick = function () {
-            flag_rot_teapot = !flag_rot_teapot;
-            updateRotationDemoButtons();
+            /* flag_rot_teapot = !flag_rot_teapot;
+            updateRotationDemoButtons(); */
+            setTeapotRotationDemoActive(!flag_rot_teapot);
         };
     }
 
     var buttonTableRotation =
         document.getElementById("ButtonTableRotation");
 
+   
     if (buttonTableRotation) {
         buttonTableRotation.onclick = function () {
             flag_rot_table = !flag_rot_table;
+
+            if (!flag_rot_table) {
+                resetTableRotationToStart();
+            }
+
             updateRotationDemoButtons();
         };
     }
-
-    updateRotationDemoButtons();
-
 
 
     document.getElementById("ButtonTex").onclick = function() {
@@ -3128,6 +3138,8 @@ function render() {
     clampTeapotToTable();
 
     updateCameraKeyboardPan(deltaTime);
+
+    checkBallOutsideHome();
 
    if (cameraFocusMode === "dog") {
         if (cameraDogMode === "autoAngle") {
