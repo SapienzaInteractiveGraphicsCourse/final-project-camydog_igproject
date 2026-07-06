@@ -683,8 +683,8 @@ button:active {
 #MusicVolume::-webkit-slider-thumb {
     -webkit-appearance: none;
 
-    width: 16px !important;
-    height: 16px !important;
+    width: 13px !important;
+    height: 13px !important;
 
     border-radius: 50%;
 
@@ -707,8 +707,8 @@ button:active {
 
 /* thumb Firefox */
 #MusicVolume::-moz-range-thumb {
-    width: 16px !important;
-    height: 16px !important;
+    width: 13px !important;
+    height: 13px !important;
 
     border-radius: 50%;
 
@@ -2765,8 +2765,9 @@ body.ui-panel-hidden .toggle-side-panel-button {
 
 /* Compact start screen footer */
 .start-card {
-    max-height: calc(100vh - 35px) !important;
-    padding: 22px 44px 16px 44px !important;
+    max-height: calc(100vh - 32px) !important;
+    /* padding: 22px 44px 16px 44px !important; */
+    padding-bottom: 14px !important;
 }
 
 #StartDogLogo {
@@ -2804,4 +2805,635 @@ body.ui-panel-hidden .toggle-side-panel-button {
     padding-top: 8px !important;
     font-size: 11px !important;
     line-height: 1.2 !important;
+}
+
+/**** Options start game button *****/
+.start-control-stack {
+    width: min(520px, 80vw);
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    margin: 26px auto 0 auto;
+}
+
+#ButtonStartGame {
+    width: 100% !important;
+    height: 64px !important;
+    margin: 0 !important;
+}
+
+.start-secondary-row {
+    width: 100%;
+
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 14px;
+
+    margin-top: 16px;
+    margin-bottom: 18px;
+}
+
+.pet-name-box {
+    flex: 1;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 0 16px;
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.30);
+    border: 1.5px solid rgba(255, 255, 255, 0.70);
+
+    box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.pet-name-box label {
+    font-size: 17px;
+    font-weight: 900;
+    color: #74437e;
+    white-space: nowrap;
+}
+
+#PetNameInput {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+
+    padding: 0 14px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: rgba(255, 255, 255, 0.72);
+    color: #45404a;
+
+    font-size: 17px;
+    font-weight: 800;
+
+    outline: none;
+
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.08),
+        0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+#PetNameInput::placeholder {
+    color: rgba(70, 65, 75, 0.45);
+}
+
+#PetNameInput:focus {
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow:
+        0 0 0 3px rgba(230, 70, 150, 0.16),
+        inset 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.start-options-button {
+    width: 195px;
+    height: 62px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    padding: 0 24px;
+    border-radius: 22px;
+
+    border: 1.8px solid rgba(170, 75, 170, 0.45);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.38),
+            rgba(210, 160, 220, 0.36)
+        );
+
+    color: #7b3c86;
+
+    font-size: 30px;
+    font-weight: 950;
+    letter-spacing: 0.01em;
+
+    box-shadow:
+        0 12px 26px rgba(120, 55, 135, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.start-options-button:hover {
+    transform: translateY(-2px);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.55),
+            rgba(225, 165, 235, 0.50)
+        );
+
+    border-color: rgba(190, 70, 185, 0.65);
+
+    box-shadow:
+        0 16px 32px rgba(120, 55, 135, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.start-options-button:active {
+    transform: translateY(0);
+}
+
+
+.start-secondary-row {
+    width: 100%;
+
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 16px;
+
+    margin-top: 16px;
+    margin-bottom: 18px;
+}
+
+.pet-name-box {
+    flex: 1;
+    height: 62px;
+}
+
+.start-settings-icon-button {
+    width: 62px;
+    height: 62px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 22px;
+
+    border: 1.8px solid rgba(170, 75, 170, 0.45);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.38),
+            rgba(210, 160, 220, 0.36)
+        );
+
+    color: #7b3c86;
+
+    font-size: 44px;
+    font-weight: 900;
+
+    box-shadow:
+        0 12px 26px rgba(120, 55, 135, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.start-settings-icon-button:hover {
+    transform: translateY(-2px);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.55),
+            rgba(225, 165, 235, 0.50)
+        );
+
+    border-color: rgba(190, 70, 185, 0.65);
+
+    box-shadow:
+        0 16px 32px rgba(120, 55, 135, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.start-settings-icon-button:active {
+    transform: translateY(0);
+}
+
+
+/* Final tuning: pet name + settings button */
+.start-control-stack {
+    width: min(560px, 80vw) !important;
+}
+
+.start-secondary-row {
+    width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr 86px;
+    gap: 18px !important;
+
+    align-items: stretch !important;
+
+    margin-top: 16px !important;
+    margin-bottom: 18px !important;
+}
+
+.pet-name-box {
+    width: 100% !important;
+    max-width: none !important;
+    height: 66px !important;
+
+    box-sizing: border-box;
+
+    display: grid !important;
+    grid-template-columns: 138px 1fr;
+    align-items: center;
+    gap: 12px;
+
+    padding: 0 18px !important;
+    border-radius: 22px !important;
+}
+
+.pet-name-box label {
+    font-size: 20px !important;
+    font-weight: 950 !important;
+    text-align: left;
+}
+
+#PetNameInput {
+    width: 100% !important;
+    height: 46px !important;
+
+    box-sizing: border-box;
+
+    font-size: 21px !important;
+    font-weight: 850 !important;
+
+    padding: 0 18px !important;
+    border-radius: 17px !important;
+}
+
+
+.start-settings-icon-button {
+    width: 86px !important;
+    height: 66px !important;
+
+    box-sizing: border-box;
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 22px !important;
+
+    border: 2px solid rgba(185, 105, 200, 0.55) !important;
+
+    background: rgba(255, 255, 255, 0.32) !important;
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+
+    box-shadow:
+        0 4px 10px rgba(120, 55, 135, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.start-settings-icon-button img {
+    width: 44px !important;
+    height: 44px !important;
+
+    object-fit: contain;
+    pointer-events: none;
+
+    /* filter: drop-shadow(0 2px 3px rgba(70, 70, 90, 0.18)); */
+}
+
+.start-settings-icon-button:hover {
+    transform: translateY(-2px);
+
+    background: rgba(255, 255, 255, 0.48) !important;
+    border-color: rgba(150, 115, 255, 0.72) !important;
+
+    box-shadow:
+        0 4px 10px rgba(120, 55, 135, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+.start-settings-icon-button:active {
+    transform: translateY(0);
+}
+
+/* Keep footer visible in start screen */
+.start-control-stack {
+    margin-top: 20px !important;
+}
+
+.start-secondary-row {
+    margin-top: 14px !important;
+    margin-bottom: 12px !important;
+}
+
+.recommended-setup {
+    margin-top: 18px !important;
+    padding: 13px 18px !important;
+}
+
+.student-credit {
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+
+    position: relative;
+    z-index: 2;
+}
+
+.recommended-setup {
+    margin-top: 14px !important;
+}
+
+.start-description {
+    margin-bottom: 18px !important;
+}
+
+
+/** FIxing bug odf Name and id not visible*/
+/* Final start screen vertical balance - no absolute footer */
+.start-card {
+    max-height: calc(100vh - 28px) !important;
+    padding: 18px 46px 14px 46px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+#StartDogLogo {
+    width: 88px !important;
+    margin-bottom: 6px !important;
+}
+
+.start-card h1 {
+    font-size: 36px !important;
+    margin-bottom: 10px !important;
+}
+
+.inspiration-badge {
+    margin-bottom: 14px !important;
+}
+
+.start-description {
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+    margin-bottom: 16px !important;
+}
+
+.start-control-stack {
+    margin-top: 14px !important;
+}
+
+#ButtonStartGame {
+    height: 58px !important;
+}
+
+.start-secondary-row {
+    margin-top: 12px !important;
+    margin-bottom: 14px !important;
+}
+
+.pet-name-box {
+    height: 60px !important;
+}
+
+.start-settings-icon-button {
+    height: 60px !important;
+}
+
+.recommended-setup {
+    margin-top: 14px !important;
+    padding: 12px 18px !important;
+}
+
+.setup-title {
+    margin-bottom: 8px !important;
+}
+
+.setup-tags {
+    margin-bottom: 8px !important;
+}
+
+.recommended-setup p {
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+}
+
+.student-credit {
+    position: static !important;
+
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+}
+#StartDogLogo {
+    width: 78px !important;
+}
+
+/* Settings panel******/
+/* Start settings modal */
+.start-settings-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(30, 25, 40, 0.22);
+
+    backdrop-filter: blur(12px) saturate(145%);
+    -webkit-backdrop-filter: blur(12px) saturate(145%);
+}
+
+.start-settings-panel.hidden {
+    display: none !important;
+}
+
+.start-settings-card {
+    width: min(430px, 86vw);
+
+    padding: 24px 26px 26px 26px;
+    border-radius: 28px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.50),
+            rgba(238, 210, 238, 0.44)
+        );
+
+    border: 1.8px solid rgba(255, 255, 255, 0.72);
+
+    box-shadow:
+        0 24px 70px rgba(55, 35, 70, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+    color: #3e3547;
+}
+
+.start-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.start-settings-header h2 {
+    margin: 0;
+
+    color: #8f168b;
+    font-size: 30px;
+    font-weight: 950;
+    letter-spacing: -0.4px;
+}
+
+.start-settings-close-button {
+    width: 38px !important;
+    height: 38px !important;
+
+    padding: 0 !important;
+    border-radius: 50% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: rgba(255, 255, 255, 0.42) !important;
+    color: #7b3c86 !important;
+
+    border: 1.5px solid rgba(255, 255, 255, 0.72) !important;
+
+    font-size: 26px !important;
+    font-weight: 900 !important;
+
+    cursor: pointer;
+}
+
+.start-settings-close-button:hover {
+    background: rgba(255, 255, 255, 0.62) !important;
+}
+
+.start-settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+
+    padding: 14px 0;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+}
+
+.start-settings-row-column {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.start-settings-label {
+    font-size: 18px;
+    font-weight: 950;
+    color: #6f3d7c;
+}
+
+.start-settings-subtitle {
+    margin-top: 3px;
+
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.25;
+
+    color: rgba(55, 50, 65, 0.68);
+}
+
+.start-settings-pill {
+    min-width: 76px !important;
+    height: 42px !important;
+
+    padding: 0 18px !important;
+    border-radius: 999px !important;
+
+    background: rgba(255, 255, 255, 0.42) !important;
+    color: #7b3c86 !important;
+
+    border: 1.5px solid rgba(255, 255, 255, 0.68) !important;
+
+    font-size: 15px !important;
+    font-weight: 950 !important;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 18px rgba(100, 50, 120, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.start-settings-pill.active {
+    background: rgba(235, 76, 156, 0.84) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.start-scene-choice {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.start-scene-button {
+    height: 46px !important;
+
+    border-radius: 16px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.68) !important;
+
+    background: rgba(255, 255, 255, 0.38) !important;
+    color: #74437e !important;
+
+    font-size: 16px !important;
+    font-weight: 950 !important;
+
+    cursor: pointer;
+}
+
+.start-scene-button.active {
+    background: rgba(235, 76, 156, 0.84) !important;
+    color: white !important;
+    box-shadow: 0 10px 22px rgba(235, 76, 156, 0.22);
 }

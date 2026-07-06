@@ -124,6 +124,10 @@ nintendogs_icon: Google Images
 
 shiba_icon: https://it.pinterest.com/pin/56295064084237515/
 
+settings : https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510
+
+call_dog_hand: https://www.flaticon.com/free-icon/open-hand_889822
+
 wave_hand_caress: https://www.flaticon.com/free-icon/wave_9606501?term=wave+hand&related_id=9606501
 
 open_hand_frisbee: https://www.flaticon.com/free-icon/five-fingers_9971672?term=open+hand&related_id=9971672

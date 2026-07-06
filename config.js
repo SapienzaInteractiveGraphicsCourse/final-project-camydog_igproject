@@ -12,6 +12,9 @@ var loadingProgressAnimationId = null;
 var currentScene = "home"; 
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
+var startSceneChoice = "home";
+var showCameraHelpAtStart = true;
+var startGlobalAudioEnabled = true;
 
 
 // some camera settings

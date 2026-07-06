@@ -263,6 +263,82 @@ onload = async function init() {
     var startScreen = document.getElementById("startScreen");
     var loadingScreen = document.getElementById("loadingScreen");
 
+    var startSettingsButton = document.getElementById("ButtonStartOptions");
+    var closeStartSettingsButton = document.getElementById("CloseStartSettings");
+
+    var startGlobalAudioToggle = document.getElementById("StartGlobalAudioToggle");
+    var startSceneHomeButton = document.getElementById("StartSceneHomeButton");
+    var startSceneParkButton = document.getElementById("StartSceneParkButton");
+    var startCameraHelpToggle = document.getElementById("StartCameraHelpToggle");
+
+    if (startSettingsButton) {
+        startSettingsButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            openStartSettingsPanel();
+        };
+    }
+
+    if (closeStartSettingsButton) {
+        closeStartSettingsButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            closeStartSettingsPanel();
+        };
+    }
+
+    if (startGlobalAudioToggle) {
+        startGlobalAudioToggle.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            /*
+                Cambio subito lo stato visivo del pannello Settings.
+            */
+            startGlobalAudioEnabled = !startGlobalAudioEnabled;
+
+            /*
+                Poi richiamo la logica globale già esistente.
+            */
+            toggleGlobalAudioMute();
+            updateGlobalAudioButton();
+
+            updateStartSettingsPanel();
+        };
+    }
+    
+
+    if (startSceneHomeButton) {
+        startSceneHomeButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            setStartSceneChoice("home");
+        };
+    }
+
+    if (startSceneParkButton) {
+        startSceneParkButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            setStartSceneChoice("park");
+        };
+    }
+
+    if (startCameraHelpToggle) {
+        startCameraHelpToggle.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            toggleStartCameraHelp();
+        };
+    }
+
+    updateStartSettingsPanel();
+
     var loadingStartTime = performance.now();
     var MIN_LOADING_SCREEN_TIME = 1800;
     setLoadingProgress(
@@ -291,17 +367,45 @@ onload = async function init() {
         startButton.onclick = function () {
             document.body.classList.remove("game-not-started");
 
-            startScreen.classList.add("hidden");
+            closeStartSettingsPanel();
 
-            
+            startScreen.classList.add("hidden");
 
             setTimeout(function () {
                 startScreen.style.display = "none";
             }, 500);
 
-            setTimeout(function () {
-                showInitialCameraControlsLegend();
-            }, 400);
+            /*
+                Se l'utente ha scelto Park, parto direttamente dal parco.
+                Uso la funzione già esistente, così currentScene viene aggiornata
+                nello stesso modo dei bottoni Go Out / Go Home.
+            */
+            if (startSceneChoice === "park" && currentScene !== "park") {
+                setTimeout(function () {
+                    switchSceneWithTransition(
+                        "park",
+                        "Going out...",
+                        "Loading the park...",
+                        function () {
+                            miniGameActive = false;
+
+                            if (typeof resetBallSettingsPanelState === "function") {
+                                resetBallSettingsPanelState();
+                            }
+
+                            if (typeof updateTeapotControlsLegend === "function") {
+                                updateTeapotControlsLegend();
+                            }
+                        }
+                    );
+                }, 150);
+            }
+
+            if (showCameraHelpAtStart) {
+                setTimeout(function () {
+                    showInitialCameraControlsLegend();
+                }, startSceneChoice === "park" ? 1000 : 400);
+            }
         };
     }
 
@@ -1037,8 +1141,9 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
             waterVisible = true;
 
-            if (waterSound) {
+            if (startGlobalAudioEnabled && waterSound) {
                 waterSound.currentTime = 0;
+
                 waterSound.play().catch(function(error) {
                     console.log("Water sound could not be played:", error);
                 });
@@ -1169,11 +1274,21 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     
     //settings for global audio
-    var globalAudioButton = document.getElementById("ButtonGlobalAudio");
-
+     var globalAudioButton = document.getElementById("ButtonGlobalAudio");
+    /*
     if (globalAudioButton) {
         globalAudioButton.onclick = function () {
             toggleGlobalAudioMute();
+        };
+    } */
+
+    if (globalAudioButton) {
+        globalAudioButton.onclick = function () {
+            startGlobalAudioEnabled = !startGlobalAudioEnabled;
+
+            toggleGlobalAudioMute();
+            updateGlobalAudioButton();
+            updateStartSettingsPanel();
         };
     }
 
@@ -1448,9 +1563,9 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 ballOutsideHomeWarningShown = false;
                 ballBlockedOutsideHome = false;
 
-
-                startBallMiniGame();
                 playBallThrowSound();
+                startBallMiniGame();
+                
 
                 
 

@@ -97,16 +97,6 @@
             >
 
             <h1>Virtual Pet Room</h1>
-
-            <!-- <p>
-               Explore the room, interact with your virtual pet,
-                play minigames, and observe dynamic lights and shadows.
-            </p>
-
-            <button id="ButtonStartGame">Start Game</button>
-            <p class="device-warning">
-                Desktop recommended: some interactions may not work properly on mobile or tablet devices.
-            </p> -->
             <div class="inspiration-badge">
                 <div class="inspiration-icon">
                     <img src="./Textures/nintendogs_logo.jpg" alt="Inspiration">
@@ -123,10 +113,25 @@
                 and experience dynamic lights and shadows.
             </p>
 
-            
+           <div class="start-control-stack">
+                <button id="ButtonStartGame">Start Game</button>
 
-            <button id="ButtonStartGame">Start Game</button>
+                <div class="start-secondary-row">
+                    <div class="pet-name-box">
+                        <label for="PetNameInput">Pet name</label>
+                        <input
+                            id="PetNameInput"
+                            type="text"
+                            placeholder="Roger"
+                            maxlength="10"
+                        >
+                    </div>
 
+                    <button id="ButtonStartOptions"  class="start-settings-icon-button" title="Settings">
+                         <img src="./Icons/setting.png" alt="Settings">
+                    </button>
+                </div>
+            </div>
             <div class="recommended-setup">
                 <div class="setup-title">Recommended setup</div>
 
@@ -150,6 +155,57 @@
                 <span>Interactive Graphics 2025/26</span>
             </div>
 
+        </div>
+
+        <div id="StartSettingsPanel" class="start-settings-panel hidden">
+            <div class="start-settings-card">
+                <div class="start-settings-header">
+                    <h2>Settings</h2>
+
+                    <button id="CloseStartSettings" class="start-settings-close-button">
+                        ×
+                    </button>
+                </div>
+
+                <div class="start-settings-row">
+                    <div>
+                        <div class="start-settings-label">Global audio</div>
+                        <div class="start-settings-subtitle">Enable or disable all sounds.</div>
+                    </div>
+
+                    <button id="StartGlobalAudioToggle" class="start-settings-pill">
+                        ON
+                    </button>
+                </div>
+
+                <div class="start-settings-row start-settings-row-column">
+                    <div>
+                        <div class="start-settings-label">Start scene</div>
+                        <div class="start-settings-subtitle">Choose where the game starts.</div>
+                    </div>
+
+                    <div class="start-scene-choice">
+                        <button id="StartSceneHomeButton" class="start-scene-button active">
+                            Home
+                        </button>
+
+                        <button id="StartSceneParkButton" class="start-scene-button">
+                            Park
+                        </button>
+                    </div>
+                </div>
+
+                <div class="start-settings-row">
+                    <div>
+                        <div class="start-settings-label">Camera help</div>
+                        <div class="start-settings-subtitle">Show camera controls after start.</div>
+                    </div>
+
+                    <button id="StartCameraHelpToggle" class="start-settings-pill active">
+                        ON
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

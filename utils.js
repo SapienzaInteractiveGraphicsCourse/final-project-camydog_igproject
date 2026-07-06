@@ -1,3 +1,80 @@
+function openStartSettingsPanel() {
+    var panel = document.getElementById("StartSettingsPanel");
+
+    if (!panel) {
+        return;
+    }
+
+    updateStartSettingsPanel();
+    panel.classList.remove("hidden");
+}
+
+function closeStartSettingsPanel() {
+    var panel = document.getElementById("StartSettingsPanel");
+
+    if (!panel) {
+        return;
+    }
+
+    panel.classList.add("hidden");
+}
+
+function setStartSceneChoice(sceneName) {
+    startSceneChoice = sceneName;
+    updateStartSettingsPanel();
+}
+
+function toggleStartCameraHelp() {
+    showCameraHelpAtStart = !showCameraHelpAtStart;
+    updateStartSettingsPanel();
+}
+
+function updateStartSettingsPanel() {
+    var homeButton = document.getElementById("StartSceneHomeButton");
+    var parkButton = document.getElementById("StartSceneParkButton");
+
+    if (homeButton) {
+        homeButton.classList.toggle(
+            "active",
+            startSceneChoice === "home"
+        );
+    }
+
+    if (parkButton) {
+        parkButton.classList.toggle(
+            "active",
+            startSceneChoice === "park"
+        );
+    }
+
+    var cameraHelpButton = document.getElementById("StartCameraHelpToggle");
+
+    if (cameraHelpButton) {
+        cameraHelpButton.textContent = showCameraHelpAtStart ? "ON" : "OFF";
+
+        cameraHelpButton.classList.toggle(
+            "active",
+            showCameraHelpAtStart
+        );
+    }
+
+    /*
+        Sync visivo con il bottone Global Audio già esistente.
+        Nel tuo HTML il bottone principale ha title tipo "Audio ON".
+    */
+    var startAudioButton = document.getElementById("StartGlobalAudioToggle");
+
+    if (startAudioButton) {
+        startAudioButton.textContent = startGlobalAudioEnabled ? "ON" : "OFF";
+
+        startAudioButton.classList.toggle(
+            "active",
+            startGlobalAudioEnabled
+        );
+    }
+}
+
+
 function ensureLightMatricesExist() {
     var lightPos = vec3(
         lightPosition[0],
