@@ -1401,19 +1401,14 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 frisbeeFlying = false;
                 frisbeeLanded = false;
 
-               /*  frisbeeLastMouseX = null;
-                frisbeeLastMouseY = null;
+                setFrisbeeHandCameraView();
 
+               
                 
- */             frisbeeHasMousePosition = false;
-
-              /*   frisbeeHandPos = vec3(-1.2, -1.1, frisbeeHandFixedZ);
-                frisbeeHandTargetPos = vec3(-1.2, -1.1, frisbeeHandFixedZ);
- */
+                frisbeeHasMousePosition = false;
 
                 updateCanvasCursor();
-                //showFrisbeeReleaseCursor();
-
+                
                 this.classList.add("active");
                 this.title = "Click on the park to throw";
     };
@@ -2119,30 +2114,6 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         event.preventDefault();
     });
 
- /*   canvas.addEventListener("mousedown", function(event) {
-        // In call dog mode -> do not start rotation
-        if (callDogClickMode) {
-            return;
-        }
-
-        //isDraggingCamera = true;
-        lastMouseX = event.clientX;
-        lastMouseY = event.clientY;
-
-        if (event.button === 2) {
-            // tasto destro -> pan
-            isPanningCamera = true;
-            isDraggingCamera = false;
-        } else {
-            // tasto sinistro -> orbit
-            isDraggingCamera = true;
-            isPanningCamera = false;
-        }
-
-
-        updateCanvasCursor();
-    }); */
-
 
     canvas.addEventListener("mousedown", function(event) {
         if (callDogClickMode) {
@@ -2157,6 +2128,16 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
+
+        // if i am in frisbee throw mode
+        //and I am holding the frisbee
+        // I don't allow the camera to move with mouse drag
+        if (isHoldingFrisbeeInHand() && event.button === 0) {
+            isDraggingCamera = false;
+            isPanningCamera = false;
+
+            return;
+        }
 
         // Tasto sinistro: orbit
         if (event.button === 0) {
@@ -2253,10 +2234,33 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             code === "KeyD";
 
         if (isCameraKey) {
+
+             if (
+                currentScene === "park" &&
+                frisbeeThrowMode &&
+                frisbeeAttachedToHand &&
+                !frisbeeFlying &&
+                !frisbeeLanded
+            ) {
+                //if I am in frisbee throw mode
+                // i don't allow the camera to move with WASD
+                event.preventDefault();
+
+                cameraKeyboardKeys["KeyW"] = false;
+                cameraKeyboardKeys["KeyA"] = false;
+                cameraKeyboardKeys["KeyS"] = false;
+                cameraKeyboardKeys["KeyD"] = false;
+
+                return;
+            }
+
             event.preventDefault();
             cameraKeyboardKeys[code] = true;
         }
     });
+
+
+
     window.addEventListener("keyup", function (event) {
         teapotKeyboardKeys[event.code] = false;
         cameraKeyboardKeys[event.code] = false;
@@ -2699,6 +2703,21 @@ function updateOrbitCameraFromSliders_old() {
 
 function updateCameraKeyboardPan(deltaTime) {
     if (!cameraKeyboardKeys) return;
+
+     if (
+        currentScene === "park" &&
+        frisbeeThrowMode &&
+        frisbeeAttachedToHand &&
+        !frisbeeFlying &&
+        !frisbeeLanded
+    ) {
+        //if i am in frisbee throw mode, i don't allow the camera to move with WASD
+        cameraKeyboardKeys["KeyW"] = false;
+        cameraKeyboardKeys["KeyA"] = false;
+        cameraKeyboardKeys["KeyS"] = false;
+        cameraKeyboardKeys["KeyD"] = false;
+        return;
+    }
 
     var dt =
         typeof deltaTime === "number" && isFinite(deltaTime)

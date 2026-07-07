@@ -1,4 +1,61 @@
+function isHoldingFrisbeeInHand() {
+    return (
+        currentScene === "park" &&
+        frisbeeThrowMode &&
+        frisbeeAttachedToHand &&
+        !frisbeeFlying &&
+        !frisbeeLanded
+    );
+}
 
+function setFrisbeeHandCameraView() {
+    /*
+        Salvo l'angolo attuale della camera.
+        Così quando prendo il frisbee non mi forza più a 358°,
+        ma mantiene la direzione da cui stavo già guardando.
+    */
+    var currentAngle = cameraAngle;
+
+    if (isNaN(currentAngle)) {
+        currentAngle = parseFloat(cameraAngleSlider.value);
+    }
+
+    if (isNaN(currentAngle)) {
+        currentAngle = 358.0;
+    }
+
+    cameraFocusMode = "free";
+    cameraDogAutoAngle = false;
+
+    if (typeof updateDogCameraModeButton === "function") {
+        updateDogCameraModeButton();
+    }
+
+    cameraPanOffset = vec3(0.0, 0.0, 0.0);
+
+    /*
+        Mantengo l'angolo corrente,
+        ma imposto altezza e zoom specifici per il frisbee.
+    */
+    cameraAngle = currentAngle;
+    cameraHeight = 0.4;
+    cameraDistance = 13.0;
+    cameraFov = 58.0;
+
+    if (cameraAngleSlider) {
+        cameraAngleSlider.value = cameraAngle.toFixed(0);
+    }
+
+    if (cameraHeightSlider) {
+        cameraHeightSlider.value = cameraHeight.toFixed(1);
+    }
+
+    if (cameraDistanceSlider) {
+        cameraDistanceSlider.value = cameraDistance.toFixed(1);
+    }
+
+    updateOrbitCameraFromSliders();
+}
 
 function startFrisbeeThrowSequence() {
     if (currentScene !== "park") {
