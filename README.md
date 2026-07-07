@@ -1,15 +1,13 @@
-# prova_project_IG
+# Pet Room
 <!-- Badge -->
-<!-- Badge -->
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=plastic&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![WebGL](https://img.shields.io/badge/WebGL-1.0-990000?style=plastic&logo=webgl&logoColor=white)](https://www.khronos.org/webgl/)
-[![HTML5](https://img.shields.io/badge/HTML5-Canvas-E34F26?style=plastic&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
-[![CSS3](https://img.shields.io/badge/CSS3-UI%20Design-1572B6?style=plastic&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
-[![Cannon.js](https://img.shields.io/badge/Cannon.js-Physics-8A2BE2?style=plastic)](https://schteppe.github.io/cannon.js/)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-222222?style=plastic&logo=githubpages&logoColor=white)](https://pages.github.com/)
-[![Camilla Giuliani on GitHub](https://img.shields.io/badge/Camilla–Giuliani–GitHub-181717?style=plastic&logo=github)](https://github.com/camygiuliani)
 
-
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-f4a7b9?style=plastic&logo=javascript&logoColor=white&labelColor=555555)
+![WebGL](https://img.shields.io/badge/WebGL-1.0-f4a7b9?style=plastic&logo=webgl&logoColor=white&labelColor=555555)
+![HTML5](https://img.shields.io/badge/HTML5-Canvas-f4a7b9?style=plastic&logo=html5&logoColor=white&labelColor=555555)
+![CSS3](https://img.shields.io/badge/CSS3-UI%20Design-f4a7b9?style=plastic&logo=css3&logoColor=white&labelColor=555555)
+![Cannon.js](https://img.shields.io/badge/Cannon.js-Physics-f4a7b9?style=plastic&logoColor=white&labelColor=555555)
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-f4a7b9?style=plastic&logo=githubpages&logoColor=white&labelColor=555555)
+![GitHub](https://img.shields.io/badge/GitHub-Camilla--Giuliani--GitHub-f4a7b9?style=plastic&logo=github&logoColor=white&labelColor=555555)
 # Demo
 https://sapienzainteractivegraphicscourse.github.io/final-project-camydog_igproject/
 Sto aggiungendo la shadow map con 6 direzioni (?)
@@ -84,26 +82,44 @@ FPS shown on the canvas
 ## Walk Mode
 
 
-# Objects
--shiba
--cat
--teapot
--cloth (Cannon)
--moon model -> https://www.cgtrader.com/items/6369973/download-page
--moon texture  => from (google immaigni random)
-- sun model => https://www.cgtrader.com/items/5092264/download-page
--sun texture (sphere) => from goggle immaigni random
--table -> Free 3D https://free3d.com/3d-model/tablle-396579.html?dd_referrer=
--ball
--heart
-- music note
-- sun model => CG trader -> https://www.cgtrader.com/items/5092264/download-page
-- bench model => Buying model CG trader
-- bench texture: model folder
-- frisbee model => Buying model CG trader
-- leaf model => https://www.cgtrader.com/free-3d-models/plant/leaf/tree-leaf
-- firflies => createSphere mia funzione
+# 3D Model Sources
 
+## Procedurally Generated & Physics
+-firflies => createSphere mia funzione
+-cloth (Cannon)
+
+## Third-Party 3D Models
+
+- **CGTrader**: [Kishu Inu Japan Dog (6$)](https://www.cgtrader.com/3d-models/animal/mammal/kishu-inu-japan-dog-breed), 
+[Grass patch(3$)](https://www.cgtrader.com/3d-models/plant/grass/photorealistic-grass-with-patch-generator-and-animatio), 
+[Moon ](https://www.cgtrader.com/items/6369973/download-page), 
+[Sun1](https://www.cgtrader.com/items/5092264/download-page), 
+[Sun2](https://www.cgtrader.com/items/5092264/download-page), 
+[Frisbee(2.5$)](https://www.cgtrader.com/3d-models/sports/toy/flat-disc-frisbee),
+[Leaf](https://www.cgtrader.com/free-3d-models/plant/leaf/tree-leaf), 
+[Bench](https://www.cgtrader.com/free-3d-models/exterior/street-exterior/park-bench-modern-outdoor-bench-long-seat), 
+[Music Note](https://www.cgtrader.com/free-3d-models/various/various-models/music-note-33d9edfd57a7bc1b72f2d9dedbea46e5).
+
+- **Free3D**: [Ball](https://free3d.com/it/3d-model/beach-ball-v2--259926.html), 
+[Table](https://free3d.com/3d-model/tablle-396579.html?dd_referrer=), 
+[Heart](https://free3d.com/3d-model/heart-v1--539992.html).
+
+
+- **Interactive Graphics Course**: Teapot
+
+
+# Textures references
+
+- dog Kishu Inu: model folder
+-ball: model folder
+- moon: googles images
+- bench : model folder 
+- table : model folder
+-sun texture: google images
+- grass_patch: model folder
+- fireflies : generated color
+- frisbee : generated color
+-music note: generated color
 
 # Sounds references
 Everyone comes from PixaBay
@@ -117,54 +133,27 @@ Background_park_day:
 Kibbles:
 
 
-
-
 # Icons references
 From **FlatIcon**
 
-nintendogs_icon: Google Images
-
-shiba_icon (https://it.pinterest.com/pin/56295064084237515/)
-
-settings : https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510
-
-call_dog_hand: https://www.flaticon.com/free-icon/open-hand_889822
-
-wave_hand_caress: https://www.flaticon.com/free-icon/wave_9606501?term=wave+hand&related_id=9606501
-
-open_hand_frisbee: https://www.flaticon.com/free-icon/five-fingers_9971672?term=open+hand&related_id=9971672
-
-hand_holding_frisbee: https://www.flaticon.com/free-icon/grab_1196462
-
-mute_audio_off : https://www.flaticon.com/free-icon/mute_561228
-
-auto moving sun: https://www.flaticon.com/free-icon/greenhouse_4772346
-
-frisbee: https://www.flaticon.com/free-icon/frisbee_7601483?term=frisbee&page=1&position=23&origin=search&related_id=7601483
-
-music_on: https://www.flaticon.com/free-icon/musical-note_2995101?term=music+notes&page=1&position=9&origin=search&related_id=2995101
-
-music_off:  https://www.flaticon.com/free-icon/music-off_13407074?term=music+off&page=1&position=29&origin=search&related_id=13407074
-
-ball: https://www.flaticon.com/free-icon/beach-ball_3012458?term=ball&page=1&position=8&origin=search&related_id=3012458
-
-dog_water: https://www.flaticon.com/free-icon/dog-bowl_6004496?term=dog+bowl+water&page=1&position=7&origin=search&related_id=6004496
-
-dog_food:   https://www.flaticon.com/free-icon/dog-food_8876508?term=bowl+dog&page=1&position=8&origin=search&related_id=8876508
-
-sun : https://www.flaticon.com/free-icon/sun_10484062?term=sun&page=1&position=4&origin=search&related_id=10484062
-
-moon :  https://www.flaticon.com/free-icon/full-moon_9689786?term=moon&page=1&position=4&origin=tag&related_id=9689786
-
-
-yes_audio : https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912
-
-teapot icon : 
-https://www.flaticon.com/free-icon/teapot_491609?term=teapot&page=1&position=4&origin=search&related_id=491609
-
-
-camera icon: https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651
-
-shiba icon :  https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763
-
-paw icon :  https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576
+* [Shiba Icon (Pinterest)](https://it.pinterest.com/pin/56295064084237515/)
+* [Settings](https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510)
+* [Call Dog Hand](https://www.flaticon.com/free-icon/open-hand_889822)
+* [Wave Hand / Caress](https://www.flaticon.com/free-icon/wave_9606501?term=wave+hand&related_id=9606501)
+* [Open Hand Frisbee](https://www.flaticon.com/free-icon/five-fingers_9971672?term=open+hand&related_id=9971672)
+* [Hand Holding Frisbee](https://www.flaticon.com/free-icon/grab_1196462)
+* [Mute / Audio Off](https://www.flaticon.com/free-icon/mute_561228)
+* [Auto Moving Sun](https://www.flaticon.com/free-icon/greenhouse_4772346)
+* [Frisbee](https://www.flaticon.com/free-icon/frisbee_7601483?term=frisbee&page=1&position=23&origin=search&related_id=7601483)
+* [Music On](https://www.flaticon.com/free-icon/musical-note_2995101?term=music+notes&page=1&position=9&origin=search&related_id=2995101)
+* [Music Off](https://www.flaticon.com/free-icon/music-off_13407074?term=music+off&page=1&position=29&origin=search&related_id=13407074)
+* [Ball](https://www.flaticon.com/free-icon/beach-ball_3012458?term=ball&page=1&position=8&origin=search&related_id=3012458)
+* [Dog Water Bowl](https://www.flaticon.com/free-icon/dog-bowl_6004496?term=dog+bowl+water&page=1&position=7&origin=search&related_id=6004496)
+* [Dog Food Bowl](https://www.flaticon.com/free-icon/dog-food_8876508?term=bowl+dog&page=1&position=8&origin=search&related_id=8876508)
+* [Sun](https://www.flaticon.com/free-icon/sun_10484062?term=sun&page=1&position=4&origin=search&related_id=10484062)
+* [Moon](https://www.flaticon.com/free-icon/full-moon_9689786?term=moon&page=1&position=4&origin=tag&related_id=9689786)
+* [Audio On](https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912)
+* [Teapot Icon](https://www.flaticon.com/free-icon/teapot_491609?term=teapot&page=1&position=4&origin=search&related_id=491609)
+* [Camera Icon](https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651)
+* [Shiba Icon (Flaticon)](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763)
+* [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576)
