@@ -173,6 +173,7 @@ var tableAOTexture = null;
 var heartMtlTexture = null;
 
 //ball specific variables
+var ballThrowSound;
 var ballMtlTexture = null;
 
 var ballOutsideHomeWarningShown = false;

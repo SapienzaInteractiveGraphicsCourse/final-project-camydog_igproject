@@ -365,6 +365,10 @@ onload = async function init() {
 
     if (startButton && startScreen) {
         startButton.onclick = function () {
+
+            warmUpBallThrowSound();
+
+
             document.body.classList.remove("game-not-started");
 
             closeStartSettingsPanel();
@@ -1085,6 +1089,13 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         };
     }
 
+    // sound to ballthrowing
+    ballThrowSound = document.getElementById("ballThrowSound");
+
+    if (ballThrowSound) {
+        ballThrowSound.preload = "auto";
+        ballThrowSound.load();
+    }
 
     //Sound to pet dog
     dogBreathSound = document.getElementById("dogBreathSound");
