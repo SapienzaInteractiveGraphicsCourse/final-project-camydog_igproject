@@ -700,3 +700,74 @@ function updateSkinnedDogFetchBall_old(deltaTime) {
         moveCat = !moveCat;
         console.log("Cat walk:", moveCat);
     }; */
+
+
+    okok
+
+
+
+    <!-- <div  id="BallSettingsPanel" class="control-group collapsible-panel">
+                                        <summary>Throwing ball settings</summary>
+
+                                        <div class="control-row">
+                                            <label for="BallVelX">Velocity X:</label>
+                                            <input id="BallVelX" type="range" min="-8" max="8" step="0.1" value="4.50">
+                                            <span id="BallVelXValue">4.50</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallVelY">Velocity Y:</label>
+                                            <input id="BallVelY" type="range" min="0" max="10" step="0.1" value="4.0">
+                                            <span id="BallVelYValue">4.0</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallVelZ">Velocity Z:</label>
+                                            <input id="BallVelZ" type="range" min="-10" max="5" step="0.1" value="-5.0">
+                                            <span id="BallVelZValue">-5.0</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallBounce">Bounce:</label>
+                                            <input id="BallBounce" type="range" min="0" max="1" step="0.05" value="0.25">
+                                            <span id="BallBounceValue">0.25</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallFriction">Friction:</label>
+                                            <input id="BallFriction" type="range" min="0" max="1" step="0.05" value="0.80">
+                                            <span id="BallFrictionValue">0.80</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelX">Ang Vel X:</label>
+                                            <input id="BallAngVelX" type="range" min="-10" max="10" step="0.1" value="4.0">
+                                            <span id="BallAngVelXValue">4.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelY">Ang Vel Y:</label>
+                                            <input id="BallAngVelY" type="range" min="-10" max="10" step="0.1" value="0.0">
+                                            <span id="BallAngVelYValue">0.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngVelZ">Ang Vel Z:</label>
+                                            <input id="BallAngVelZ" type="range" min="-10" max="10" step="0.1" value="2.0">
+                                            <span id="BallAngVelZValue">2.00</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallLinearDamping">Lin Damp:</label>
+                                            <input id="BallLinearDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.35">
+                                            <span id="BallLinearDampingValue">0.35</span>
+                                        </div>
+
+                                        <div class="control-row">
+                                            <label for="BallAngularDamping">Ang Damp:</label>
+                                            <input id="BallAngularDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.75">
+                                            <span id="BallAngularDampingValue">0.75</span>
+                                        </div>
+
+                                        
+            </div> -->

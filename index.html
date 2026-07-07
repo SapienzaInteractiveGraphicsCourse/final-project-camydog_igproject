@@ -4,9 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PetRoom</title>
  <link rel="icon" type="image/png" sizes="64x64"  href="./Icons/paw.png">
-    <!-- link rel="stylesheet" href="./liquid-glass-js/glass.css">
-    <link rel="stylesheet" href="./liquid-glass-js/styles.css"> -->
-   
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -58,7 +55,7 @@
 </audio>
 
 
-
+<!-- The skeleton starts here -->
 
 <body  class="game-not-started">
     <div id="loadingScreen"  class="hidden" style="display: none;">
@@ -246,7 +243,11 @@
                  <div class="top-buttons">
 
                     
-                    <button hidden id="ButtonTex">Disable Textures</button>
+                   <div class="top-left-actions">
+
+                    <button id="ButtonGlobalAudio" class="music-icon-button" title="Audio ON">
+                        <img id="GlobalAudioIcon" src="./Icons/no_audio.png" alt="Global Audio">
+                    </button>
 
                     <button id="ButtonMusic" class="music-icon-button" title="Turn ON background music">
                         <img id="MusicIcon" src="./Icons/music_on.png" alt="Music">
@@ -269,35 +270,42 @@
                             <span id="MusicVolumeValue">10%</span>
                         </div>
 
-                   <button id="ButtonGlobalAudio" class="music-icon-button" title="Audio ON">
-                        <img id="GlobalAudioIcon" src="./Icons/no_audio.png" alt="Global Audio">
-                    </button>
+                  </div>
                    
-                    
-                    <button id="ButtonWater" class="water-button" title="Give water">
-                        <img id="WaterIcon" src="./Icons/dog_water.png" alt="Water">
-                    </button>
+                 <div class="top-center-actions">
+                        <button id="ButtonWater" class="water-button" title="Give water">
+                            <img id="WaterIcon" src="./Icons/dog_water.png" alt="Water">
+                        </button>
 
-                    <button id="ButtonFood" class="water-button" title="Give Food">
-                        <img id="FoodIcon" src="./Icons/dog_food.png" alt="Food">
-                    </button>
+                        <button id="ButtonFood" class="water-button" title="Give Food">
+                            <img id="FoodIcon" src="./Icons/dog_food.png" alt="Food">
+                        </button>
 
 
 
                         
                    
-                    <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
-                    <button hidden  id="ButtonLightDir">Show Light Direction</button>
-                    <button id="ButtonCollision">Show Colliders</button>
-                    <button id="ButtonCallDogMode" alt="Call Dog Mode" title="Call Dog Mode">
-                        Call Dog Mode 
-                    </button>
-                    <button id="ButtonPetDogMode">Pet Dog: OFF</button>
+                        <!-- <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
+                        <button hidden  id="ButtonLightDir">Show Light Direction</button> -->
+                    
+                    
 
+                        <button id="ButtonCallDogMode" alt="Call Dog Mode" title="Call Dog Mode">
+                            <img class="dog-action-icon" src="./Icons/dog_128.png" alt="Dog">
+                            <span class="dog-action-label">Call Dog</span>
+                        </button>
+                        <button id="ButtonPetDogMode" class="dog-action-button" title="Pet dog">
+                            <span class="dog-action-icon pet-heart-icon">🤍</span>
+                            <span class="dog-action-label">Pet: OFF</span>
+                        </button>
+
+                    </div>
+                    <div class="top-right-actions">
                     <button id="CameraControlsHelpButton" class="camera-help-top-button" title="Camera controls">
                         <img src="./Icons/camera.png" alt="Camera help">
                         <span>HELP</span>
                     </button>
+                    </div>
                     
 
             </div>
@@ -396,51 +404,63 @@
             </div>
 
               
-            <details id="RotationSettingsPanel" class="control-group collapsible-panel shadow-demo-panel">
-                <summary>Shadow demo controls</summary>
+            <div id="RotationSettingsPanel" class="control-group">
+               <!--  <summary>Shadow demo controls</summary>
 
                 <p class="shadow-demo-description">
                     Rotate objects to show dynamic shadows.
-                </p>
+                </p> -->
+                <h3>Debug tools</h3>
 
-                <button id="ButtonT" class="rotation-demo-button">
-                    Teapot rotation: OFF
+                <button id="ButtonCollision">
+                    Show Colliders
                 </button>
 
-                <button id="ButtonTableRotation" class="rotation-demo-button">
-                    Table rotation: OFF
-                </button>
 
-                <div class="control-row">
-                    <label for="RotationSpeed_teapot">Teapot speed:</label>
-                    <input 
-                        id="RotationSpeed_teapot" 
-                        type="range" 
-                        min="0" 
-                        max="9" 
-                        step="0.1" 
-                        value="1"
-                    >
-                    <span id="RotationSpeedValue_teapot">1.0x</span>
-                </div>
+                 <details class="control-group collapsible-panel">
+                    <summary>Shadow demo controls</summary>
 
-                <div class="control-row">
-                    <label for="RotationSpeed_table">Table speed:</label>
-                    <input 
-                        id="RotationSpeed_table" 
-                        type="range" 
-                        min="0" 
-                        max="5" 
-                        step="0.1" 
-                        value="1"
-                    >
-                    <span id="RotationSpeedValue_table">1.0x</span>
-                </div>
+                    <button  id="ButtonTex">Disable Textures</button>
+                    <button id="ButtonT" class="rotation-demo-button">
+                        Teapot rotation: OFF
+                    </button>
 
-                <button hidden id="ButtonX">Rotate T. X</button>
-                <button hidden id="ButtonY">Rotate T. Y</button>
-                <button hidden id="ButtonZ">Rotate T. Z</button>
-            </details>
+                    <button id="ButtonTableRotation" class="rotation-demo-button">
+                        Table rotation: OFF
+                    </button>
+
+                    <div class="control-row">
+                        <label for="RotationSpeed_teapot">Teapot speed:</label>
+                        <input 
+                            id="RotationSpeed_teapot" 
+                            type="range" 
+                            min="0" 
+                            max="9" 
+                            step="0.1" 
+                            value="1"
+                        >
+                        <span id="RotationSpeedValue_teapot">1.0x</span>
+                    </div>
+
+                    <div class="control-row">
+                        <label for="RotationSpeed_table">Table speed:</label>
+                        <input 
+                            id="RotationSpeed_table" 
+                            type="range" 
+                            min="0" 
+                            max="5" 
+                            step="0.1" 
+                            value="1"
+                        >
+                        <span id="RotationSpeedValue_table">1.0x</span>
+                    </div>
+
+                    <button hidden id="ButtonX">Rotate T. X</button>
+                    <button hidden id="ButtonY">Rotate T. Y</button>
+                    <button hidden id="ButtonZ">Rotate T. Z</button>
+
+                 </details>
+            </div>
                         <div class="control-group">
                                 <h3>Camera views</h3>
 
@@ -515,74 +535,9 @@
                         <div><b>R</b>: toggle rotation</div>
             </div>
 
-            <!-- <div  id="BallSettingsPanel" class="control-group collapsible-panel">
-                                        <summary>Throwing ball settings</summary>
-
-                                        <div class="control-row">
-                                            <label for="BallVelX">Velocity X:</label>
-                                            <input id="BallVelX" type="range" min="-8" max="8" step="0.1" value="4.50">
-                                            <span id="BallVelXValue">4.50</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallVelY">Velocity Y:</label>
-                                            <input id="BallVelY" type="range" min="0" max="10" step="0.1" value="4.0">
-                                            <span id="BallVelYValue">4.0</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallVelZ">Velocity Z:</label>
-                                            <input id="BallVelZ" type="range" min="-10" max="5" step="0.1" value="-5.0">
-                                            <span id="BallVelZValue">-5.0</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallBounce">Bounce:</label>
-                                            <input id="BallBounce" type="range" min="0" max="1" step="0.05" value="0.25">
-                                            <span id="BallBounceValue">0.25</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallFriction">Friction:</label>
-                                            <input id="BallFriction" type="range" min="0" max="1" step="0.05" value="0.80">
-                                            <span id="BallFrictionValue">0.80</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallAngVelX">Ang Vel X:</label>
-                                            <input id="BallAngVelX" type="range" min="-10" max="10" step="0.1" value="4.0">
-                                            <span id="BallAngVelXValue">4.00</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallAngVelY">Ang Vel Y:</label>
-                                            <input id="BallAngVelY" type="range" min="-10" max="10" step="0.1" value="0.0">
-                                            <span id="BallAngVelYValue">0.00</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallAngVelZ">Ang Vel Z:</label>
-                                            <input id="BallAngVelZ" type="range" min="-10" max="10" step="0.1" value="2.0">
-                                            <span id="BallAngVelZValue">2.00</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallLinearDamping">Lin Damp:</label>
-                                            <input id="BallLinearDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.35">
-                                            <span id="BallLinearDampingValue">0.35</span>
-                                        </div>
-
-                                        <div class="control-row">
-                                            <label for="BallAngularDamping">Ang Damp:</label>
-                                            <input id="BallAngularDamping" type="range" min="0.0" max="1.0" step="0.01" value="0.75">
-                                            <span id="BallAngularDampingValue">0.75</span>
-                                        </div>
-
-                                        
-            </div> -->
+            
 
             <div id="BallSettingsPanel" class="ball-settings-hud" >
-                    <!-- <div class="ball-settings-title">Ball throw settings</div> -->
 
                     <div class="ball-settings-header">
                         <div class="ball-settings-title">Ball throw settings</div>
@@ -835,6 +790,7 @@ varying vec3 fNormal;
 varying vec3 fLightDir;
 varying vec3 fWorldNormal;
 
+uniform float shadowMapSize;
  
 uniform bool useTexture;
 uniform sampler2D uTexture;
@@ -1223,7 +1179,7 @@ void main(){
             float bias = 0.0005;
 
             float shadowSum = 0.0;
-            float texelSize = 1.0 / 4096.0;
+            float texelSize = 1.0 / shadowMapSize;
 
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {

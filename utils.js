@@ -1126,7 +1126,7 @@ function clearOldShadowMaps() {
 
     // ===== clear old directional shadow map, se la usi ancora =====
     if (shadowFramebuffer) {
-        var directionalShadowSize = 4096;
+        var directionalShadowSize = POINT_SHADOW_SIZE; 
 
         gl.viewport(0, 0, directionalShadowSize, directionalShadowSize);
         gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);

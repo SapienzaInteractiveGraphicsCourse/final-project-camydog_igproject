@@ -1165,7 +1165,12 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
         if (petDogMode) {
             callDogClickMode = false;
-            callDogButton.textContent = "Call Dog: OFF";
+            //callDogButton.textContent = "Call Dog: OFF";
+            var callDogLabel = callDogButton.querySelector(".dog-action-label");
+
+            if (callDogLabel) {
+                callDogLabel.textContent = "Call Dog";
+            }
 
             dogPetAudioPlayed = false;
             dogIsBeingPetted = false;
@@ -1179,15 +1184,26 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             dogPetHeadPitch = 0.0;
 
             dogPetAudioPlayed = false;
-             dogIsBeingPetted = false;
+            dogIsBeingPetted = false;
 
             dogBreathSound.pause();
             dogBreathSound.currentTime = 0;
         }
 
-        this.textContent = petDogMode
-            ? "Pet Dog: ON"
-            : "Pet Dog: OFF";
+        var petDogLabel = this.querySelector(".dog-action-label");
+        var petDogIcon = this.querySelector(".pet-heart-icon");
+
+        if (petDogLabel) {
+            petDogLabel.textContent = petDogMode
+                ? "Pet: ON"
+                : "Pet: OFF";
+        }
+
+        if (petDogIcon) {
+            petDogIcon.textContent = petDogMode
+                ? "💗"
+                : "🤍";
+        }
 
         isDraggingCamera = false;
         updateCanvasCursor();
@@ -1255,10 +1271,13 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
         // Block any remaining active dragging
         isDraggingCamera = false;
 
-        this.textContent = callDogClickMode
-            ? "Call Dog: ON"
-            : "Call Dog: OFF";
+       var callDogLabel = this.querySelector(".dog-action-label");
 
+        if (callDogLabel) {
+            callDogLabel.textContent = callDogClickMode
+                ? "Call: ON"
+                : "Call Dog";
+        }
         updateCanvasCursor();
     };
 
@@ -1751,10 +1770,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             }
         };
     }
-    document.getElementById("ButtonLightDir").onclick = function () {
+    /* document.getElementById("ButtonLightDir").onclick = function () {
         showLightDirection = !showLightDirection;
         this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
-    };
+    }; */
    
 
     
@@ -1893,10 +1912,10 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     }
  
-    document.getElementById("ButtonDogMove").onclick = function () {
+   /*  document.getElementById("ButtonDogMove").onclick = function () {
         moveDog = !moveDog;
         console.log("Dog walk:", moveDog);
-    };
+    }; */
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
@@ -3454,6 +3473,11 @@ function drawObject(obj,
     gl.uniform1f(
         gl.getUniformLocation(program, "uGlobalAlpha"),
         globalAlpha
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "shadowMapSize"),
+        POINT_SHADOW_SIZE
     );
 
     var modelViewMatrix = mult(viewMatrix, modelMatrix);
