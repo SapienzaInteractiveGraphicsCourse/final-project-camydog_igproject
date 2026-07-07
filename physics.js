@@ -3786,7 +3786,17 @@ function getBallModelMatrix() {
             Non usa interpolatedPosition di Cannon, quindi non rischia
             di pescare posizioni vecchie sotto il pavimento.
         */
-        var smoothing = 0.45;
+        var vx = ballBody.velocity.x;
+        var vy = ballBody.velocity.y;
+        var vz = ballBody.velocity.z;
+
+        var ballSpeed = Math.sqrt(vx * vx + vy * vy + vz * vz);
+
+        /*
+            Quando la palla è lanciata veloce, la seguo di più.
+            Quando rallenta, tengo più smoothing.
+        */
+        var smoothing = ballSpeed > 2.0 ? 0.75 : 0.55;
 
         ballRenderX += (ballBody.position.x - ballRenderX) * smoothing;
         ballRenderY += (ballBody.position.y - ballRenderY) * smoothing;
