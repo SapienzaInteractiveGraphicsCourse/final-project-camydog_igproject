@@ -2887,6 +2887,13 @@ function updateSkinnedDogFetchBall(deltaTime) {
     */
     var dogSpeedPerSecond = 2.1;
 
+    if (
+        dogFetchObjectType === "bowlWater" ||
+        dogFetchObjectType === "bowlFood"
+    ) {
+        dogSpeedPerSecond = 1.6;
+    }
+
     if (dogFetchObjectType === "frisbee") {
         dogSpeedPerSecond = 3.0;
     }
@@ -3003,6 +3010,35 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
             dogPathIndex = dogPath.length - 1;
             dogFetchBallMode = false;
+
+            if (
+                dogFetchObjectType === "bowlWater" ||
+                dogFetchObjectType === "bowlFood"
+            ) {
+                dogFetchLoweringActive = false;
+                dogFetchLowerAmount = 0.0;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchTarget = {
+                    x: bowlX,
+                    z: bowlZ
+                };
+
+                showDogMusicNote = false;
+
+                /*
+                    Il cane resta lì vicino e guarda la ciotola.
+                */
+                updateDogFacingTarget(
+                    bowlX,
+                    bowlZ,
+                    deltaTime
+                );
+
+                return;
+            }
 
             if (dogFetchObjectType === "teapot") {
                 dogFetchLoweringActive = false;
@@ -4088,4 +4124,127 @@ class CannonCurtain {
 
         return k + 1;
     }
+}
+
+
+
+function startSkinnedDogGoToBowl(kind) {
+    if (currentScene !== "home") {
+        return;
+    }
+
+    if (typeof bowlX === "undefined" || typeof bowlZ === "undefined") {
+        return;
+    }
+
+    /*
+        Uso lo stesso sistema del fetch della palla,
+        ma con un tipo diverso di target.
+    */
+    dogFetchObjectType = kind === "food"
+        ? "bowlFood"
+        : "bowlWater";
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    showDogMusicNote = true;
+
+    /*
+        Il cane guarda la ciotola vera.
+    */
+    dogLookAtBallX = bowlX;
+    dogLookAtBallZ = bowlZ;
+
+    /*
+        Non deve arrivare sopra la ciotola, ma fermarsi davanti.
+    */
+    var dx = bowlX - dogFetchX;
+    var dz = bowlZ - dogFetchZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.001) {
+        dx = 1.0;
+        dz = 0.0;
+        dist = 1.0;
+    }
+
+    var stopDistance =
+        typeof getBowlAvoidRadiusForDog === "function"
+            ? getBowlAvoidRadiusForDog()
+            : 1.35;
+
+    var targetX = bowlX - (dx / dist) * stopDistance;
+    var targetZ = bowlZ - (dz / dist) * stopDistance;
+
+    /*
+        Tengo il cane fuori da tavolo, bowl e limiti stanza.
+        Questa funzione già gestisce anche la bowl.
+    */
+    var safeTarget;
+
+    if (typeof keepDogOutsideTeapotChaseObstacles === "function") {
+        safeTarget = keepDogOutsideTeapotChaseObstacles(targetX, targetZ);
+    } else {
+        safeTarget = keepDogOutsideTable(targetX, targetZ);
+        safeTarget = clampDogTargetToRoom(safeTarget.x, safeTarget.z);
+    }
+
+    dogPath = computeDogPathToBall(
+        dogFetchX,
+        dogFetchZ,
+        safeTarget.x,
+        safeTarget.z
+    );
+
+    dogPathIndex = 0;
+    dogFetchBallMode = dogPath && dogPath.length > 0;
+
+    if (dogFetchBallMode) {
+        dogFetchTarget = {
+            x: dogPath[0].x,
+            z: dogPath[0].z
+        };
+    } else {
+        dogFetchTarget = {
+            x: bowlX,
+            z: bowlZ
+        };
+    }
+}
+
+
+function stopSkinnedDogGoToBowl() {
+    if (
+        dogFetchObjectType !== "bowlWater" &&
+        dogFetchObjectType !== "bowlFood"
+    ) {
+        return;
+    }
+
+    dogFetchObjectType = null;
+    dogFetchBallMode = false;
+
+    dogFetchLoweringActive = false;
+    dogFetchLowerAmount = 0.0;
+
+    dogCrouchActive = false;
+    dogCrouchAmount = 0.0;
+
+    dogPath = [];
+    dogPathIndex = 0;
+
+    dogFetchTarget = {
+        x: dogFetchX,
+        z: dogFetchZ
+    };
+
+    showDogMusicNote = false;
 }

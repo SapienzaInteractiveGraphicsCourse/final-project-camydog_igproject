@@ -1213,6 +1213,15 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     waterButton = document.getElementById("ButtonWater");
 
     waterButton.addEventListener("click", function () {
+
+         if (!waterVisible && miniGameActive) {
+            showGameMessage(
+                "Please stop the ball minigame before using water or food.",
+                2800
+            );
+
+            return;
+        }
         if (!waterVisible) {
             //if food is active, deactivate it
             if (kibbleVisible) {
@@ -1232,8 +1241,11 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
             waterButton.classList.add("active");
             waterButton.title = "Remove water";
 
+            startSkinnedDogGoToBowl("water");
+
         } else {
             deactivateWater();
+            stopSkinnedDogGoToBowl();
         }
     });
     //sound for pouring the bowl with kibbles
@@ -1244,6 +1256,15 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
     foodButton = document.getElementById("ButtonFood");
 
     foodButton.addEventListener("click", function () {
+        if (!kibbleVisible && miniGameActive) {
+            showGameMessage(
+                "Please stop the ball minigame before using water or food.",
+                2800
+            );
+
+            return;
+        }
+
         if (!kibbleVisible) {
             //if water is active, deactivate it
             if (waterVisible) {
@@ -1254,9 +1275,11 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
             foodButton.classList.add("active");
             foodButton.title = "Remove Food";
+            startSkinnedDogGoToBowl("food");
 
         } else {
             deactivateFood();
+            stopSkinnedDogGoToBowl();
         }
     });
 

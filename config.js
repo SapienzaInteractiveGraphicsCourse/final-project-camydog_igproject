@@ -97,7 +97,7 @@ var path_img_moon = "./Textures/moon_2.png";
 var path_img_sun= "./Textures/sun_1.png";
 var path_img_painting = "./Textures/london.jpg";
 var path_img_cornice = "./Textures/blue_navy.jpg";
-var path_img_ball= "./Textures/ball_color/ball_diff.jpg";
+var path_img_ball= "./Textures/ball_diff.jpg";
 var path_img_curtain = "./Textures/curtain_tex.png";
 var path_img_musicNote = "./Textures/hot_pink.jpg";
 var path_img_halo = "./Textures/halo.png";
@@ -105,9 +105,9 @@ var path_img_grass="./Textures/grass_3.jpg";
 var path_img_steel="./Textures/steel.png";
 var path_img_blue="./Textures/blue_navy.jpg";
 var path_img_frisbee= "./Textures/frisbee_2.png";
-var path_img_bench= "./Textures/textures_bench/bench_BaseColor.png";
+var path_img_bench= "./Textures/textures_bench/bench_base_color.png";
 var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Strands_color.jpg";
-var path_img_leaf="./leaf_1/leaf_1_tex.jpg";
+var path_img_leaf="./Textures/leaf.jpg";
 
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
