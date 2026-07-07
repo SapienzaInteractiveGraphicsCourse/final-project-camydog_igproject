@@ -1,7 +1,8 @@
 function createParkGrassPatchInstances() {
     grassPatchInstances = [];
 
-    var count = 200;   // prova 50 / 70 / 100
+    //var count = 200;   // prova 50 / 70 / 100
+    var count = PARK_GRASS_COUNT;
     var minX = -6.0;
     var maxX =  6.0;
     var minZ = -5.5;

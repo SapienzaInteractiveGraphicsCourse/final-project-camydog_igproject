@@ -16,6 +16,9 @@ var startSceneChoice = "home";
 var showCameraHelpAtStart = true;
 var startGlobalAudioEnabled = true;
 
+// performance saver variables
+var startPerformanceSaverEnabled = false;
+
 
 // some camera settings
 var cameraLegendTimeout = null;
@@ -41,8 +44,18 @@ var isNight = false;
 
 var gameMessageTimeout = null;
 
+// cursor commands
+var isDraggingCamera = false;
+var lastMouseX = 0;
+var lastMouseY = 0;
+var mouseSensitivityX = 0.2;
+var mouseSensitivityY = 0.02;
+
 // shadow map variables
-var POINT_SHADOW_SIZE = 4096;
+var POINT_SHADOW_SIZE_HIGH = 4096;
+var POINT_SHADOW_SIZE_LOW = 2048;
+var POINT_SHADOW_SIZE = POINT_SHADOW_SIZE_HIGH;
+
 
 // variable to enable debug mode
 var showCollisionDebug = false;
@@ -50,12 +63,10 @@ var showCollisionDebug = false;
 
 // options for showing objects
 var okTeapot=false;
-var okCat=false;
 
 // Object paths
 var modelPath_teapot = "./Objects/teapot.obj";
 var modelPath_table = "./Objects/table.obj";
-var modelPath_cat= "./Cat/cat.obj";
 var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./ball_color/ball.obj";
 var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
@@ -71,12 +82,11 @@ var modelPath_leaf="./Objects/leaf_1_modified.obj";
 
 
 //path folder rigged dog
-var pathFolderRiggedDog = "./Objects/dog_separated_model/";
+//var pathFolderRiggedDog = "./Objects/dog_separated_model/";
 
 // images & textures paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
 var path_img_table="./Textures/table_tex_512.jpg";
-var path_img_cat="./Cat/Cat_diffuse.jpg";
 var path_img_wall="./Textures/wall_tex.jpg";
 var path_img_floor="./Textures/parquet_tex.jpg";
 var path_img_dog =null;
@@ -122,8 +132,7 @@ var teapotTexture;
 var teapotBuffers;  
 var tableTexture;
 var tableBuffers;
-var catBuffers; 
-var catTexture;
+
 var wallTexture;
 var floorTexture;
 var dogBuffers;
@@ -632,6 +641,8 @@ var frisbeeReturnedAndWaiting = false;
 //             Global variables for grass                */
 //****************************************************** */
 var grassPatchInstances = [];
+
+var PARK_GRASS_COUNT;
 
 
 //**********LEAVES */

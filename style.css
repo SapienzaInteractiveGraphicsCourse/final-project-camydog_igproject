@@ -3566,3 +3566,42 @@ body.ui-panel-hidden .toggle-side-panel-button {
     font-size: 10px !important;
     line-height: 1.15 !important;
 }
+
+
+/* =========================================================
+   Smooth start screen entrance - no UI flash behind
+   ========================================================= */
+
+/* =========================================================
+   Smooth start screen entrance - fade only
+   ========================================================= */
+
+#startScreen {
+    opacity: 1;
+    transform: none;
+}
+
+/* Lo sfondo copre subito tutto, la card parte solo trasparente */
+#startScreen .start-card {
+    opacity: 0;
+    transform: none;
+    transition: opacity 0.65s ease;
+}
+
+/* Entra solo in fade, senza zoom */
+#startScreen.start-visible .start-card {
+    opacity: 1;
+    transform: none;
+}
+
+/* Uscita quando clicchi Start */
+#startScreen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+}
+
+#startScreen.hidden .start-card {
+    opacity: 0;
+    transform: none;
+}

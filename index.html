@@ -61,7 +61,7 @@
 
 
 <body  class="game-not-started">
-    <div id="loadingScreen">
+    <div id="loadingScreen"  class="hidden" style="display: none;">
         <div class="loading-card">
             <img 
                 id="StartDogLogo"
@@ -169,6 +169,21 @@
 
                 <div class="start-settings-row">
                     <div>
+                        <div class="start-settings-label">Performance saver</div>
+                        <div class="start-settings-subtitle">
+                            Reduces grass, particles, and park shadow cost on slower devices.
+                        </div>
+                    </div>
+
+                    <button id="StartPerformanceSaverToggle" class="start-settings-pill">
+                        OFF
+                    </button>
+                </div>
+
+                
+
+                <div class="start-settings-row">
+                    <div>
                         <div class="start-settings-label">Global audio</div>
                         <div class="start-settings-subtitle">Enable or disable all sounds.</div>
                     </div>
@@ -270,7 +285,7 @@
 
 
                         
-                    <button  id="ButtonCatMove">Toggle Cat Walk</button>
+                   
                     <button hidden  id="ButtonDogMove">Toggle Dog Walk</button>
                     <button hidden  id="ButtonLightDir">Show Light Direction</button>
                     <button id="ButtonCollision">Show Colliders</button>
@@ -2589,10 +2604,8 @@ void main()
 <script type="text/javascript" src="home_scene.js"></script>
 <script type="text/javascript" src="park_scene.js"></script>
 
-
-<!-- <script type="text/javascript" src="animated_dog.js"></script> -->
 <script type="text/javascript" src="shaders.js"></script>
-<script type="text/javascript" src="main_teapot.js"></script>
+<script type="text/javascript" src="main.js"></script>
 
 
 

@@ -95,27 +95,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     }
 
 
-   
-    
-    
-    var catZ = catBasePos[2];
-    var catFacingAngle = 0.0;
 
-    if (moveCat) {
-        catWalkTime += catWalkSpeed;
-        catZ = catBasePos[2] + Math.sin(catWalkTime) * catWalkRange;
-
-        var direction = Math.cos(catWalkTime);
-
-        if (direction < 0.0) {
-            catFacingAngle = 180.0;
-        } else {
-            catFacingAngle = 0.0;
-        }
-    }
-
-
-   initDogPositionIfNeeded();
+    initDogPositionIfNeeded();
 
     var dogX = dogCurrentX;
     var dogZ = dogCurrentZ;
@@ -213,12 +194,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     );
 
   
-    //matrici cat
-    var modelMatrix3 = mat4();
-    modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
-    modelMatrix3 = mult(modelMatrix3, rotate(catFacingAngle, [0, 1, 0]));
-    modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
-    modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5));
+   
 
     //matrici dog
     var modelMatrixDog = mat4();
@@ -298,36 +274,36 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     // ===== ROOM BOX =====
 
-    // pavimento
+    // floor
     var modelMatrixFloor = mat4();
     modelMatrixFloor = mult(modelMatrixFloor, translate(0.0, -2.5, 0.0));
     modelMatrixFloor = mult(modelMatrixFloor, scalem(14.0, 0.1, 14.0));
 
-    // parete dietro
+    // back wall
     var modelMatrixBackWall = mat4();
     modelMatrixBackWall = mult(modelMatrixBackWall, translate(0.0, -0.5, -7.0));
     modelMatrixBackWall = mult(modelMatrixBackWall, scalem(14.0, 4.0, 0.15));
 
-    // blocker per la parete dietro
+    // blocker for the back wall
     var modelMatrixBackWallBlocker = mat4();
     modelMatrixBackWallBlocker = mult(modelMatrixBackWallBlocker, translate(0.0, -0.5, -7.08));
     modelMatrixBackWallBlocker = mult(modelMatrixBackWallBlocker, scalem(14.6, 4.2, 0.15));
 
-    // parete sinistra
+    // left wall
     var modelMatrixLeftWall = mat4();
     modelMatrixLeftWall = mult(modelMatrixLeftWall, translate(-7.0, -0.5, 0.0));
     modelMatrixLeftWall = mult(modelMatrixLeftWall, scalem(0.15, 4.0, 14.4));
 
-    //blocker per la parete sinistra
+    //blockerfor the left wall
     var modelMatrixLeftWallBlocker = mat4();
     modelMatrixLeftWallBlocker = mult(modelMatrixLeftWallBlocker, translate(-7.08, -0.5, 0.0));
     modelMatrixLeftWallBlocker = mult(modelMatrixLeftWallBlocker, scalem(0.15, 4.2, 14.6));
 
-    // parete destra
+    // right wall
     var modelMatrixRightWall = mat4();
     modelMatrixRightWall = mult(modelMatrixRightWall, translate(6.75, -0.5, 0.0));
     modelMatrixRightWall = mult(modelMatrixRightWall, scalem(0.5, 4.0, 14.4));
-    // blocker per la parete destra
+    // blocker for the right wall
     var modelMatrixRightWallBlocker = mat4();
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(6.8, -0.5, 0.0));
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.5, 4.2, 14.6));
@@ -547,7 +523,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         drawShadowObject(bowlBuffers,modelMatrixBowl);
 
-        if(okCat) drawShadowObject(catBuffers, modelMatrix3);
+        
         //drawShadowObject(dogBuffers, modelMatrixDog);
 
 
@@ -759,11 +735,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         projectionMatrix
     );
 
-    if (okCat) drawObject(catBuffers, catTexture, modelMatrix3, viewMatrix,
-         projectionMatrix, true, false,false,true);
 
-
-    //prima night sun hale era quiii  !!!!!!!!!!!!
 
     drawSkinnedDog(viewMatrix, projectionMatrix);
 

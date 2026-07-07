@@ -1,3 +1,29 @@
+function applyPerformanceSaverSettings() {
+    if (typeof maxFallingLeaves !== "undefined") {
+        maxFallingLeaves = startPerformanceSaverEnabled ? 8 : 18;
+    }
+
+    if (typeof maxFireflies !== "undefined") {
+        maxFireflies = startPerformanceSaverEnabled ? 8 : 22;
+
+        if (typeof firefliesInitialized !== "undefined") {
+            firefliesInitialized = false;
+        }
+
+        if (typeof fireflies !== "undefined") {
+            fireflies = [];
+        }
+    }
+
+    if (
+        typeof createParkGrassPatchInstances === "function" &&
+        typeof grassBlockBuffers !== "undefined" &&
+        grassBlockBuffers
+    ) {
+        createParkGrassPatchInstances();
+    }
+}
+
 function openStartSettingsPanel() {
     var panel = document.getElementById("StartSettingsPanel");
 
@@ -32,6 +58,17 @@ function toggleStartCameraHelp() {
 function updateStartSettingsPanel() {
     var homeButton = document.getElementById("StartSceneHomeButton");
     var parkButton = document.getElementById("StartSceneParkButton");
+
+    var performanceButton = document.getElementById("StartPerformanceSaverToggle");
+
+    if (performanceButton) {
+        performanceButton.textContent = startPerformanceSaverEnabled ? "ON" : "OFF";
+
+        performanceButton.classList.toggle(
+            "active",
+            startPerformanceSaverEnabled
+        );
+    }
 
     if (homeButton) {
         homeButton.classList.toggle(
@@ -551,7 +588,11 @@ function finishInitialLoadingAfterProgress() {
     var startScreen =
         document.getElementById("startScreen");
 
-    // 1. Tolgo SEMPRE il loading
+    /*
+        Ora la start screen è già stata usata prima del loading.
+        Quindi dopo il loading entro direttamente nel gioco.
+    */
+
     if (loadingScreen) {
         loadingScreen.classList.add("hidden");
 
@@ -560,21 +601,11 @@ function finishInitialLoadingAfterProgress() {
         }, 500);
     }
 
-    // 2. Poi decido se mostrare la schermata start oppure no
-    if (ENABLE_START_SCREEN) {
-        document.body.classList.add("game-not-started");
+    document.body.classList.remove("game-not-started");
 
-        if (startScreen) {
-            startScreen.style.display = "flex";
-            startScreen.classList.remove("hidden");
-        }
-    } else {
-        document.body.classList.remove("game-not-started");
-
-        if (startScreen) {
-            startScreen.classList.add("hidden");
-            startScreen.style.display = "none";
-        }
+    if (startScreen) {
+        startScreen.classList.add("hidden");
+        startScreen.style.display = "none";
     }
 }
 
