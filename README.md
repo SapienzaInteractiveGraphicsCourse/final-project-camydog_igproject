@@ -122,7 +122,7 @@ From **FlatIcon**
 
 nintendogs_icon: Google Images
 
-shiba_icon: https://it.pinterest.com/pin/56295064084237515/
+shiba_icon (https://it.pinterest.com/pin/56295064084237515/)
 
 settings : https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510
 

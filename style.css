@@ -2645,7 +2645,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     width: min(760px, 78vw) !important;
     max-height: calc(100vh - 70px) !important;
 
-    padding: 28px 44px 24px 44px !important;
+    padding: 36px 42px 28px !important;
 
     border-radius: 26px !important;
 }
@@ -3418,7 +3418,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
 }
 
 .start-scene-button {
-    height: 46px !important;
+    height: 42px !important;
 
     border-radius: 16px !important;
     border: 1.5px solid rgba(255, 255, 255, 0.68) !important;
@@ -3436,4 +3436,133 @@ body.ui-panel-hidden .toggle-side-panel-button {
     background: rgba(235, 76, 156, 0.84) !important;
     color: white !important;
     box-shadow: 0 10px 22px rgba(235, 76, 156, 0.22);
+}
+
+/* =========================================================
+   FINAL START SCREEN COMPACT OVERRIDE
+   Keep this at the very end of the CSS file
+   ========================================================= */
+
+#startScreen {
+    padding: 10px 0 !important;
+    overflow: hidden !important;
+}
+
+.start-card {
+    width: min(720px, 86vw) !important;
+    max-height: calc(100vh - 22px) !important;
+
+    padding: 14px 38px 10px 38px !important;
+
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+#StartDogLogo {
+    width: 70px !important;
+    margin-bottom: 4px !important;
+}
+
+.start-card h1 {
+    font-size: 32px !important;
+    line-height: 1.05 !important;
+    margin-bottom: 8px !important;
+}
+
+.inspiration-badge {
+    margin-bottom: 10px !important;
+    transform: scale(0.92);
+    transform-origin: center;
+}
+
+.start-description {
+    max-width: 620px !important;
+
+    font-size: 16px !important;
+    line-height: 1.32 !important;
+
+    margin-bottom: 12px !important;
+}
+
+.start-control-stack {
+    width: min(520px, 80vw) !important;
+    margin-top: 10px !important;
+}
+
+#ButtonStartGame {
+    height: 50px !important;
+
+    font-size: 22px !important;
+    border-radius: 18px !important;
+}
+
+.start-secondary-row {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+
+    grid-template-columns: 1fr 72px !important;
+    gap: 14px !important;
+}
+
+.pet-name-box {
+    height: 52px !important;
+    border-radius: 18px !important;
+    padding: 0 14px !important;
+}
+
+.pet-name-box label {
+    font-size: 17px !important;
+}
+
+#PetNameInput {
+    height: 38px !important;
+    font-size: 18px !important;
+    border-radius: 14px !important;
+}
+
+.start-settings-icon-button {
+    width: 72px !important;
+    height: 52px !important;
+    border-radius: 18px !important;
+}
+
+.start-settings-icon-button img {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+.recommended-setup {
+    margin-top: 10px !important;
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+}
+
+.setup-title {
+    margin-bottom: 6px !important;
+    font-size: 12px !important;
+}
+
+.setup-tags {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+}
+
+.setup-tags span {
+    padding: 5px 9px !important;
+    font-size: 11px !important;
+}
+
+.recommended-setup p {
+    font-size: 11px !important;
+    line-height: 1.22 !important;
+}
+
+.student-credit {
+    position: static !important;
+
+    margin-top: 7px !important;
+    padding-top: 6px !important;
+
+    font-size: 10px !important;
+    line-height: 1.15 !important;
 }
