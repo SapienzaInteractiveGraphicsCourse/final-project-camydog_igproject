@@ -1169,7 +1169,7 @@ void main(){
         shadow = computePointShadow(fWorldPos,fWorldNormal);
     }
     else {
-        // QUI lasci la tua shadow map vecchia pari pari
+        //old shadow map code
         if (receiveShadow && 
             projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
             projCoords.y >= 0.0 && projCoords.y <= 1.0 &&

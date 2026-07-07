@@ -3805,12 +3805,7 @@ function getBallModelMatrix() {
             modelMatrixBall,
             scalem(ballRadius, ballRadius, ballRadius)
         );
-            
-
-        /* modelMatrixBall = mult(
-            modelMatrixBall,
-            scalem(ballRadius, ballRadius, ballRadius)
-        ); */
+        
     }
 
     return modelMatrixBall;

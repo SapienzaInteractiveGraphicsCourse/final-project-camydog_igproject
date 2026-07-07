@@ -1106,8 +1106,7 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
 ////////////////////////////////////////////////
 function clearOldShadowMaps() {
     /*
-        Bianco = profondità lontana = nessun oggetto davanti alla luce.
-        Quindi è come dire: "non c'è nessuna ombra vecchia".
+        white -> depth far = no shadow
     */
 
     var oldViewport = gl.getParameter(gl.VIEWPORT);
@@ -1124,7 +1123,7 @@ function clearOldShadowMaps() {
         }
     }
 
-    // ===== clear old directional shadow map, se la usi ancora =====
+    // ===== clear old directional shadow map =====
     if (shadowFramebuffer) {
         var directionalShadowSize = POINT_SHADOW_SIZE; 
 
@@ -1133,10 +1132,10 @@ function clearOldShadowMaps() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
-    // torna al framebuffer normale
+    // back to normal framebuffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    // ripristina viewport canvas
+    // reset viewport canvas
     gl.viewport(
         oldViewport[0],
         oldViewport[1],
@@ -1144,7 +1143,7 @@ function clearOldShadowMaps() {
         oldViewport[3]
     );
 
-    // ripristina il clear color della scena normale
+    // reset clear color
     gl.clearColor(0.7, 0.9, 0.7, 1.0);
 }
 ////////////////////////////////////////////////
@@ -1251,7 +1250,7 @@ function createSphere(radius, latBands, longBands) {
             var first = lat * (longBands + 1) + lon;
             var second = first + longBands + 1;
 
-            // triangolo 1
+            // first triangle
             spherePoints.push(points[first]);
             sphereNormals.push(normals[first]);
             sphereTexCoords.push(texCoords[first]);
@@ -1264,7 +1263,7 @@ function createSphere(radius, latBands, longBands) {
             sphereNormals.push(normals[first + 1]);
             sphereTexCoords.push(texCoords[first + 1]);
 
-            // triangolo 2
+            // second triangle
             spherePoints.push(points[second]);
             sphereNormals.push(normals[second]);
             sphereTexCoords.push(texCoords[second]);
@@ -1314,18 +1313,18 @@ function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed
             var y = cosTheta;
             var z = sinPhi * sinTheta;
 
-            // piccola irregolarità sulla superficie
+            // small irregularity on the surface to make tehm look real
             var noise = pseudoRandom(lat * 31.0 + lon * 17.0);
             var bump = 0.88 + noise * 0.24;
 
-            // forma più da croccantino: ovale, non sfera perfetta
+            // more kibble-like shape: oval, not a perfect sphere
             var px = radius * x * 1.25 * bump;
             var py = radius * y * 0.75 * bump;
             var pz = radius * z * 1.05 * bump;
 
             points.push(vec4(px, py, pz, 1.0));
 
-            // normale approssimata
+            // approximate normal
             normals.push(vec4(x, y, z, 0.0));
 
             texCoords.push(vec2(lon / longBands, lat / latBands));
@@ -1341,7 +1340,7 @@ function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed
             var first = lat * (longBands + 1) + lon;
             var second = first + longBands + 1;
 
-            // triangolo 1
+            // first triangle
             kibblePoints.push(points[first]);
             kibbleNormals.push(normals[first]);
             kibbleTexCoords.push(texCoords[first]);
@@ -1354,7 +1353,7 @@ function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed
             kibbleNormals.push(normals[first + 1]);
             kibbleTexCoords.push(texCoords[first + 1]);
 
-            // triangolo 2
+            // second triangle
             kibblePoints.push(points[second]);
             kibbleNormals.push(normals[second]);
             kibbleTexCoords.push(texCoords[second]);

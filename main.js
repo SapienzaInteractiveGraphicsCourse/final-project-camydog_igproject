@@ -3709,9 +3709,9 @@ function drawShadowObject(obj, modelMatrix) {
 }
 
 function clampTeapotToTable() {
-    // Altezza minima consentita per la teapot.
-    // Se scende sotto questo valore, la riportiamo sopra il tavolo.
-    var minY = -2.0+0.6; // altezza del tavolo + metà dell'altezza della teapot
+    //if teapot goes under the table we set it back to the table height
+    // altezza del tavolo + metà dell'altezza della teapot
+    var minY = -2.0+0.6; 
 
     if (objPos[1] < minY) {
         objPos[1] = minY;
@@ -3818,10 +3818,9 @@ function normalizeAngleDegrees(angle) {
 }
 
 function lerpAngleDegrees(currentAngle, targetAngle, amount) {
-    /*
-        Interpolazione tra angoli senza fare il giro lungo.
-        Esempio: da 350° a 10° passa da 0°, non da 180°.
-    */
+
+    // I try to interpolate the angles in order to avoid the long path
+    // ex instead of 350° to 10° I want to go through 0° and not through 180°
 
     var diff = ((targetAngle - currentAngle + 540.0) % 360.0) - 180.0;
 
@@ -3939,10 +3938,6 @@ function updateDogFocusAutoAngle() {
         desiredAngle,
         0.05
     );
-
-    /* if (cameraAngleSlider) {
-        cameraAngleSlider.value = cameraAngle.toFixed(0);
-    } */
 }
 
 ///////////////
@@ -4011,8 +4006,8 @@ function focusDogCamera() {
 
     if (currentScene === "home") {
         /*
-            Static = visto da davanti.
-            Non faccio auto-angolazione qui.
+            static view, seen from the front
+            no auto- angle here 
         */
         cameraAngle = getDogFrontCameraAngle();
         cameraHeight = 0.75;
@@ -4153,7 +4148,7 @@ function getBillboardHaloMatrix(scale, viewMatrix) {
     dz /= len;
 
     // small offset towards the camera
-    var haloOffset = 0.05;   // try 0.10, 0.15, 0.18
+    var haloOffset = 0.05;   
 
     var haloX = lightPosition[0] + dx * haloOffset;
     var haloY = lightPosition[1] + dy * haloOffset;
@@ -4197,7 +4192,7 @@ function drawSunHalo(
 ) {
     gl.useProgram(haloProgram);
 
-    // Posizioni del quad
+    // quad position
     gl.bindBuffer(gl.ARRAY_BUFFER, haloBuffers.vBuffer);
 
     var positionLoc =
@@ -4231,7 +4226,7 @@ function drawSunHalo(
 
     gl.enableVertexAttribArray(texCoordLoc);
 
-    // Matrici
+    // matrices
     gl.uniformMatrix4fv(
         gl.getUniformLocation(haloProgram, "viewMatrix"),
         false,
@@ -4247,7 +4242,7 @@ function drawSunHalo(
         flatten(projectionMatrix)
     );
 
-    // Posizione del sole
+    // sun position
     gl.uniform3f(
         gl.getUniformLocation(
             haloProgram,
@@ -4258,7 +4253,7 @@ function drawSunHalo(
         lightPosition[2]
     );
 
-    // Dimensioni del quad
+    // quad dim
     gl.uniform2f(
         gl.getUniformLocation(haloProgram, "haloSize"),
         width,

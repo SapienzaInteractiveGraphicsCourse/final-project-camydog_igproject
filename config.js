@@ -81,9 +81,6 @@ var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Gree
 var modelPath_leaf="./Objects/leaf_1_modified.obj";
 
 
-//path folder rigged dog
-//var pathFolderRiggedDog = "./Objects/dog_separated_model/";
-
 // images & textures paths
 var path_img_teapot="./Textures/teapot_tex_1.png";
 var path_img_table="./Textures/table_tex_512.jpg";
