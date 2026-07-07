@@ -656,3 +656,47 @@ function updateSkinnedDogFetchBall_old(deltaTime) {
         }
     }
 }
+
+
+//////// cat removed
+/* var catZ = catBasePos[2];
+    var catFacingAngle = 0.0;
+
+    if (moveCat) {
+        catWalkTime += catWalkSpeed;
+        catZ = catBasePos[2] + Math.sin(catWalkTime) * catWalkRange;
+
+        var direction = Math.cos(catWalkTime);
+
+        if (direction < 0.0) {
+            catFacingAngle = 180.0;
+        } else {
+            catFacingAngle = 0.0;
+        }
+    } */
+
+
+/*  //matrici cat
+    var modelMatrix3 = mat4();
+    modelMatrix3 = mult(modelMatrix3, translate(catBasePos[0], catBasePos[1], catZ));
+    modelMatrix3 = mult(modelMatrix3, rotate(catFacingAngle, [0, 1, 0]));
+    modelMatrix3 = mult(modelMatrix3, rotate(-90, [1, 0, 0]));
+    modelMatrix3 = mult(modelMatrix3, scalem(0.5, 0.5, 0.5)); */
+
+
+    //if(okCat) drawShadowObject(catBuffers, modelMatrix3);
+
+
+/* await loadOBJ(modelPath_cat);
+    console.log("OBJ Cat loaded");
+
+    var catPoints = pointsArray.slice();
+    var catNormals = normalsArray.slice();
+    var catTex = texCoordsArray.slice();
+    catBuffers = createBuffers(catPoints, catNormals, catTex); */
+
+
+       /* document.getElementById("ButtonCatMove").onclick = function () {
+        moveCat = !moveCat;
+        console.log("Cat walk:", moveCat);
+    }; */
