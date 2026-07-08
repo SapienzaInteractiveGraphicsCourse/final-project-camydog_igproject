@@ -111,37 +111,24 @@ function updateStartSettingsPanel() {
     }
 }
 
-
-function warmUpBallThrowSound() {
-    if (!ballThrowSound) {
-        return;
+function resetDogHeartEffect() {
+    if (typeof showDogHeart !== "undefined") {
+        showDogHeart = false;
     }
 
-    var previousVolume = ballThrowSound.volume;
+    if (typeof dogHeartTimer !== "undefined") {
+        dogHeartTimer = 0.0;
+    }
 
-    /*
-        Lo faccio partire muto e lo stoppo subito.
-        Serve a far caricare/decodificare il file audio prima del lancio vero.
-    */
-    ballThrowSound.volume = 0.0;
-    ballThrowSound.currentTime = 0.0;
+    if (typeof hideDogHeartPending !== "undefined") {
+        hideDogHeartPending = false;
+    }
 
-    var playPromise = ballThrowSound.play();
-
-    if (playPromise) {
-        playPromise.then(function () {
-            ballThrowSound.pause();
-            ballThrowSound.currentTime = 0.0;
-            ballThrowSound.volume = previousVolume;
-        }).catch(function () {
-            ballThrowSound.volume = previousVolume;
-        });
-    } else {
-        ballThrowSound.pause();
-        ballThrowSound.currentTime = 0.0;
-        ballThrowSound.volume = previousVolume;
+    if (typeof hideDogHeartTimer !== "undefined") {
+        hideDogHeartTimer = 0.0;
     }
 }
+
 
 function ensureLightMatricesExist() {
     var lightPos = vec3(

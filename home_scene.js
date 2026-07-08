@@ -9,13 +9,21 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     resizeCanvasToDisplaySize();
 
+   
+            
     if (showDogHeart) {
-            dogHeartTimer += deltaTime;
+        var heartDeltaTime =
+            typeof deltaTime === "number" && isFinite(deltaTime)
+                ? deltaTime
+                : 1.0 / 60.0;
 
-            if (dogHeartTimer >= dogHeartDuration) {
-                showDogHeart = false;
-            }
-    } 
+        dogHeartTimer += heartDeltaTime;
+
+        if (dogHeartTimer >= dogHeartDuration) {
+            resetDogHeartEffect();
+        }
+    }
+
     if (hideDogHeartPending) {
         hideDogHeartTimer += deltaTime;
 

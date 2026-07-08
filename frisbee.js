@@ -179,60 +179,150 @@ function getFrisbeeModelMatrix() {
         return modelMatrixFrisbee;
     }
 
-
+ 
     if (dogHasFrisbee) {
+
+        function clamp01(x) {
+            return Math.max(0.0, Math.min(1.0, x));
+        }
+
+        function lerpValue(a, b, t) {
+            return a + (b - a) * t;
+        }
+
         var rad = dogCurrentAngle * Math.PI / 180.0;
 
         var forwardX = Math.sin(rad);
         var forwardZ = Math.cos(rad);
 
-        // un po' più avanti rispetto al muso
-        var mouthForwardOffset = 1.5;
+        /*
+            0 = posizione pickup
+            1 = posizione finale in bocca
+        */
+        var carryBlend = 1.0;
 
-        // un po' più in alto
-        var mouthY = -0.90;
+        if (
+            typeof dogFetchObjectType !== "undefined" &&
+            dogFetchObjectType === "frisbee" &&
+            typeof dogFetchLoweringActive !== "undefined" &&
+            dogFetchLoweringActive &&
+            typeof frisbeePickupHoldTimer !== "undefined" &&
+            typeof frisbeePickupHoldDuration !== "undefined"
+        ) {
+            /* var pickupStayTime = 0.60;
 
-        // leggermente spostato a lato, così non taglia il muso in mezzo
-        var sideOffset = 0.12;
+            var riseDuration =1.25;
+
+            carryBlend = clamp01(
+                (frisbeePickupHoldTimer - pickupStayTime) / riseDuration
+            );
+
+            // sale più lentamente all'inizio
+            carryBlend = Math.pow(carryBlend, 1.40);
+
+            // smooth finale
+            carryBlend = carryBlend * carryBlend * (3.0 - 2.0 * carryBlend);
+
+            carryBlend = Math.min(carryBlend, 0.85); */
+
+            /*
+                Sincronizzo il frisbee con la testa del cane.
+                dogFetchLowerAmount alto  -> testa bassa  -> frisbee basso
+                dogFetchLowerAmount basso -> testa alta   -> frisbee in bocca
+            */
+            var headLower = 0.0;
+
+            if (typeof dogFetchLowerAmount !== "undefined") {
+                headLower = clamp01(dogFetchLowerAmount / 0.50);
+            }
+
+            // smooth uguale per evitare scatti
+            headLower = headLower * headLower * (3.0 - 2.0 * headLower);
+
+            /*
+                carryBlend:
+                0 = posizione pickup bassa
+                1 = posizione finale in bocca
+            */
+            var carryBlend = 1.0 - headLower;
+        }
+
+        var mouthForwardOffset = lerpValue(
+            frisbeePickupForwardOffset,
+            frisbeeMouthForwardOffset,
+            carryBlend
+        );
+
+        var mouthY = lerpValue(
+            frisbeePickupY,
+            frisbeeMouthY,
+            carryBlend
+        ); 
+
+       
+        var sideOffset = lerpValue(
+            frisbeePickupSideOffset,
+            frisbeeMouthSideOffset,
+            carryBlend
+        );
+
+        var mouthScale = lerpValue(
+            frisbeePickupScale,
+            frisbeeMouthScale,
+            carryBlend
+        );
+
+        var mouthTiltZ = lerpValue(
+            frisbeePickupTiltZ,
+            frisbeeMouthTiltZ,
+            carryBlend
+        );
+
         var sideX = Math.cos(rad) * sideOffset;
         var sideZ = -Math.sin(rad) * sideOffset;
 
-        var mouthX = dogFetchX + forwardX * mouthForwardOffset + sideX;
-        var mouthZ = dogFetchZ + forwardZ * mouthForwardOffset + sideZ;
+
+        var mouthX =
+            dogFetchX +
+            forwardX * mouthForwardOffset +
+            sideX;
+
+        var mouthZ =
+            dogFetchZ +
+            forwardZ * mouthForwardOffset +
+            sideZ;
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
             translate(mouthX, mouthY, mouthZ)
         );
 
-        // orientamento del cane
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
             rotate(dogCurrentAngle, [0, 1, 0])
         );
 
-        // orienta il frisbee in modo più naturale in bocca
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
             rotate(90, [0, 1, 0])
         );
 
-        // piccola inclinazione, così non resta perfettamente "piatto"
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            rotate(18, [0, 0, 1])
+            rotate(mouthTiltZ, [0, 0, 1])
         );
 
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
-            scalem(frisbeeScale, frisbeeScale, frisbeeScale)
+            scalem(mouthScale, mouthScale, mouthScale)
         );
 
         return modelMatrixFrisbee;
     }
+        
 
     
-    // 1) Frisbee "in mano", appena prima del lancio
+    // 1) Frisbee in the hand, ready to be thrown
     if (frisbeeAttachedToHand) {
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
@@ -252,7 +342,7 @@ function getFrisbeeModelMatrix() {
         return modelMatrixFrisbee;
     }
 
-    // 2) Frisbee fermo dopo essere atterrato
+    // 2) frisbee has landed on the ground after being thrown
     if (!frisbeeFlying && frisbeeLanded) {
         modelMatrixFrisbee = mult(
             modelMatrixFrisbee,
@@ -307,7 +397,7 @@ function getFrisbeeModelMatrix() {
     var x = frisbeeStartPos[0] + (frisbeeEndPos[0] - frisbeeStartPos[0]) * s;
     var z = frisbeeStartPos[2] + (frisbeeEndPos[2] - frisbeeStartPos[2]) * s;
 
-    // arco del lancio
+    // trajectory arc
     var arcHeight = Math.sin(Math.PI * t) * 2.0;
     var y = frisbeeStartPos[1] + (frisbeeEndPos[1] - frisbeeStartPos[1]) * s + arcHeight;
 
@@ -320,13 +410,13 @@ function getFrisbeeModelMatrix() {
         translate(x, y, z)
     );
 
-    // rotazione veloce tipo disco
+    // quick spin while flying
     modelMatrixFrisbee = mult(
         modelMatrixFrisbee,
         rotate(frisbeeSpin, [0, 1, 0])
     );
 
-    // lo tengo orizzontale
+    // horizonthal orientation
     modelMatrixFrisbee = mult(
         modelMatrixFrisbee,
         rotate(90, [0, 1, 0])
@@ -731,16 +821,17 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     */
     var dx = frisbeeX - dogX;
     var dz = frisbeeZ - dogZ;
+
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    var bodyStopOffset = 0.70;
+    var frisbeeBodyStopOffset = 1.25;
 
     var directX = frisbeeX;
     var directZ = frisbeeZ;
 
     if (dist > 0.001) {
-        directX = frisbeeX - (dx / dist) * bodyStopOffset;
-        directZ = frisbeeZ - (dz / dist) * bodyStopOffset;
+        directX = frisbeeX - (dx / dist) * frisbeeBodyStopOffset;
+        directZ = frisbeeZ - (dz / dist) * frisbeeBodyStopOffset;
     }
 
     /*

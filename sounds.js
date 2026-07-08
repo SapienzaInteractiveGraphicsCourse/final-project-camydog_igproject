@@ -222,6 +222,37 @@ function playBallThrowSound() {
         console.log("Ball throw sound blocked:", error);
     });
 }
+
+function warmUpBallThrowSound() {
+    if (!ballThrowSound) {
+        return;
+    }
+
+    var previousVolume = ballThrowSound.volume;
+
+    /*
+        Lo faccio partire muto e lo stoppo subito.
+        Serve a far caricare/decodificare il file audio prima del lancio vero.
+    */
+    ballThrowSound.volume = 0.0;
+    ballThrowSound.currentTime = 0.0;
+
+    var playPromise = ballThrowSound.play();
+
+    if (playPromise) {
+        playPromise.then(function () {
+            ballThrowSound.pause();
+            ballThrowSound.currentTime = 0.0;
+            ballThrowSound.volume = previousVolume;
+        }).catch(function () {
+            ballThrowSound.volume = previousVolume;
+        });
+    } else {
+        ballThrowSound.pause();
+        ballThrowSound.currentTime = 0.0;
+        ballThrowSound.volume = previousVolume;
+    }
+}
 ///////////////////////////////////////////////////////
 function updateWindSound(windValue) {
     var windSound = document.getElementById("windSound");
@@ -285,7 +316,7 @@ function playDogBarkSound() {
         return;
     }
 
-    // Permette di riprodurlo da capo a ogni nuova chiamata
+    // reproduce from the beginning every time
     barkSound.pause();
     barkSound.currentTime = 0;
     barkSound.volume = 0.8;

@@ -9,7 +9,7 @@ var loadingProgressTarget = 0;
 var loadingProgressAnimationId = null;
 
 //current Scene either "home" or "park"
-var currentScene = "home"; 
+var currentScene = "park"; 
 var sceneTransitionActive = false;
 var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 var startSceneChoice = "home";
@@ -430,7 +430,7 @@ var dogIsWalking =
 //heart variables
 var showDogHeart = false;
 var dogHeartTimer = 0.0;
-var dogHeartDuration = 2.0;
+var dogHeartDuration = 4.0;
 var hideDogHeartPending = false;
 var hideDogHeartTimer = 0.0;
 var hideDogHeartDelay = 1.5; 
@@ -549,6 +549,32 @@ var BENCH_DOG_MARGIN = 1.2;
 
 
 /**********FRISBEE */
+
+var frisbeePickupHoldTimer = 0.0;
+var frisbeePickupHoldDuration = 1.2;
+
+var frisbeePickupSlowMotion =1.0;
+
+
+ var frisbeeMouthForwardOffset = 1.40;
+var frisbeeMouthY = -0.95;
+var frisbeeMouthSideOffset = 0.02;
+var frisbeeMouthScale = 0.30;
+var frisbeeMouthTiltZ = 30.0;
+
+
+
+
+var frisbeePickupForwardOffset = 1.40;
+var frisbeePickupY = -2.5;
+var frisbeePickupSideOffset = 0.05;
+var frisbeePickupScale = 0.30;
+var frisbeePickupTiltZ = 28.9;
+
+
+
+
+var frisbeePickupBlend = 0.0;
 var frisbeeFlying = false;
 var frisbeeLanded = false;
 var frisbeePreparingThrow = false;
@@ -633,6 +659,8 @@ var dogReturningWithFrisbee = false;
 var frisbeeReturnTarget = null;
 
 var frisbeeReturnedAndWaiting = false;
+
+
 
 //****************************************************** */
 //             Global variables for grass                */

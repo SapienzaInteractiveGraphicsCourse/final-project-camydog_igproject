@@ -1491,6 +1491,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                 dogCrouchActive = false;
                 dogCrouchAmount = 0.0;
 
+                frisbeePickupHoldTimer = 0.0;
+
                 frisbeeReturnedAndWaiting = false;
 
                 frisbeeThrowMode = true;
@@ -1547,6 +1549,8 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
                     resetSkinnedDogFetchState();
                     resetSkinnedDogBallInteraction();
+
+                    resetDogHeartEffect();
 
                     dogHasBall = false;
                     skinnedDogAlreadyTargeted = false;
@@ -1605,6 +1609,7 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
                     
 
                     resetDogForHomeScene();
+                    resetDogHeartEffect();
 
                     updateSceneButtonsVisibility();
 

@@ -990,7 +990,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     localOverrides[15] = rotationXMat4Raw(Math.sin(tonguePhase + 0.50) * 16.0);
 
 
-    //Walk to reach ball, based on distance to ball
+    /* //Walk to reach ball, based on distance to ball
     if (dogFetchLowerAmount > 0.01  && !dogFetchBallMode) {
         var lower = dogFetchLowerAmount;
 
@@ -1000,7 +1000,58 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         localOverrides[27] = rotationXMat4Raw(10.0 * lower); // Wolf_Neck_TopSHJnt
 
 
-    }
+    } */
+
+    // Walk to reach ball/frisbee, based on distance to target
+    if (dogFetchLowerAmount > 0.01 && !dogFetchBallMode) {
+        var lower = dogFetchLowerAmount;
+
+        if (dogFetchObjectType === "frisbee") {
+            /*
+                Frisbee pickup:
+                il disco è più piatto e basso, quindi il cane abbassa di più
+                collo e testa, ma senza fare la posa sdraiata della palla.
+            */
+
+            lower = Math.min(Math.max(lower, 0.0), 1.0);
+
+             var rawLower = Math.min(Math.max(lower, 0.0), 1.0);
+            var softLower = rawLower * rawLower * (3.0 - 2.0 * rawLower);
+
+            localOverrides[30] = rotationXMat4Raw(75.0 * softLower); // Neck 01
+            localOverrides[28] = rotationXMat4Raw(50.0 * softLower); // Neck 02
+            localOverrides[27] = rotationXMat4Raw(22.0 * softLower); // Neck top
+
+            var frontBend = softLower;
+
+            
+            // front left
+            localOverrides[4] = rotationXMat4Raw(-70.0 * frontBend); // shoulder
+            localOverrides[3] = rotationZMat4Raw(-60.0 * frontBend); // elbow
+            localOverrides[2] = rotationXMat4Raw(22.0 * frontBend);  // wrist / paw
+
+            // front right
+            localOverrides[11] = rotationXMat4Raw(-70.0 * frontBend); // shoulder
+            localOverrides[10] = rotationZMat4Raw(-60.0 * frontBend); // elbow
+            localOverrides[9]  = rotationXMat4Raw(22.0 * frontBend);  // wrist / paw
+
+            // zam localOverrides[27] = rotationXMat4Raw(14.0 * lower);
+
+           /*  // zampe anteriori appena piegate
+            localOverrides[4]  = rotationXMat4Raw(-8.0 * lower);
+            localOverrides[3]  = rotationXMat4Raw(14.0 * lower);
+
+            localOverrides[11] = rotationXMat4Raw(-8.0 * lower);
+            localOverrides[10] = rotationXMat4Raw(14.0 * lower); */
+            } else {
+            /*
+                Vecchio comportamento per la palla.
+            */
+            localOverrides[30] = rotationXMat4Raw(28.0 * lower);
+            localOverrides[28] = rotationXMat4Raw(18.0 * lower);
+            localOverrides[27] = rotationXMat4Raw(10.0 * lower);
+        }
+    } 
 
     /* Tail */
     var tailSpeed = 5.0;
@@ -1179,6 +1230,55 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         localOverrides[31] = rotationXMat4Raw(-5.0 * c);
 
     }
+
+
+
+    /*
+        Frisbee pickup front legs override.
+        This must stay AFTER the normal walk legs animation,
+        otherwise the walk block overwrites these bones.
+    */
+    if (
+        typeof dogFetchObjectType !== "undefined" &&
+        dogFetchObjectType === "frisbee" &&
+        dogFetchLowerAmount > 0.01 &&
+        !dogFetchBallMode
+    ) {
+        var rawLower = Math.min(Math.max(dogFetchLowerAmount, 0.0), 1.0);
+        var softLower = rawLower * rawLower * (3.0 - 2.0 * rawLower);
+
+        
+
+        /*
+            Clamp: evita che la posa diventi troppo estrema
+            quando dogFetchLowerAmount arriva alto.
+        */
+        /*
+            Amplifico la posa di pickup:
+            dogFetchLowerAmount resta magari basso, ma visivamente voglio
+            una posa più leggibile quando prende il frisbee.
+        */
+        var pickupPose = Math.min(softLower * 2.2, 0.4);
+
+        var frontBend = Math.min(pickupPose, 0.85);
+
+         localOverrides[4] = rotationXMat4Raw(150.0 * frontBend);
+        localOverrides[3] = rotationXMat4Raw(60.0 * frontBend);
+        //localOverrides[2] = rotationXMat4Raw(-20.0 * frontBend);
+
+        localOverrides[11] = rotationXMat4Raw(150.0 * frontBend);
+        
+        localOverrides[10] = rotationXMat4Raw(60.0 * frontBend);
+        //localOverrides[9]  = rotationXMat4Raw(-20.0 * frontBend); 
+        
+
+        var spineBend = Math.min(pickupPose, 0.5);
+
+        localOverrides[35] = rotationXMat4Raw(-50.0 * spineBend);
+        localOverrides[34] = rotationXMat4Raw(-50.0 * spineBend);
+        localOverrides[33] = rotationXMat4Raw(-50.0 * spineBend);
+    }
+       
     if (petDogMode) {
       
        
@@ -1418,8 +1518,20 @@ function getSkinnedDogModelMatrix() {
     }
 
     // Bob solo quando il cane sta andando verso la palla
-    if (dogFetchBallMode) {
+    /* if (dogFetchBallMode) {
         bodyBob = Math.abs(Math.sin(t * 6.0)) * 0.025;
+    } */
+    var dogModelIsWalking =
+        (
+            dogFetchBallMode ||
+            (typeof dogCallMode !== "undefined" && dogCallMode)
+        ) &&
+        dogCrouchAmount < 0.1 &&
+        !dogHasBall;
+
+    if (dogModelIsWalking) {
+        bodyBob =
+            Math.abs(Math.sin(t * 12.4)) * 0.01;
     }
 
     var angle = 90.0;
@@ -1462,6 +1574,9 @@ function getSkinnedDogModelMatrix() {
 
     var crouchBodyDown = 0.55 * dogCrouchAmount;
 
+    var frisbeePickupBodyDown = 0.0;
+
+
     var rearOffsetX = 0.0;
     var rearOffsetZ = 0.0;
 
@@ -1479,8 +1594,10 @@ function getSkinnedDogModelMatrix() {
     modelMatrix = mult(
         modelMatrix,
         translate(dogFetchX + rearOffsetX,
-             -2.48 + bodyBob + fireflyHop  + rearGroundLift - crouchBodyDown, 
-             dogFetchZ + rearOffsetZ)
+            -2.48 + bodyBob + fireflyHop  + rearGroundLift 
+            - crouchBodyDown
+            - frisbeePickupBodyDown, 
+            dogFetchZ + rearOffsetZ)
     );
     modelMatrix = mult(modelMatrix, rotate(dogCurrentAngle, [0, 1, 0]));
 

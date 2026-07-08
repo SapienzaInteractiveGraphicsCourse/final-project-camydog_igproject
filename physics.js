@@ -1004,71 +1004,6 @@ function clearKibbleParticles() {
 
 
 
-
-/* function drawKibbleParticles(viewMatrix, projectionMatrix) {
-    if (!kibbleVisible) return;
-    if (!kibbleObjects || kibbleObjects.length === 0) return;
-
-    for (var i = 0; i < kibbleParticles.length; i++) {
-        var kibble = kibbleParticles[i];
-
-
-        var body = kibble.body;
-
-        var modelMatrixKibble = mat4();
-
-        modelMatrixKibble = mult(
-            modelMatrixKibble,
-            translate(
-                body.position.x,
-                body.position.y - kibbleVisualYOffset,
-                body.position.z
-            )
-        );
-
-        modelMatrixKibble = mult(
-            modelMatrixKibble,
-            rotate(kibble.rotY, [0, 1, 0])
-        );
-
-        modelMatrixKibble = mult(
-            modelMatrixKibble,
-            rotate(kibble.rotX, [1, 0, 0])
-        );
-
-        modelMatrixKibble = mult(
-            modelMatrixKibble,
-            rotate(kibble.rotZ, [0, 0, 1])
-        );
-
-     
-        modelMatrixKibble = mult(
-            modelMatrixKibble,
-            scalem(
-                kibble.radius * kibbleVisualScale * kibble.scaleX,
-                kibble.radius * kibbleVisualScale * kibble.scaleY,
-                kibble.radius * kibbleVisualScale * kibble.scaleZ
-            )
-        );
-
-        var obj = kibbleObjects[kibble.meshIndex];
-
-        drawObject(
-            obj,
-            kibbleTexture,
-            modelMatrixKibble,
-            viewMatrix,
-            projectionMatrix,
-            true,
-            false,
-            false,
-            true
-        );
-    }
-}
- */
-
-
 function drawKibbleParticles(viewMatrix, projectionMatrix) {
     if (!kibbleVisible) return;
     if (!kibbleObjects || kibbleObjects.length === 0) return;
@@ -2600,27 +2535,7 @@ function startSkinnedDogFetchBall() {
     // target sicuro rispetto alle pareti
     safeTarget = clampDogTargetToRoom(safeTarget.x, safeTarget.z);
 
-    /* // il corpo non deve arrivare esattamente sulla palla
-    var dx = safeTarget.x - dogFetchX;
-    var dz = safeTarget.z - dogFetchZ;
-    var dist = Math.sqrt(dx * dx + dz * dz);
-
-    var bodyStopOffset = 1.10;
-
-    var bodyTargetX = safeTarget.x;
-    var bodyTargetZ = safeTarget.z;
-
-    if (dist > 0.001) {
-        bodyTargetX = safeTarget.x - (dx / dist) * bodyStopOffset;
-        bodyTargetZ = safeTarget.z - (dz / dist) * bodyStopOffset;
-    }
-
-    // riclampiamo anche il target del corpo
-    var clampedBodyTarget = clampDogTargetToRoom(bodyTargetX, bodyTargetZ); */
-        /*
-        Il corpo non deve arrivare esattamente sopra la palla.
-        Però il punto di stop non deve nemmeno finire dentro il tavolo.
-    */
+    
     var bodyStopOffset = 0.85;
 
     var clampedBodyTarget = getSafeDogBodyTargetForFetch(
@@ -2762,11 +2677,8 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
     if (dogFetchLoweringActive) {
 
-        if (dogFetchObjectType === "frisbee") {
-            /*
-                Per il frisbee il cane si abbassa poco,
-                non come quando prende la palla.
-            */
+        /* if (dogFetchObjectType === "frisbee") {
+           
             dogFetchLowerAmount += (0.28 - dogFetchLowerAmount) * 0.12;
 
             if (dogFetchLowerAmount > 0.22 && !dogHasFrisbee) {
@@ -2785,6 +2697,80 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
                 startSkinnedDogReturnFrisbeeToCamera();
             }
+        } */
+
+        if (dogFetchObjectType === "frisbee") {
+            var pickupDeltaTime =
+                typeof deltaTime === "number" && isFinite(deltaTime)
+                    ? Math.min(deltaTime, 0.05)
+                    : 1.0 / 60.0;
+
+            pickupDeltaTime *= frisbeePickupSlowMotion;
+            /*
+                Prima fase: il cane si abbassa verso il frisbee.
+                Non attacco subito il frisbee alla bocca.
+            */
+            var frisbeeLowerTarget = 0.50;
+
+            if(!dogHasFrisbee) {
+                dogFetchLowerAmount +=
+                    (frisbeeLowerTarget - dogFetchLowerAmount) * 0.035;
+            }
+            showDogMusicNote = false;
+            dogHappySoundPlayed = false;
+
+            /*
+                Solo quando è abbastanza basso, il frisbee va in bocca.
+            */
+            if (dogFetchLowerAmount > 0.38 && !dogHasFrisbee) {
+                dogHasFrisbee = true;
+                //frisbeePickupBlend = 1.0;
+                frisbeePickupHoldTimer = 0.0;
+
+                console.log("Dog picked up the frisbee!");
+            }
+
+            /*
+                Piccola pausa con il cane ancora abbassato.
+                Poi parte il ritorno.
+            */
+            if (dogHasFrisbee) {
+                frisbeePickupHoldTimer += pickupDeltaTime;
+
+                var recovery =
+                    Math.min(
+                        frisbeePickupHoldTimer / frisbeePickupHoldDuration,
+                        1.0
+                    );
+
+                frisbeePickupBlend = 1.0 - recovery;
+                /*
+                    Mentre aspetta, il cane rialza piano0
+                    );
+
+                /*
+                    Mentre aspetta, il cane rialza piano la testa.
+                    Parte da lower alto e torna verso 0.
+                */
+                var recoveryTarget =
+                    frisbeeLowerTarget * (1.0 - recovery);
+
+                dogFetchLowerAmount +=
+                    (recoveryTarget - dogFetchLowerAmount) * 0.18;
+
+
+                if (frisbeePickupHoldTimer >= frisbeePickupHoldDuration) {
+                    frisbeePickupBlend = 0.0;
+                    dogFetchLoweringActive = false;
+                    dogFetchLowerAmount = 0.0;
+
+                    frisbeePickupHoldTimer = 0.0;
+
+                    startSkinnedDogReturnFrisbeeToCamera();
+                }
+            }
+
+            return;
         }
 
         else {
@@ -2900,6 +2886,19 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
     if (dogFetchObjectType === "frisbee" && dogReturningWithFrisbee) {
         dogSpeedPerSecond = 2.7;
+    }
+
+    if (dogFetchObjectType === "ball" && dogLookAtBallX !== null) {
+        var distToRealBall = dist2D(
+            dogFetchX,
+            dogFetchZ,
+            dogLookAtBallX,
+            dogLookAtBallZ
+        );
+
+        if (distToRealBall < 2.0) {
+            dogSpeedPerSecond = 1.25;
+        }
     }
 
     var speed = dogSpeedPerSecond * safeDeltaTime;
@@ -3098,7 +3097,7 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
                     var distToFrisbee = Math.sqrt(fx * fx + fz * fz);
 
-                    var frisbeePickupDistance = 0.85;
+                    var frisbeePickupDistance =1.55;
 
                     if (distToFrisbee > frisbeePickupDistance) {
                         /*
@@ -3107,7 +3106,7 @@ function updateSkinnedDogFetchBall(deltaTime) {
                             Allora gli creo un nuovo target più vicino al disco.
                         */
 
-                        var closerStopOffset = 0.45;
+                        var closerStopOffset = 1.25;
 
                         var closerTargetX = dogLookAtBallX;
                         var closerTargetZ = dogLookAtBallZ;

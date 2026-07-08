@@ -1,3 +1,41 @@
+function drawObject(obj,
+     texture,
+      modelMatrix,
+       viewMatrix,
+        projectionMatrix,
+    useTexture = true,
+     isLightMarker=false,
+     twoSided = false, 
+     receiveShadow = true,
+     wallShadowMode=false,
+    isSunHalo = false,
+    globalAlpha = 1.0,
+  ) 
+
+//////////////// // il corpo non deve arrivare esattamente sulla palla
+    var dx = safeTarget.x - dogFetchX;
+    var dz = safeTarget.z - dogFetchZ;
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    var bodyStopOffset = 1.10;
+
+    var bodyTargetX = safeTarget.x;
+    var bodyTargetZ = safeTarget.z;
+
+    if (dist > 0.001) {
+        bodyTargetX = safeTarget.x - (dx / dist) * bodyStopOffset;
+        bodyTargetZ = safeTarget.z - (dz / dist) * bodyStopOffset;
+    }
+
+    // riclampiamo anche il target del corpo
+    var clampedBodyTarget = clampDogTargetToRoom(bodyTargetX, bodyTargetZ); */
+        /*
+        Il corpo non deve arrivare esattamente sopra la palla.
+        Però il punto di stop non deve nemmeno finire dentro il tavolo.
+    */
+
+
+///////////////////////////////////
 function getSkinnedDogBoneData_old() {
     var localOverrides = {};
 
