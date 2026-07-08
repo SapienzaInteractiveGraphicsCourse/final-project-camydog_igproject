@@ -1006,7 +1006,32 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     if (dogFetchLowerAmount > 0.01 && !dogFetchBallMode) {
         var lower = dogFetchLowerAmount;
 
-        if (dogFetchObjectType === "frisbee") {
+          if (
+                dogFetchObjectType === "bowlWater" ||
+                dogFetchObjectType === "bowlFood"
+            ) {
+                /*
+                    Abbassamento più delicato per bere/mangiare.
+                */
+                /*
+                    Stessa posa per acqua e croccantini.
+                    Solo collo/testa, niente zampe strane.
+                */
+                 var bowlLower = Math.min(lower, 0.68);
+
+                // collo/testa verso la ciotola
+                /* localOverrides[30] = rotationXMat4Raw(30.0 * bowlLower);
+                localOverrides[28] = rotationXMat4Raw(10.0 * bowlLower);
+                localOverrides[27] = rotationXMat4Raw(5.0 * bowlLower); */
+
+                
+                localOverrides[30] = rotationXMat4Raw(100.0 * bowlLower);
+                localOverrides[28] = rotationXMat4Raw(45.0 * bowlLower);
+                localOverrides[27] = rotationXMat4Raw(-20.0 * bowlLower);
+            }
+
+
+        else if (dogFetchObjectType === "frisbee") {
             /*
                 Frisbee pickup:
                 il disco è più piatto e basso, quindi il cane abbassa di più
@@ -1232,7 +1257,85 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     }
 
 
+    if (
+        dogFetchObjectType === "bowlWater" ||
+        dogFetchObjectType === "bowlFood"
+    ) {
+        var bowlLower = Math.min(dogFetchLowerAmount, 0.50);
 
+        var bowlPose = bowlLower / 0.68;
+        bowlPose = Math.min(Math.max(bowlPose, 0.0), 1.0);
+        bowlPose = bowlPose * bowlPose * (3.0 - 2.0 * bowlPose);
+
+        /*
+            Schiena appena giù.
+            Non troppo, altrimenti sembra che collassi.
+        */
+        /* localOverrides[35] = rotationXMat4Raw(-10.0 * bowlPose);
+        localOverrides[34] = rotationXMat4Raw(-30.0 * bowlPose);
+        localOverrides[33] = rotationXMat4Raw(-20.0 * bowlPose); */
+        localOverrides[35] = rotationXMat4Raw(-20.0 * bowlPose);
+        localOverrides[34] = rotationXMat4Raw(-20.0 * bowlPose);
+        localOverrides[33] = rotationXMat4Raw(-14.0 * bowlPose);
+
+        
+        
+
+        /*
+            Zampe davanti leggermente piegate.
+        */
+        /* localOverrides[4] = rotationXMat4Raw(-10.0 * bowlPose);
+        localOverrides[3] = rotationXMat4Raw(-60.0 * bowlPose);
+        localOverrides[2] = rotationXMat4Raw(90.0 * bowlPose);
+
+        localOverrides[11] = rotationXMat4Raw(-10.0 * bowlPose);
+        localOverrides[10] = rotationXMat4Raw(-60.0 * bowlPose);
+        localOverrides[9]  = rotationXMat4Raw(90.0 * bowlPose); */
+        localOverrides[4] = rotationXMat4Raw(-20.0 * bowlPose);
+        localOverrides[3] = rotationXMat4Raw(-48.0 * bowlPose);
+        localOverrides[2] = rotationXMat4Raw(48.0 * bowlPose);
+
+        localOverrides[11] = rotationXMat4Raw(-20.0 * bowlPose);
+        localOverrides[10] = rotationXMat4Raw(-48.0 * bowlPose);
+        localOverrides[9]  = rotationXMat4Raw(48.0 * bowlPose);
+
+       var lick = 0.5 + 0.5 * Math.sin(t * 12.0);
+
+        localOverrides[17] = rotationXMat4Raw(18.0 + 8.0 * lick);
+
+        localOverrides[16] = mat4MultiplyRaw(
+            rotationXMat4Raw(28.0 + 12.0 * lick),
+            translationMat4Raw(0.0, 0.0, -0.15)
+        );
+
+        localOverrides[15] = mat4MultiplyRaw(
+            rotationXMat4Raw(50.0 + 18.0 * lick),
+            translationMat4Raw(0.0, 0.0, -0.15)
+        );
+
+
+        // --- ALLUNGAMENTO LEGGERO ZAMPE DIETRO ---
+
+        localOverrides[41] = rotationXMat4Raw(-100.0 * bowlPose);
+
+        localOverrides[40] = rotationXMat4Raw(30.0 * bowlPose);
+
+        localOverrides[47] = rotationXMat4Raw(-100.0 * bowlPose);
+
+        localOverrides[46] = rotationXMat4Raw(30.0 * bowlPose);
+
+
+       // --- abbassa zona groppa / attaccatura coda ---
+
+        //localOverrides[48] = rotationXMat4Raw(-100.0 * bowlPose);
+
+        //localOverrides[49] = rotationXMat4Raw(-100.0 * bowlPose);
+        localOverrides[38]= rotationXMat4Raw(50.0 * bowlPose);
+        localOverrides[44]= rotationXMat4Raw(50.0 * bowlPose);
+        localOverrides[55]= rotationXMat4Raw(-25.0 * bowlPose);
+       
+
+    }
     /*
         Frisbee pickup front legs override.
         This must stay AFTER the normal walk legs animation,

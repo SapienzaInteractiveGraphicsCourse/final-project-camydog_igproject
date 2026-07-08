@@ -1192,7 +1192,7 @@ function getBowlAvoidRadiusForDog() {
     /*
         Raggio bowl + spazio per il corpo del cane.
     */
-    return bowlColliderRadius + 1.05;
+    return bowlColliderRadius + 0.10
 }
 
 function keepDogOutsideBowl(x, z) {
@@ -2677,27 +2677,37 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
     if (dogFetchLoweringActive) {
 
-        /* if (dogFetchObjectType === "frisbee") {
-           
-            dogFetchLowerAmount += (0.28 - dogFetchLowerAmount) * 0.12;
+        if (
+            dogFetchObjectType === "bowlWater" ||
+            dogFetchObjectType === "bowlFood"
+        ) {
+            /*
+                Stessa posa per acqua e croccantini.
+                Il cane abbassa un po' la testa verso la ciotola.
+            */
+            var bowlLowerTarget = 0.68;
 
-            if (dogFetchLowerAmount > 0.22 && !dogHasFrisbee) {
-                dogHasFrisbee = true;
+            dogFetchLowerAmount +=
+                (bowlLowerTarget - dogFetchLowerAmount) * 0.04;
 
-                showDogMusicNote = false;
-                dogHappySoundPlayed = false;
+            dogCrouchActive = false;
+            dogCrouchAmount = 0.0;
 
-                dogCrouchActive = false;
-                dogCrouchAmount = 0.0;
+            dogFetchBallMode = false;
 
-                dogFetchLoweringActive = false;
-                dogFetchLowerAmount = 0.0;
+            dogFetchTarget = {
+                x: bowlX,
+                z: bowlZ
+            };
 
-                console.log("Dog picked up the frisbee!");
+            updateDogFacingTarget(
+                bowlX,
+                bowlZ,
+                deltaTime
+            );
 
-                startSkinnedDogReturnFrisbeeToCamera();
-            }
-        } */
+            return;
+        }
 
         if (dogFetchObjectType === "frisbee") {
             var pickupDeltaTime =
@@ -3014,7 +3024,16 @@ function updateSkinnedDogFetchBall(deltaTime) {
                 dogFetchObjectType === "bowlWater" ||
                 dogFetchObjectType === "bowlFood"
             ) {
-                dogFetchLoweringActive = false;
+                /*
+                    Il cane è arrivato alla ciotola:
+                    si ferma e inizia ad abbassare la testa.
+                */
+                dogFetchBallMode = false;
+
+                dogPath = [];
+                dogPathIndex = 0;
+
+                dogFetchLoweringActive = true;
                 dogFetchLowerAmount = 0.0;
 
                 dogCrouchActive = false;
@@ -3027,9 +3046,6 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
                 showDogMusicNote = false;
 
-                /*
-                    Il cane resta lì vicino e guarda la ciotola.
-                */
                 updateDogFacingTarget(
                     bowlX,
                     bowlZ,
