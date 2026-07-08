@@ -10,41 +10,21 @@
 ![GitHub](https://img.shields.io/badge/GitHub-Camilla--Giuliani--GitHub-f4a7b9?style=plastic&logo=github&logoColor=white&labelColor=555555)
 # Demo
 https://sapienzainteractivegraphicscourse.github.io/final-project-camydog_igproject/
-Sto aggiungendo la shadow map con 6 direzioni (?)
-## Compatibility
- ✅OK Chrome with GPU acceleration
+
+
+# Compatibility
+✅OK Chrome with GPU acceleration
  
- ⚠️Slow with FirefoxChrome  without acceleration
+⚠️Slow with FirefoxChrome  without acceleration
+
+🎯 Target: 60 FPS (optimized for displays with a max 60 Hz refresh rate)
 
 
-- Problem: light behind walls still visible :c
-
-# Slides for exam
+# Slides for exam & instruction manual
 https://canva.link/6hl5piamvf281bk
 
-# Manuale (???????)
 
-Funzioni complicate 
-
-function drawObject(obj,
-     texture,
-      modelMatrix,
-       viewMatrix,
-        projectionMatrix,
-    useTexture = true,
-     isLightMarker=false,
-     twoSided = false, 
-     receiveShadow = true,
-     wallShadowMode=false,
-    isSunHalo = false,
-    globalAlpha = 1.0,
-    ) 
-# Main functions
-init()
-render()
-initShadowMap(?)()
-
-# La luce
+# Light Source
 La mia luce ora è una point light, quindi illumina in tutte le direzioni partendo dalla sfera gialla.
 
 Non è una luce “a freccia” che va solo lungo una linea.
@@ -53,9 +33,18 @@ Non è una luce “a freccia” che va solo lungo una linea.
       --- luce ---
         /  |  \
 
+## Night/Day mode
+
+
 # Shadow Mapping
 6 direzioni
 ciclo in Shadow Pass in render()
+
+# Rigged Dog
+
+[Mermaid live link for graph](https://mermaid.live/edit#pako:eNqdl2tv2jAUhv-KZalSK1GaKwU-TEpDNrIFUiWZJnWZIou4NGpI0FnYrep_n2EKBGI7rHwBx-9zfHxe28EveFGmFI_xEsj6CUWTGOICsc_FBbqzbHfuoxsU-H6ELgOSZguKUpqjFWPyvLyqxVvB5dcYfynzx2TbCKcfiwpd3pFFVpQ3QVlWVzH-doWur9-hnShcZwVNFHUnbIY5SPJkmhWpR5fsey3RwZm6iGQ5GzFRtL2oMdnw3p1baOIHoeU59fN2qq0ZaEcjtntagC4EdD5gCAGDC0TlmjfBiRtYM-vB9ecOsn3P85HDJm153NnWMQ6x53TxfOqXFMgTOyc_skVOd0X_DxJEZGM29QwiJ4yso6jNRPnpJ4qi1ou1-bzPnrNVenY0jvXNjhN505atvs0Jil4_bqVddwjz7g6oiQJqbwyoiwLqbwxoiAIaZwbME4eAaAkKGHgDM6UkTT6Sn7zVOrNC2_E8iy1Yz51_-Hy8Yo_IdkCnSNtJCJioLJYbenLK7aFWLxfUpaAuBg3e1P3Ase2pe3zInHrCc4uTPwgx4GCNJB6s2b2FrHnkBC5LCIXu3A2jwDpJinPsdJxnzT3JFfD2ZudA76EsKt4LTdTPhT8VlErpvYCLW8VzLucPCm6AO5LnUn4v4OJRSc-xcuK0jAR5faHLSDjXyM6B5EaCzEjoMhKkRkKnkSA3ErqMBKmRcKaR937YsSlP_9zx_iBuC6Dy1lpbIMK1LlwT4sKd0hbwcNE-afXz4HOLy90m4tJCV2lBWlroKi1ISwtdpQVpaaGjtCArLXSV1vYnx3U8uVdwLhy8N-pxHwcyJJAhgsxdB-6x61yW4nEFG9rDKworsm3il22wGFdPdEVjPGY_U_pINnkV47h4ZdiaFA9luapJKDfLJzx-JPl31tqsU1LRSUbYXfEgoUVKwS43bNixqiijXRA8fsG_8PjaUPqmpqraaKAMVdPQe_g3U5lKnzWMkanpI828Hb728J_dqEp_NBrcDvXBSB2Y-tDUtB6maVaVMPt3S91dVl__AuV5xks)
+
+
 
 # Animations -- Cannon used
 
@@ -69,15 +58,14 @@ shaodw mapping
 ## Cloth finestra
 Ok messo con Cannon... ci sta l'ombra da sistemare ma mi sempre carino
 
-# FPS indicazione sopra canvas
-FPS shown on the canvas
+## Frisbee
 
-# Night/Day mode
+## Water & Kibbles
 
 
-# Rigged Dog
 
-[Mermaid live link for graph](https://mermaid.live/edit#pako:eNqdl2tv2jAUhv-KZalSK1GaKwU-TEpDNrIFUiWZJnWZIou4NGpI0FnYrep_n2EKBGI7rHwBx-9zfHxe28EveFGmFI_xEsj6CUWTGOICsc_FBbqzbHfuoxsU-H6ELgOSZguKUpqjFWPyvLyqxVvB5dcYfynzx2TbCKcfiwpd3pFFVpQ3QVlWVzH-doWur9-hnShcZwVNFHUnbIY5SPJkmhWpR5fsey3RwZm6iGQ5GzFRtL2oMdnw3p1baOIHoeU59fN2qq0ZaEcjtntagC4EdD5gCAGDC0TlmjfBiRtYM-vB9ecOsn3P85HDJm153NnWMQ6x53TxfOqXFMgTOyc_skVOd0X_DxJEZGM29QwiJ4yso6jNRPnpJ4qi1ou1-bzPnrNVenY0jvXNjhN505atvs0Jil4_bqVddwjz7g6oiQJqbwyoiwLqbwxoiAIaZwbME4eAaAkKGHgDM6UkTT6Sn7zVOrNC2_E8iy1Yz51_-Hy8Yo_IdkCnSNtJCJioLJYbenLK7aFWLxfUpaAuBg3e1P3Ase2pe3zInHrCc4uTPwgx4GCNJB6s2b2FrHnkBC5LCIXu3A2jwDpJinPsdJxnzT3JFfD2ZudA76EsKt4LTdTPhT8VlErpvYCLW8VzLucPCm6AO5LnUn4v4OJRSc-xcuK0jAR5faHLSDjXyM6B5EaCzEjoMhKkRkKnkSA3ErqMBKmRcKaR937YsSlP_9zx_iBuC6Dy1lpbIMK1LlwT4sKd0hbwcNE-afXz4HOLy90m4tJCV2lBWlroKi1ISwtdpQVpaaGjtCArLXSV1vYnx3U8uVdwLhy8N-pxHwcyJJAhgsxdB-6x61yW4nEFG9rDKworsm3il22wGFdPdEVjPGY_U_pINnkV47h4ZdiaFA9luapJKDfLJzx-JPl31tqsU1LRSUbYXfEgoUVKwS43bNixqiijXRA8fsG_8PjaUPqmpqraaKAMVdPQe_g3U5lKnzWMkanpI828Hb728J_dqEp_NBrcDvXBSB2Y-tDUtB6maVaVMPt3S91dVl__AuV5xks)
+
+
 
 ## Walk Mode
 
@@ -85,8 +73,8 @@ FPS shown on the canvas
 # 3D Model Sources
 
 ## Procedurally Generated & Physics
--firflies => createSphere mia funzione
--cloth (Cannon)
+- Firflies => createSphere mia funzione
+- Cloth (Cannon)
 
 ## Third-Party 3D Models
 
@@ -108,31 +96,47 @@ FPS shown on the canvas
 - **Interactive Graphics Course**: Teapot
 
 
-# Textures references
+# 🎨 Texture References
 
-- dog Kishu Inu: model folder
--ball: model folder
-- moon: googles images
-- bench : model folder 
-- table : model folder
--sun texture: google images
-- grass_patch: model folder
-- fireflies : generated color
-- frisbee : generated color
--music note: generated color
+### 📂 Local Models & Textures
+*Included directly within the project folders:*
+- **Kishu Inu Japan Dog** (Model folder)
+- **Ball** (Model folder)
+- **Bench** (Model folder)
+- **Table** (Model folder)
+- **Grass patch** (Model folder)
+
+### 🌐 External Images
+*Sourced from external search engines:*
+- **Moon** (Google Images)
+- **Sun texture** (Google Images)
+- **London image** (Google Images)
+
+### 💻 Procedurally Generated
+*Colors and effects generated dynamically via code:*
+- **Fireflies** (Generated color)
+- **Frisbee** (Generated color)
+- **Music note** (Generated color)
+
 
 # Sounds references
 Everyone comes from PixaBay
 
-Water:
-Jingle toy:
-Caress:
-Background_home:
-Background_park_night:
-Background_park_day:
-Kibbles:
-
-
+* [Water](https://pixabay.com/sound-effects/film-special-effects-bubble-sound-effect-1-527144/)
+* [Ball throwing](https://pixabay.com/sound-effects/film-special-effects-movement-swipe-whoosh-3-186577/)
+* [Background_home](https://pixabay.com/music/beats-relax-summer-397430/)
+* [Background_park_night](https://pixabay.com/sound-effects/nature-deep-south-night-sounds-115466/)
+*[Background_park_day](https://pixabay.com/sound-effects/nature-020188-bird-park-ambience-74610/)
+* [Kibbles](https://pixabay.com/sound-effects/household-pouring-cornflakes-in-bowl-138367/)
+* [Frisbee Woosh](https://pixabay.com/sound-effects/film-special-effects-whoosh-1-522923/)
+* [Jingle Dog Happy](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-notification-bell-361840/)
+* [Dog Breath](https://pixabay.com/sound-effects/nature-dog-breathing-5-fx-308616/)
+* [Dog Bark](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-friendly-big-dog-bark-1-535471/)
+* [Dog Drinking](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-dog-drinking-water-5-309519/)
+* [Dog Eating](https://pixabay.com/es/sound-effects/naturaleza-chewing-dog-eats-crunchy-crackers-29627/)
+* [Wind](https://pixabay.com/sound-effects/nature-gust-of-wind-511325/)
+* [Dog Kibble?](https://pixabay.com/sound-effects/film-special-effects-jump-sound-531048/)
+* [Teapot pouring?](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-teapot-lid-large-170428-1477-79908/)
 # Icons references
 From **FlatIcon**
 
