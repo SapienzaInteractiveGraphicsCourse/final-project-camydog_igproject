@@ -532,7 +532,7 @@ onload = async function init() {
             "Loading dog model..."
         );
 
-        var result = await loadGLBDebug(modelPath_shiba_glb);
+        var result = await loadGLBDebug(modelPath_kishuInu_glb);
 
         if (!result || !result.gltf || !result.binary) {
             throw new Error("Invalid GLB result: missing gltf or binary data.");
@@ -540,7 +540,7 @@ onload = async function init() {
 
         console.log("GLB debug loaded successfully");
 
-        // genera il file txt con il codice Mermaid
+        // it generates the mermaid code to build the graph
         if (EXPORT_DOG_MERMAID_TXT) {
             generateDogMermaidTxtFromGltf(result.gltf);
         }
@@ -569,7 +569,14 @@ onload = async function init() {
         skinnedDogLoadState = "ready";
 
         console.log("Skinned dog buffers created:", skinnedDog);
-        printDogJointNames();
+        console.log("Kishu Inu texture maps available:", {
+            baseColor: !!skinnedDog.baseColorTexture,
+            normal: !!skinnedDog.normalTexture,
+            metallicRoughness: !!skinnedDog.metallicRoughnessTexture,
+            specular: !!skinnedDog.specularTexture,
+            normalScale: skinnedDog.normalScale
+        });
+        //printDogJointNames();
 
     } catch (error) {
         skinnedDogLoadState = "failed";
@@ -597,16 +604,18 @@ onload = async function init() {
     tableTexture = loadTexture(path_img_table);
     wallTexture = loadTexture(path_img_wall);
     floorTexture = loadTexture(path_img_floor);
-    //dogTexture = loadTexture(path_img_dog);
+   
     paintingTexture = loadTexture(path_img_painting);
     corniceTexture = loadTexture(path_img_cornice);
     ballTexture = loadTexture(path_img_ball);
     curtainTexture = loadTexture(path_img_curtain);
     heartTexture = loadTexture(path_img_heart);
 
-    tableColorTexture = loadTexture("./table_obj/table_color.jpg");
-    tableSpecularTexture = loadTexture("./table_obj/table_specular_map.jpg");
-    tableAOTexture = loadTexture("./table_obj/table_occlusion_map.jpg");
+    tableColorTexture = loadTexture(path_folder_table + "table_color.jpg");
+    tableSpecularTexture = loadTexture(path_folder_table + "table_specular_map.jpg");
+    tableAOTexture = loadTexture(path_folder_table + "table_occlusion_map.jpg");
+
+
     musicNoteTexture = loadTexture(path_img_musicNote);
     moonTexture = loadTexture(path_img_moon, true);
     sunTexture = loadTexture(path_img_sun);
@@ -617,8 +626,7 @@ onload = async function init() {
     //bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
     bowlTexture = loadTexture ("./Textures/bowl_2.png");
     waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
-    waterHighlightTexture = createSolidColorTexture(gl, 255, 255, 255, 180);
-    //kibbleTexture = createSolidColorTexture(gl, 115, 70, 30, 255);
+
     kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
   
 
@@ -626,14 +634,15 @@ onload = async function init() {
     benchTexture = loadTexture(path_img_bench);
 
     // Advanced bench material textures
-    benchBaseColorTexture = loadTexture("./Textures/textures_bench/bench_baseColor.png");
-    benchNormalTexture = loadTexture("./Textures/textures_bench/bench_normal.png");
-    benchRoughnessTexture = loadTexture("./Textures/textures_bench/bench_roughness.png");
-    benchMetallicTexture = loadTexture("./Textures/textures_bench/bench_metallic.png");
+    benchBaseColorTexture = loadTexture(path_folder_bench + "bench_base_color.png");
+    benchNormalTexture = loadTexture(path_folder_bench + "bench_normal.png");
+    benchRoughnessTexture = loadTexture(path_folder_bench + "bench_roughness.png");
+    benchMetallicTexture = loadTexture(path_folder_bench + "bench_metallic.png");
 
     frisbeeTexture= loadTexture(path_img_frisbee);
     
     grassBlockTexture = loadTexture(path_img_grass_block);
+
     leafTexture = loadTexture(path_img_leaf);
     fireflyTexture = createSolidColorTexture(
         gl,
@@ -786,20 +795,7 @@ onload = async function init() {
 
     
 
-    /* await loadOBJ(modelPath_dog);
-    console.log("OBJ Dog loaded");
-
-    var dogPoints = pointsArray.slice();
-    var dogNormals = normalsArray.slice();
-    var dogTex = texCoordsArray.slice();
-
-    dogBuffers = createBuffers(dogPoints, dogNormals, dogTex); */
-
-    //rigged dog parts loading
-    //Non serve await per forza, perché la funzione imposta separatedDogLoaded = true quando ha finito.
-    /* riggedDogTexture = dogTexture; // usa la stessa texture del dog intero
-    loadSeparatedDogParts(gl); */
-
+   
 
     //room buffers
     roomPlaneBuffers = createPlaneBuffers();
@@ -906,8 +902,29 @@ onload = async function init() {
     skinnedDogUniforms.projectionMatrix = gl.getUniformLocation(skinnedDogProgram, "projectionMatrix");
     skinnedDogUniforms.normalMatrix     = gl.getUniformLocation(skinnedDogProgram, "normalMatrix");
     skinnedDogUniforms.boneMatrices     = gl.getUniformLocation(skinnedDogProgram, "boneMatrices");
+
     skinnedDogUniforms.uTexture         = gl.getUniformLocation(skinnedDogProgram, "uTexture");
-    skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture"); 
+    skinnedDogUniforms.useTexture       = gl.getUniformLocation(skinnedDogProgram, "useTexture");
+    skinnedDogUniforms.uNormalMap =
+        gl.getUniformLocation(skinnedDogProgram, "uNormalMap");
+
+    skinnedDogUniforms.uMetallicRoughnessMap =
+        gl.getUniformLocation(skinnedDogProgram, "uMetallicRoughnessMap");
+
+    skinnedDogUniforms.uSpecularMap =
+        gl.getUniformLocation(skinnedDogProgram, "uSpecularMap");
+
+    skinnedDogUniforms.useNormalMap =
+        gl.getUniformLocation(skinnedDogProgram, "useNormalMap");
+
+    skinnedDogUniforms.useMetallicRoughnessMap =
+        gl.getUniformLocation(skinnedDogProgram, "useMetallicRoughnessMap");
+
+    skinnedDogUniforms.useSpecularMap =
+        gl.getUniformLocation(skinnedDogProgram, "useSpecularMap");
+
+    skinnedDogUniforms.uNormalScale =
+        gl.getUniformLocation(skinnedDogProgram, "uNormalScale");
 
 
     skinnedDogUniforms.receiveShadow =

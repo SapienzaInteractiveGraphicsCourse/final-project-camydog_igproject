@@ -42,6 +42,8 @@ ciclo in Shadow Pass in render()
 
 # Rigged Dog
 
+
+
 [Mermaid live link for graph](https://mermaid.live/edit#pako:eNqdl2tv2jAUhv-KZalSK1GaKwU-TEpDNrIFUiWZJnWZIou4NGpI0FnYrep_n2EKBGI7rHwBx-9zfHxe28EveFGmFI_xEsj6CUWTGOICsc_FBbqzbHfuoxsU-H6ELgOSZguKUpqjFWPyvLyqxVvB5dcYfynzx2TbCKcfiwpd3pFFVpQ3QVlWVzH-doWur9-hnShcZwVNFHUnbIY5SPJkmhWpR5fsey3RwZm6iGQ5GzFRtL2oMdnw3p1baOIHoeU59fN2qq0ZaEcjtntagC4EdD5gCAGDC0TlmjfBiRtYM-vB9ecOsn3P85HDJm153NnWMQ6x53TxfOqXFMgTOyc_skVOd0X_DxJEZGM29QwiJ4yso6jNRPnpJ4qi1ou1-bzPnrNVenY0jvXNjhN505atvs0Jil4_bqVddwjz7g6oiQJqbwyoiwLqbwxoiAIaZwbME4eAaAkKGHgDM6UkTT6Sn7zVOrNC2_E8iy1Yz51_-Hy8Yo_IdkCnSNtJCJioLJYbenLK7aFWLxfUpaAuBg3e1P3Ase2pe3zInHrCc4uTPwgx4GCNJB6s2b2FrHnkBC5LCIXu3A2jwDpJinPsdJxnzT3JFfD2ZudA76EsKt4LTdTPhT8VlErpvYCLW8VzLucPCm6AO5LnUn4v4OJRSc-xcuK0jAR5faHLSDjXyM6B5EaCzEjoMhKkRkKnkSA3ErqMBKmRcKaR937YsSlP_9zx_iBuC6Dy1lpbIMK1LlwT4sKd0hbwcNE-afXz4HOLy90m4tJCV2lBWlroKi1ISwtdpQVpaaGjtCArLXSV1vYnx3U8uVdwLhy8N-pxHwcyJJAhgsxdB-6x61yW4nEFG9rDKworsm3il22wGFdPdEVjPGY_U_pINnkV47h4ZdiaFA9luapJKDfLJzx-JPl31tqsU1LRSUbYXfEgoUVKwS43bNixqiijXRA8fsG_8PjaUPqmpqraaKAMVdPQe_g3U5lKnzWMkanpI828Hb728J_dqEp_NBrcDvXBSB2Y-tDUtB6maVaVMPt3S91dVl__AuV5xks)
 
 
@@ -78,6 +80,8 @@ Ok messo con Cannon... ci sta l'ombra da sistemare ma mi sempre carino
 
 ## Third-Party 3D Models
 
+
+
 - **CGTrader**: [Kishu Inu Japan Dog (6$)](https://www.cgtrader.com/3d-models/animal/mammal/kishu-inu-japan-dog-breed), 
 [Grass patch(3$)](https://www.cgtrader.com/3d-models/plant/grass/photorealistic-grass-with-patch-generator-and-animatio), 
 [Moon ](https://www.cgtrader.com/items/6369973/download-page), 
@@ -95,6 +99,13 @@ Ok messo con Cannon... ci sta l'ombra da sistemare ma mi sempre carino
 
 - **Interactive Graphics Course**: Teapot
 
+#### 🐕 Kishu Inu 3D Model
+The 3D model used for the dog character is the "Kishu Inu Dog Breed (Game Ready)" created by Nyilonelycompany. 
+
+* **Source:** [Sketchfab Model Link](https://sketchfab.com/3d-models/kishu-inu-dog-breed-game-ready-c858fa6dfc6f4e57815160b74b6574cf)
+* **License:** Sketchfab Standard License
+
+> **Note:** This asset is embedded in this public repository strictly for academic evaluation and university exam grading. In compliance with the license restrictions, extracting, downloading, or redistributing the standalone `.glb` file from this project is strictly prohibited.
 
 # 🎨 Texture References
 
@@ -140,7 +151,7 @@ Everyone comes from PixaBay
 # Icons references
 From **FlatIcon**
 
-* [Shiba Icon (Pinterest)](https://it.pinterest.com/pin/56295064084237515/)
+* [Kishu Inu Icon (Pinterest)](https://it.pinterest.com/pin/56295064084237515/)
 * [Settings](https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510)
 * [Call Dog Hand](https://www.flaticon.com/free-icon/open-hand_889822)
 * [Wave Hand / Caress](https://www.flaticon.com/free-icon/wave_9606501?term=wave+hand&related_id=9606501)

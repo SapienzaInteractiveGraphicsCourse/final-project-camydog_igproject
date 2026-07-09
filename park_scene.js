@@ -100,7 +100,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
 
         gl.depthMask(false);
 
-        // così lo vedi bene anche se è dentro/vicino alla panchina
+        
         gl.disable(gl.CULL_FACE);
 
         drawObject(
@@ -131,8 +131,8 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
     
     if (shouldDrawFrisbee()) {
 
-        gl.disable(gl.CULL_FACE); // Disabilita il backface culling per il frisbee
-
+        gl.disable(gl.CULL_FACE); 
+        
         drawObject(
             frisbeeBuffers,
             frisbeeTexture,  // frisbeeTexture

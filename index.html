@@ -1662,7 +1662,7 @@ void main()
 }
 </script>
 
-<script id="skinned-dog-fragment-shader" type="x-shader/x-fragment">
+<!-- <script id="skinned-dog-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
 varying vec3 fNormal;
@@ -1909,6 +1909,365 @@ void main()
     finalColor = clamp(finalColor, 0.0, 1.0);
 
     gl_FragColor = vec4(finalColor, 1.0);
+}
+</script> -->
+
+
+<script id="skinned-dog-fragment-shader" type="x-shader/x-fragment">
+#extension GL_OES_standard_derivatives : enable
+
+precision highp float;
+
+varying vec3 fNormal;
+varying vec2 fTexCoord;
+
+uniform sampler2D uTexture;
+uniform bool useTexture;
+
+uniform sampler2D uNormalMap;
+uniform sampler2D uMetallicRoughnessMap;
+uniform sampler2D uSpecularMap;
+
+uniform bool useNormalMap;
+uniform bool useMetallicRoughnessMap;
+uniform bool useSpecularMap;
+
+uniform float uNormalScale;
+
+varying vec3 fWorldPos;
+varying vec3 fWorldNormal;
+
+uniform bool receiveShadow;
+uniform bool usePointShadowMap;
+
+uniform vec4 lightPosition;
+
+uniform sampler2D pointShadowMap0;
+uniform sampler2D pointShadowMap1;
+uniform sampler2D pointShadowMap2;
+uniform sampler2D pointShadowMap3;
+uniform sampler2D pointShadowMap4;
+uniform sampler2D pointShadowMap5;
+
+uniform mat4 pointLightViewMatrix0;
+uniform mat4 pointLightViewMatrix1;
+uniform mat4 pointLightViewMatrix2;
+uniform mat4 pointLightViewMatrix3;
+uniform mat4 pointLightViewMatrix4;
+uniform mat4 pointLightViewMatrix5;
+uniform mat4 pointLightProjectionMatrix;
+
+// to change light day/night 
+uniform float uLightIntensity;
+uniform float uAmbientStrength;
+uniform vec3 uLightTint;
+
+
+int choosePointShadowFace(vec3 dir)
+{
+    vec3 absDir = abs(dir);
+
+    if (absDir.x >= absDir.y && absDir.x >= absDir.z) {
+        return dir.x > 0.0 ? 0 : 1;
+    }
+
+    if (absDir.y >= absDir.x && absDir.y >= absDir.z) {
+        return dir.y > 0.0 ? 2 : 3;
+    }
+
+    return dir.z > 0.0 ? 4 : 5;
+}
+
+
+float unpackDepth(vec4 rgbaDepth)
+{
+    const vec4 bitShift = vec4(
+        1.0 / (256.0 * 256.0 * 256.0),
+        1.0 / (256.0 * 256.0),
+        1.0 / 256.0,
+        1.0
+    );
+
+    return dot(rgbaDepth, bitShift);
+}
+
+
+float computePointShadowForDog(vec3 worldPos, vec3 worldNormal)
+{
+    float farPlane = 40.0;
+
+    vec3 lightWorldPos = lightPosition.xyz;
+
+    vec3 shadowWorldPos =
+        worldPos + normalize(worldNormal) * 0.04;
+
+    vec3 dir =
+        shadowWorldPos - lightWorldPos;
+
+    int face = choosePointShadowFace(dir);
+
+    vec4 shadowCoord;
+
+    if (face == 0) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix0 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 1) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix1 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 2) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix2 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 3) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix3 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else if (face == 4) {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix4 *
+            vec4(shadowWorldPos, 1.0);
+    }
+    else {
+        shadowCoord =
+            pointLightProjectionMatrix *
+            pointLightViewMatrix5 *
+            vec4(shadowWorldPos, 1.0);
+    }
+
+    vec3 projCoords =
+        shadowCoord.xyz / shadowCoord.w;
+
+    projCoords =
+        projCoords * 0.5 + 0.5;
+
+    if (
+        projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0
+    ) {
+        return 1.0;
+    }
+
+    vec4 packedDepth;
+
+    if (face == 0) {
+        packedDepth =
+            texture2D(pointShadowMap0, projCoords.xy);
+    }
+    else if (face == 1) {
+        packedDepth =
+            texture2D(pointShadowMap1, projCoords.xy);
+    }
+    else if (face == 2) {
+        packedDepth =
+            texture2D(pointShadowMap2, projCoords.xy);
+    }
+    else if (face == 3) {
+        packedDepth =
+            texture2D(pointShadowMap3, projCoords.xy);
+    }
+    else if (face == 4) {
+        packedDepth =
+            texture2D(pointShadowMap4, projCoords.xy);
+    }
+    else {
+        packedDepth =
+            texture2D(pointShadowMap5, projCoords.xy);
+    }
+
+    float closestDepth =
+        unpackDepth(packedDepth);
+
+    float currentDepth =
+        length(shadowWorldPos - lightWorldPos) / farPlane;
+
+    vec3 fragToLight =
+        normalize(lightWorldPos - shadowWorldPos);
+
+    float ndotl =
+        max(dot(normalize(worldNormal), fragToLight), 0.0);
+
+    float bias =
+        max(
+            0.006 * (1.0 - ndotl),
+            0.0012
+        );
+
+    return currentDepth > closestDepth + bias
+        ? 0.78
+        : 1.0;
+}
+
+
+vec3 getDogNormalFromMap(vec3 originalNormal)
+{
+    vec3 tangentNormal =
+        texture2D(uNormalMap, fTexCoord).xyz * 2.0 - 1.0;
+
+    /*
+        Scala presa dal glTF:
+        nel tuo caso normalScale = 0.5.
+    */
+    tangentNormal.xy *= uNormalScale* 3.0;
+
+    /*
+        Se dopo il test il pelo sembra "scavato al contrario",
+        abilita questa riga:
+        tangentNormal.y = -tangentNormal.y;
+    */
+
+    vec3 Q1 = dFdx(fWorldPos);
+    vec3 Q2 = dFdy(fWorldPos);
+
+    vec2 st1 = dFdx(fTexCoord);
+    vec2 st2 = dFdy(fTexCoord);
+
+    float det =
+        st1.s * st2.t -
+        st2.s * st1.t;
+
+    if (abs(det) < 0.00001) {
+        return normalize(originalNormal);
+    }
+
+    vec3 T =
+        normalize(Q1 * st2.t - Q2 * st1.t);
+
+    vec3 B =
+        normalize(-Q1 * st2.s + Q2 * st1.s);
+
+    mat3 TBN =
+        mat3(T, B, normalize(originalNormal));
+
+    return normalize(TBN * tangentNormal);
+}
+
+
+void main()
+{
+    vec3 geometricNormal =
+        normalize(fWorldNormal);
+
+    vec3 N = geometricNormal;
+
+    if (useNormalMap) {
+        N = getDogNormalFromMap(geometricNormal);
+    }
+
+    vec3 L =
+        normalize(lightPosition.xyz - fWorldPos);
+
+    vec3 V =
+        normalize(-fWorldPos);
+
+    vec3 H =
+        normalize(L + V);
+
+    float diff =
+        max(dot(N, L), 0.0);
+
+    vec3 baseColor =
+        useTexture
+            ? texture2D(uTexture, fTexCoord).rgb
+            : vec3(1.0);
+
+    /*
+        glTF metallicRoughness texture:
+        G = roughness
+        B = metallic
+    */
+    float roughness = 0.55;
+    float metallic = 0.0;
+
+    if (useMetallicRoughnessMap) {
+        vec4 mr =
+            texture2D(uMetallicRoughnessMap, fTexCoord);
+
+        roughness =
+            clamp(mr.g, 0.05, 1.0);
+
+        metallic =
+            clamp(mr.b, 0.0, 1.0);
+    }
+
+    float specularMask = 0.35;
+
+    if (useSpecularMap) {
+        specularMask =
+            texture2D(uSpecularMap, fTexCoord).r;
+    }
+
+    float shininess =
+        mix(96.0, 10.0, roughness);
+
+    float spec =
+        pow(max(dot(N, H), 0.0), shininess);
+
+    float specularStrength =
+        specularMask *
+        (1.0 - roughness * 0.65);
+
+    /*
+        Il cane non deve sembrare metallico come un oggetto duro.
+        Usiamo metallic in modo leggero, solo per modulare la risposta.
+    */
+    vec3 ambient =
+        baseColor * uAmbientStrength;
+
+    vec3 diffuse =
+        baseColor *
+        diff *
+        uLightIntensity *
+        uLightTint *
+        mix(1.0, 0.75, metallic);
+
+    vec3 specular =
+        vec3(spec) *
+        specularStrength *
+        uLightIntensity *
+        uLightTint *
+        0.35;
+
+    float shadow = 1.0;
+
+    if (receiveShadow && usePointShadowMap) {
+        /*
+            Per il bias dell'ombra uso la normale geometrica,
+            non quella perturbata dalla normal map.
+        */
+        shadow =
+            computePointShadowForDog(
+                fWorldPos,
+                geometricNormal
+            );
+    }
+
+    vec3 finalColor =
+        ambient + (diffuse + specular) * shadow;
+
+    /*
+        Nel parco di notte il cane deve restare leggibile.
+    */
+    if (uAmbientStrength > 0.50) {
+        finalColor += baseColor * 0.12;
+    }
+
+    finalColor =
+        clamp(finalColor, 0.0, 1.0);
+
+    gl_FragColor =
+        vec4(finalColor, 1.0);
 }
 </script>
 
@@ -2635,10 +2994,6 @@ void main()
 }
 </script>
 
-
-<!-- <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script> -->
-<!-- <script src="./liquid-glass-js/container.js"></script>
-<script src="./liquid-glass-js/button.js"></script> -->
 
 <script type="text/javascript" src="./Common/webgl-utils.js"></script>
 <script type="text/javascript" src="./Common/initShaders.js"></script>

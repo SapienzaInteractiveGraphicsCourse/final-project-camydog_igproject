@@ -69,7 +69,7 @@ var modelPath_teapot = "./Objects/teapot.obj";
 var modelPath_table = "./Objects/table.obj";
 var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./Objects/ball.obj";
-var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
+var modelPath_kishuInu_glb = "./Objects/kishuInu_model.glb";
 var modelPath_heart= "./Objects/heart.obj";
 var modelPath_musicNote= "./Objects/music_note_1.obj";
 var modelPath_sun = "./Objects/sun.obj";
@@ -78,7 +78,7 @@ var modelPath_bowl="./Objects/dog_bowl.obj";
 var modelPath_bench="./Objects/bench.obj";
 var modelPath_frisbee="./Objects/frisbee.obj";
 var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Green_Tall.obj";
-var modelPath_leaf="./Objects/leaf_1_modified.obj";
+var modelPath_leaf="./Objects/leaf.obj";
 
 
 // images & textures paths
@@ -105,9 +105,11 @@ var path_img_grass="./Textures/grass_3.jpg";
 var path_img_steel="./Textures/steel.png";
 var path_img_blue="./Textures/blue_navy.jpg";
 var path_img_frisbee= "./Textures/frisbee_2.png";
-var path_img_bench= "./Textures/textures_bench/bench_base_color.png";
+var path_img_bench= "./Textures/Bench_tex/bench_base_color.png";
 var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Strands_color.jpg";
 var path_img_leaf="./Textures/leaf.jpg";
+var path_folder_bench="./Textures/Bench_tex/";
+var path_folder_table="./Textures/Table_tex/";
 
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
@@ -156,7 +158,7 @@ var haloTexture;
 var grassTexture;
 var bowlTexture;
 var waterDiskTexture;
-var waterHighlightTexture;
+
 var curtainTexture = null;
 var kibbleTexture ;
 

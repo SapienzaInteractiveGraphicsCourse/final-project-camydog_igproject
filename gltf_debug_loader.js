@@ -46,7 +46,7 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
     console.log("Mesh node index:", meshNodeIndex, gltf.nodes[meshNodeIndex]);
 
     //part fo texture
-    var dogTextureFromGLB = null;
+    /* var dogTextureFromGLB = null;
 
     if (
         gltf.materials &&
@@ -67,6 +67,113 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
         console.log("Using GLB baseColorTexture:", textureIndex, "image:", imageIndex);
     } else {
         console.warn("No baseColorTexture found in GLB material");
+    } */
+
+    // Texture maps from the Kishu Inu GLB material
+    var dogBaseColorTextureFromGLB = null;
+    var dogNormalTextureFromGLB = null;
+    var dogMetallicRoughnessTextureFromGLB = null;
+    var dogSpecularTextureFromGLB = null;
+    var dogNormalScale = 1.0;
+
+    function getTextureFromTextureInfo(textureInfo, label) {
+        if (!textureInfo || textureInfo.index === undefined) {
+            console.warn("No " + label + " found in GLB material");
+            return null;
+        }
+
+        var textureIndex = textureInfo.index;
+
+        if (!gltf.textures || !gltf.textures[textureIndex]) {
+            console.warn("Texture definition not found for " + label + ":", textureIndex);
+            return null;
+        }
+
+        var textureDef = gltf.textures[textureIndex];
+
+        if (textureDef.source === undefined) {
+            console.warn("Texture source not found for " + label + ":", textureIndex);
+            return null;
+        }
+
+        var imageIndex = textureDef.source;
+
+        var texture = createTextureFromGLBImage(
+            gl,
+            gltf,
+            binary,
+            imageIndex
+        );
+
+        console.log(
+            "Using GLB " + label + ":",
+            "texture index:", textureIndex,
+            "image index:", imageIndex
+        );
+
+        return texture;
+    }
+
+    var dogMaterial =
+        gltf.materials && gltf.materials.length > 0
+            ? gltf.materials[0]
+            : null;
+
+    if (dogMaterial) {
+        var pbr =
+            dogMaterial.pbrMetallicRoughness || {};
+
+        dogBaseColorTextureFromGLB =
+            getTextureFromTextureInfo(
+                pbr.baseColorTexture,
+                "baseColorTexture"
+            );
+
+        dogMetallicRoughnessTextureFromGLB =
+            getTextureFromTextureInfo(
+                pbr.metallicRoughnessTexture,
+                "metallicRoughnessTexture"
+            );
+
+        dogNormalTextureFromGLB =
+            getTextureFromTextureInfo(
+                dogMaterial.normalTexture,
+                "normalTexture"
+            );
+
+        if (
+            dogMaterial.normalTexture &&
+            dogMaterial.normalTexture.scale !== undefined
+        ) {
+            dogNormalScale = dogMaterial.normalTexture.scale;
+        }
+
+        var specularTextureInfo = null;
+
+        if (
+            dogMaterial.extensions &&
+            dogMaterial.extensions.KHR_materials_specular &&
+            dogMaterial.extensions.KHR_materials_specular.specularTexture
+        ) {
+            specularTextureInfo =
+                dogMaterial.extensions.KHR_materials_specular.specularTexture;
+        }
+
+        dogSpecularTextureFromGLB =
+            getTextureFromTextureInfo(
+                specularTextureInfo,
+                "specularTexture"
+            );
+
+        console.log("Kishu Inu material textures extracted:", {
+            baseColor: !!dogBaseColorTextureFromGLB,
+            normal: !!dogNormalTextureFromGLB,
+            metallicRoughness: !!dogMetallicRoughnessTextureFromGLB,
+            specular: !!dogSpecularTextureFromGLB,
+            normalScale: dogNormalScale
+        });
+    } else {
+        console.warn("No material found for Kishu Inu GLB.");
     }
 
     return {
@@ -84,7 +191,15 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
         nodes: gltf.nodes,
         nodeParents: nodeParents,
         meshNodeIndex: meshNodeIndex,
-        texture: dogTextureFromGLB,
+        // Kept for compatibility with the current dog draw code
+        texture: dogBaseColorTextureFromGLB,
+
+        // Full Kishu Inu material maps
+        baseColorTexture: dogBaseColorTextureFromGLB,
+        normalTexture: dogNormalTextureFromGLB,
+        metallicRoughnessTexture: dogMetallicRoughnessTextureFromGLB,
+        specularTexture: dogSpecularTextureFromGLB,
+        normalScale: dogNormalScale,
 
         inverseBindMatrices: readAccessor(
             gltf,
@@ -725,7 +840,7 @@ gl.uniformMatrix4fv(
         boneData
 );
 
-//texture part
+/* //texture part
 if (skinnedDog.texture && skinnedDog.texture.loaded) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, skinnedDog.texture);
@@ -735,7 +850,83 @@ if (skinnedDog.texture && skinnedDog.texture.loaded) {
 } 
 else {
         gl.uniform1i(skinnedDogUniforms.useTexture, false);
-    }
+} */
+
+  // Kishu Inu material texture maps
+
+var hasBaseColor =
+    skinnedDog.baseColorTexture &&
+    skinnedDog.baseColorTexture.loaded;
+
+var hasNormal =
+    skinnedDog.normalTexture &&
+    skinnedDog.normalTexture.loaded;
+
+var hasMetallicRoughness =
+    skinnedDog.metallicRoughnessTexture &&
+    skinnedDog.metallicRoughnessTexture.loaded;
+
+var hasSpecular =
+    skinnedDog.specularTexture &&
+    skinnedDog.specularTexture.loaded;
+
+
+// Texture 0: base color
+if (hasBaseColor) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, skinnedDog.baseColorTexture);
+
+    gl.uniform1i(skinnedDogUniforms.uTexture, 0);
+    gl.uniform1i(skinnedDogUniforms.useTexture, 1);
+} else {
+    gl.uniform1i(skinnedDogUniforms.useTexture, 0);
+}
+
+
+// Texture 1: normal map
+if (hasNormal) {
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, skinnedDog.normalTexture);
+
+    gl.uniform1i(skinnedDogUniforms.uNormalMap, 1);
+    gl.uniform1i(skinnedDogUniforms.useNormalMap, 1);
+} else {
+    gl.uniform1i(skinnedDogUniforms.useNormalMap, 0);
+}
+
+
+// Texture 2: metallic-roughness map
+if (hasMetallicRoughness) {
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, skinnedDog.metallicRoughnessTexture);
+
+    gl.uniform1i(skinnedDogUniforms.uMetallicRoughnessMap, 2);
+    gl.uniform1i(skinnedDogUniforms.useMetallicRoughnessMap, 1);
+} else {
+    gl.uniform1i(skinnedDogUniforms.useMetallicRoughnessMap, 0);
+}
+
+
+// Texture 3: specular map
+if (hasSpecular) {
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, skinnedDog.specularTexture);
+
+    gl.uniform1i(skinnedDogUniforms.uSpecularMap, 3);
+    gl.uniform1i(skinnedDogUniforms.useSpecularMap, 1);
+} else {
+    gl.uniform1i(skinnedDogUniforms.useSpecularMap, 0);
+}
+
+
+// Normal intensity from the glTF material.
+// Nel GLB era 0.5.
+gl.uniform1f(
+    skinnedDogUniforms.uNormalScale,
+    skinnedDog.normalScale !== undefined ? skinnedDog.normalScale : 1.0
+);      
+
+
 
 gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
 gl.vertexAttribPointer(skinnedDogAttribs.vPosition, 3, gl.FLOAT, false, 0, 0);

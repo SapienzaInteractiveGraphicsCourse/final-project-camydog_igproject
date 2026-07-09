@@ -809,3 +809,19 @@ function updateSkinnedDogFetchBall_old(deltaTime) {
 
                                         
             </div> -->
+
+
+////////////
+/* await loadOBJ(modelPath_dog);
+    console.log("OBJ Dog loaded");
+
+    var dogPoints = pointsArray.slice();
+    var dogNormals = normalsArray.slice();
+    var dogTex = texCoordsArray.slice();
+
+    dogBuffers = createBuffers(dogPoints, dogNormals, dogTex); */
+
+    //rigged dog parts loading
+    //Non serve await per forza, perché la funzione imposta separatedDogLoaded = true quando ha finito.
+    /* riggedDogTexture = dogTexture; // usa la stessa texture del dog intero
+    loadSeparatedDogParts(gl); */

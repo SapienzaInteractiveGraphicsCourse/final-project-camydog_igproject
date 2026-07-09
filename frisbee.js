@@ -209,27 +209,6 @@ function getFrisbeeModelMatrix() {
             typeof frisbeePickupHoldTimer !== "undefined" &&
             typeof frisbeePickupHoldDuration !== "undefined"
         ) {
-            /* var pickupStayTime = 0.60;
-
-            var riseDuration =1.25;
-
-            carryBlend = clamp01(
-                (frisbeePickupHoldTimer - pickupStayTime) / riseDuration
-            );
-
-            // sale più lentamente all'inizio
-            carryBlend = Math.pow(carryBlend, 1.40);
-
-            // smooth finale
-            carryBlend = carryBlend * carryBlend * (3.0 - 2.0 * carryBlend);
-
-            carryBlend = Math.min(carryBlend, 0.85); */
-
-            /*
-                Sincronizzo il frisbee con la testa del cane.
-                dogFetchLowerAmount alto  -> testa bassa  -> frisbee basso
-                dogFetchLowerAmount basso -> testa alta   -> frisbee in bocca
-            */
             var headLower = 0.0;
 
             if (typeof dogFetchLowerAmount !== "undefined") {
@@ -1042,41 +1021,6 @@ function cancelDogFrisbeeMission() {
 
 
 function putAwayFrisbee(buttonFrisbee) {
-
-    /* cancelDogFrisbeeMission();
-
-
-    frisbeeThrowMode = false;
-    frisbeeAttachedToHand = false;
-    frisbeeFlying = false;
-    frisbeeLanded = false;
-    frisbeePreparingThrow = false;
-    frisbeeHasMousePosition = false;
-
-    frisbeePreparingThrow = false;
-    frisbeeHasMousePosition = false;
-
-    frisbeeReturnedAndWaiting = false;
-    frisbeeAlreadyTargeted = false;
-
-    dogHasFrisbee = false;
-    dogReturningWithFrisbee = false;
-    dogFetchObjectType = null;
-
-    dogFetchLoweringActive = false;
-    dogFetchLowerAmount = 0.0;
-
-    dogCrouchActive = false;
-    dogCrouchAmount = 0.0;
-
-    if (buttonFrisbee) {
-        buttonFrisbee.classList.remove("active");
-        buttonFrisbee.title = "Take Frisbee";
-    }
-
-    updateCanvasCursor();
-
-    showGameMessage("Frisbee put away!", 1400); */
 
      /*
         Reset completo del frisbee.
