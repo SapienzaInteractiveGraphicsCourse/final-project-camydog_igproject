@@ -534,6 +534,12 @@ onload = async function init() {
 
         console.log("GLB debug loaded successfully");
 
+        // genera il file txt con il codice Mermaid
+        if (EXPORT_DOG_MERMAID_TXT) {
+            generateDogMermaidTxtFromGltf(result.gltf);
+        }
+
+        
         skinnedDog = createSkinnedDogBuffers(
             gl,
             result.gltf,

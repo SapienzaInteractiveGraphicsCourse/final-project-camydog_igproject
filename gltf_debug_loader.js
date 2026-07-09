@@ -94,6 +94,238 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
     };
 }
 
+function printDogSkinJoints(gltf) {
+    if (!gltf || !gltf.nodes || !gltf.skins || gltf.skins.length === 0) {
+        console.warn("No glTF skin data found.");
+        return;
+    }
+
+    var skin = gltf.skins[0];
+
+    console.log("===== DOG JOINT NAMES =====");
+
+    for (var i = 0; i < skin.joints.length; i++) {
+        var nodeIndex = skin.joints[i];
+        var node = gltf.nodes[nodeIndex];
+
+        console.log(
+            i,
+            nodeIndex,
+            node && node.name ? node.name : "(unnamed)"
+        );
+    }
+}
+
+
+function printDogParentRelationships(gltf) {
+    if (!gltf || !gltf.nodes) {
+        console.warn("No glTF nodes found.");
+        return;
+    }
+
+    var nodes = gltf.nodes;
+    var parentOf = {};
+
+    for (var parentIndex = 0; parentIndex < nodes.length; parentIndex++) {
+        var parentNode = nodes[parentIndex];
+
+        if (!parentNode.children) {
+            continue;
+        }
+
+        for (var i = 0; i < parentNode.children.length; i++) {
+            var childIndex = parentNode.children[i];
+            parentOf[childIndex] = parentIndex;
+        }
+    }
+
+    console.log("===== DOG PARENT RELATIONSHIPS =====");
+
+    for (var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+        var node = nodes[nodeIndex];
+        var nodeName = node.name || "(unnamed)";
+
+        if (
+            nodeName.indexOf("Wolf_") === -1 &&
+            nodeName.indexOf("Kishu") === -1
+        ) {
+            continue;
+        }
+
+        var parentIndexFound = parentOf[nodeIndex];
+
+        if (parentIndexFound === undefined) {
+            console.log(
+                nodeIndex,
+                nodeName,
+                "parent: NONE"
+            );
+        } else {
+            var parentName =
+                nodes[parentIndexFound].name || "(unnamed)";
+
+            console.log(
+                nodeIndex,
+                nodeName,
+                "parent:",
+                parentIndexFound,
+                parentName
+            );
+        }
+    }
+}
+
+
+function generateDogMermaidTxtFromGltf(gltf) {
+    if (!gltf || !gltf.nodes) {
+        console.warn("No glTF nodes found.");
+        return;
+    }
+
+    var nodes = gltf.nodes;
+
+    var lines = [];
+
+    lines.push("flowchart TD");
+    lines.push("");
+
+    for (var parentIndex = 0; parentIndex < nodes.length; parentIndex++) {
+        var parentNode = nodes[parentIndex];
+
+        if (!parentNode.children) {
+            continue;
+        }
+
+        var parentName = parentNode.name || "unnamed";
+
+        if (parentName.indexOf("Wolf_") === -1) {
+            continue;
+        }
+
+        for (var i = 0; i < parentNode.children.length; i++) {
+            var childIndex = parentNode.children[i];
+            var childNode = nodes[childIndex];
+            var childName = childNode.name || "unnamed";
+
+            if (childName.indexOf("Wolf_") === -1) {
+                continue;
+            }
+
+            var parentId = "N" + parentIndex;
+            var childId = "N" + childIndex;
+
+            var cleanParentName = parentName
+                .replaceAll("_", " ")
+                .replaceAll(".", " ");
+
+            var cleanChildName = childName
+                .replaceAll("_", " ")
+                .replaceAll(".", " ");
+
+            lines.push(
+                parentId +
+                '["' +
+                parentIndex +
+                " " +
+                cleanParentName +
+                '"] --> ' +
+                childId +
+                '["' +
+                childIndex +
+                " " +
+                cleanChildName +
+                '"]'
+            );
+        }
+    }
+
+    var mermaidCode = lines.join("\n");
+
+    console.log("===== DOG MERMAID TXT =====");
+    console.log(mermaidCode);
+
+    var blob = new Blob(
+        [mermaidCode],
+        { type: "text/plain" }
+    );
+
+    var url = URL.createObjectURL(blob);
+
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "dog_skeleton_mermaid.txt";
+
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+
+
+function printDogMermaidFromGltf(gltf) {
+    if (!gltf || !gltf.nodes) {
+        console.warn("No glTF nodes found.");
+        return;
+    }
+
+    var nodes = gltf.nodes;
+
+    console.log("===== DOG MERMAID GRAPH =====");
+    console.log("flowchart TD");
+
+    for (var parentIndex = 0; parentIndex < nodes.length; parentIndex++) {
+        var parentNode = nodes[parentIndex];
+
+        if (!parentNode.children) {
+            continue;
+        }
+
+        var parentName = parentNode.name || "unnamed";
+
+        if (parentName.indexOf("Wolf_") === -1) {
+            continue;
+        }
+
+        for (var i = 0; i < parentNode.children.length; i++) {
+            var childIndex = parentNode.children[i];
+            var childNode = nodes[childIndex];
+            var childName = childNode.name || "unnamed";
+
+            if (childName.indexOf("Wolf_") === -1) {
+                continue;
+            }
+
+            var parentId = "N" + parentIndex;
+            var childId = "N" + childIndex;
+
+            var cleanParentName = parentName
+                .replaceAll("_", " ")
+                .replaceAll(".", " ");
+
+            var cleanChildName = childName
+                .replaceAll("_", " ")
+                .replaceAll(".", " ");
+
+            console.log(
+                parentId +
+                '["' +
+                parentIndex +
+                " " +
+                cleanParentName +
+                '"] --> ' +
+                childId +
+                '["' +
+                childIndex +
+                " " +
+                cleanChildName +
+                '"]'
+            );
+        }
+    }
+}
+
 
 async function loadGLBDebug(url) {
     console.log("Loading GLB:", url);

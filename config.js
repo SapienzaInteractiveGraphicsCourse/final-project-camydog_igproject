@@ -70,9 +70,9 @@ var modelPath_table = "./Objects/table.obj";
 var modelPath_dog = "./dog/dog.obj";
 var modelPath_ball = "./Objects/ball.obj";
 var modelPath_shiba_glb = "./Objects/shiba_dog.glb";
-var modelPath_heart= "./Objects/heart/heart.obj";
+var modelPath_heart= "./Objects/heart.obj";
 var modelPath_musicNote= "./Objects/music_note_1.obj";
-var modelPath_sun = "./Objects/sun/sun.obj";
+var modelPath_sun = "./Objects/sun.obj";
 var modelPath_moon= "./Objects/moon.obj";
 var modelPath_bowl="./Objects/dog_bowl.obj";
 var modelPath_bench="./Objects/bench.obj";
@@ -361,6 +361,7 @@ var skinnedDogProgram = null;
 var skinnedDogAttribs = {};
 var skinnedDogUniforms = {};
 
+var EXPORT_DOG_MERMAID_TXT = false;
 var skinnedDogLoadState = "pending";
 // pending | loading | ready | failed
 
