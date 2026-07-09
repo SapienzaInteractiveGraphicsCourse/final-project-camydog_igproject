@@ -979,6 +979,13 @@ function hideSceneTransition() {
 function switchSceneWithTransition(targetScene, title, text, beforeSceneChange) {
     if (sceneTransitionActive) return;
 
+    if (
+        typeof blockActionIfDogBusyAtBowl === "function" &&
+        blockActionIfDogBusyAtBowl()
+    ) {
+        return;
+    }
+
     sceneTransitionActive = true;
 
     if (ENABLE_SCREEN_TRANSITION) {
@@ -2712,3 +2719,42 @@ function getMoonMatrix() {
 
     return modelMatrixMoon;
 }
+
+
+function installDogBowlBusyClickGuard() {
+    document.addEventListener(
+        "click",
+        function (event) {
+            var button = event.target.closest("button");
+
+            if (!button) {
+                return;
+            }
+
+            var blockedIds = [
+                "ButtonMiniGame",
+                "ButtonBounceBall",
+                "ButtonTeapotChase",
+                "ButtonGoHome",
+                "GoHomeButton",
+                "ButtonHome"
+            ];
+
+            if (blockedIds.indexOf(button.id) === -1) {
+                return;
+            }
+
+            if (
+                typeof blockActionIfDogBusyAtBowl === "function" &&
+                blockActionIfDogBusyAtBowl()
+            ) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            }
+        },
+        true
+    );
+}
+
+installDogBowlBusyClickGuard();

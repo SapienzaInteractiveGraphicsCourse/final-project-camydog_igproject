@@ -1188,11 +1188,12 @@ function updateKibbles(deltaTime) {
 
 
 ///////////////////////////////////
+function getBowlFinalRadiusForDog() {
+    return bowlColliderRadius + BOWL_FINAL_MARGIN;
+}
+
 function getBowlAvoidRadiusForDog() {
-    /*
-        Raggio bowl + spazio per il corpo del cane.
-    */
-    return bowlColliderRadius + 0.10
+    return bowlColliderRadius + BOWL_STAND_MARGIN;
 }
 
 function keepDogOutsideBowl(x, z) {
@@ -1223,6 +1224,32 @@ function keepDogOutsideBowl(x, z) {
         x: bowlX + dx * radius,
         z: bowlZ + dz * radius
     };
+}
+
+function slideDogCloserToBowlWhileLowering() {
+    var finalRadius = getBowlFinalRadiusForDog();
+
+    var dx = dogFetchX - bowlX;
+    var dz = dogFetchZ - bowlZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.001) {
+        return;
+    }
+
+    if (dist <= finalRadius) {
+        return;
+    }
+
+    dx /= dist;
+    dz /= dist;
+
+    var targetX = bowlX + dx * finalRadius;
+    var targetZ = bowlZ + dz * finalRadius;
+
+    dogFetchX += (targetX - dogFetchX) * 0.035;
+    dogFetchZ += (targetZ - dogFetchZ) * 0.035;
 }
 
 function keepDogOutsideTeapotChaseObstacles(x, z) {
@@ -1662,6 +1689,22 @@ function updateDogFollowTeapot(deltaTime) {
         return;
     }
 
+    //if dog is eating/drinking or busy at bowl, stop following teapot
+    if (blockActionIfDogBusyAtBowl()) {
+        dogFollowTeapotMode = false;
+
+        var teapotButton = document.getElementById("ButtonTeapotChase");
+        if (teapotButton) {
+            teapotButton.classList.remove("active");
+        }
+
+        if (typeof updateTeapotControlsLegend === "function") {
+            updateTeapotControlsLegend();
+        }
+
+        return;
+    }
+
     var teapotX = objPos[0];
     var teapotZ = objPos[2];
 
@@ -1956,6 +1999,11 @@ function initPhysics() {
 }
 
 function startBallMiniGame() {
+
+     if (blockActionIfDogBusyAtBowl()) {
+        return;
+    }
+
     if (!ballBody) {
         console.warn("ballBody not initialized yet");
         return;
@@ -2092,6 +2140,10 @@ function isBallAlmostStopped() {
 
 
 function startBallBounceAnimation() {
+    if (blockActionIfDogBusyAtBowl()) {
+        return;
+    }
+
     if (!ballBody || !ballVisible) {
         console.warn("Ball is not visible yet");
         return;
@@ -2500,6 +2552,12 @@ function isBallUnderTable() {
 
 */
 function startSkinnedDogFetchBall() {
+
+    // if dog is drinking/eating do nothing
+    if (blockActionIfDogBusyAtBowl()) {
+        return;
+    }
+
     if (!ballBody) return;
     dogFetchObjectType = "ball";
 
@@ -2515,6 +2573,9 @@ function startSkinnedDogFetchBall() {
     // RESET stato precedente del cane
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
+
+    dogBowlConsumeTimer = 0.0;
+    dogBowlConsumeDone = false;
 
     dogPath = [];
     dogPathIndex = 0;
@@ -2673,6 +2734,141 @@ function startDogBallPickupLowering() {
     showDogMusicNote = false;
 }
 
+
+function isDogBusyAtBowl() {
+    return (
+        (
+            dogFetchObjectType === "bowlWater" ||
+            dogFetchObjectType === "bowlFood"
+        ) &&
+        (
+            dogFetchLoweringActive ||
+            dogBowlWaitingForEmpty ||
+            dogBowlRisingActive ||
+            dogFetchLowerAmount > 0.02
+        )
+    );
+}
+
+function blockActionIfDogBusyAtBowl() {
+    if (!isDogBusyAtBowl()) {
+        dogBowlBusyMessageShown = false;
+        return false;
+    }
+
+    if (!dogBowlBusyMessageShown) {
+        if (typeof showGameMessage === "function") {
+            showGameMessage(
+                "The dog is eating/drinking!\nWait until it finishes.",
+                2600
+            );
+        } else {
+            console.log("The dog must finish eating/drinking first.");
+        }
+
+        dogBowlBusyMessageShown = true;
+    }
+
+    return true;
+}
+
+function getDogSafeBowlStandPosition() {
+    var radius =
+        typeof getBowlAvoidRadiusForDog === "function"
+            ? getBowlAvoidRadiusForDog()
+            : bowlColliderRadius + 0.80;
+
+    var dx = dogFetchX - bowlX;
+    var dz = dogFetchZ - bowlZ;
+
+    var dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 0.001) {
+        dx = 1.0;
+        dz = 0.0;
+        dist = 1.0;
+    }
+
+    dx /= dist;
+    dz /= dist;
+
+    var targetX = bowlX + dx * radius;
+    var targetZ = bowlZ + dz * radius;
+
+    if (typeof clampDogTargetToRoom === "function") {
+        var clamped = clampDogTargetToRoom(targetX, targetZ);
+        targetX = clamped.x;
+        targetZ = clamped.z;
+    }
+
+    return {
+        x: targetX,
+        z: targetZ
+    };
+}
+
+function slideDogBackOutsideBowlWhileRising() {
+    var standPos = getDogSafeBowlStandPosition();
+
+    var riseBackSpeed = 0.020;
+
+    dogFetchX += (standPos.x - dogFetchX) * riseBackSpeed;
+    dogFetchZ += (standPos.z - dogFetchZ) * riseBackSpeed;
+}
+function restoreDogBowlStateIfLocked() {
+    if (
+        dogBowlInteractionLocked &&
+        (
+            dogBowlActiveKind === "bowlWater" ||
+            dogBowlActiveKind === "bowlFood"
+        )
+    ) {
+        dogFetchObjectType = dogBowlActiveKind;
+    }
+}
+
+function isDogBusyAtBowl() {
+    return (
+        dogBowlInteractionLocked ||
+        (
+            (
+                dogFetchObjectType === "bowlWater" ||
+                dogFetchObjectType === "bowlFood"
+            ) &&
+            (
+                dogFetchLoweringActive ||
+                dogBowlRisingActive ||
+                dogBowlWaitingForEmpty ||
+                dogFetchLowerAmount > 0.02
+            )
+        )
+    );
+}
+
+function blockActionIfDogBusyAtBowl() {
+    if (!isDogBusyAtBowl()) {
+        dogBowlBusyMessageShown = false;
+        return false;
+    }
+
+    restoreDogBowlStateIfLocked();
+
+    if (!dogBowlBusyMessageShown) {
+        if (typeof showGameMessage === "function") {
+            showGameMessage(
+                "The dog is eating/drinking!\nWait until it finishes.",
+                2600
+            );
+        } else {
+            console.log("The dog must finish eating/drinking first.");
+        }
+
+        dogBowlBusyMessageShown = true;
+    }
+
+    return true;
+}
+
 function updateSkinnedDogFetchBall(deltaTime) {
 
     if (dogFetchLoweringActive) {
@@ -2685,20 +2881,35 @@ function updateSkinnedDogFetchBall(deltaTime) {
                 Stessa posa per acqua e croccantini.
                 Il cane abbassa un po' la testa verso la ciotola.
             */
-            var bowlLowerTarget = 0.68;
+           var bowlLowerTarget = dogBowlRisingActive ? 0.0 : 0.68;
+
+            var bowlLowerSpeed = dogBowlRisingActive ? 0.055 : 0.04;
 
             dogFetchLowerAmount +=
-                (bowlLowerTarget - dogFetchLowerAmount) * 0.04;
+                (bowlLowerTarget - dogFetchLowerAmount) * bowlLowerSpeed;
 
             dogCrouchActive = false;
             dogCrouchAmount = 0.0;
 
             dogFetchBallMode = false;
 
+
+            //REVIEW - mODIFICA PER scattino cane
+            dogPath = [];
+            dogPathIndex = 0;
+
+
             dogFetchTarget = {
                 x: bowlX,
                 z: bowlZ
             };
+
+            if (dogBowlRisingActive) {
+                slideDogBackOutsideBowlWhileRising();
+            } else if (!dogBowlWaitingForEmpty) {
+                slideDogCloserToBowlWhileLowering();
+            }
+            
 
             updateDogFacingTarget(
                 bowlX,
@@ -2706,10 +2917,103 @@ function updateSkinnedDogFetchBall(deltaTime) {
                 deltaTime
             );
 
+            if (
+                !dogBowlConsumeDone &&
+                dogFetchLowerAmount > dogBowlConsumePoseThreshold
+            ) {
+                var eatDeltaTime =
+                    typeof deltaTime === "number" && isFinite(deltaTime)
+                        ? Math.min(deltaTime, 0.05)
+                        : 1.0 / 60.0;
+
+                dogBowlConsumeTimer += eatDeltaTime;
+
+                if (dogBowlConsumeTimer >= dogBowlConsumeDelay) {
+                    if (dogFetchObjectType === "bowlWater") {
+                        if (typeof deactivateWater === "function") {
+                            deactivateWater();
+                        } else {
+                            waterVisible = false;
+                        }
+                    }
+
+                    if (dogFetchObjectType === "bowlFood") {
+                        if (typeof deactivateFood === "function") {
+                            deactivateFood();
+                        } else if (typeof clearKibbleParticles === "function") {
+                            clearKibbleParticles();
+                        }
+                    }
+
+                    dogBowlConsumeDone = true;
+
+                    if (dogFetchObjectType === "bowlWater") {
+                        dogBowlWaitingForEmpty = true;
+                    } else {
+                        
+                        dogBowlRisingActive = true;
+                        dogBowlRiseAngleLocked = true;
+                        dogBowlRiseLockedAngle = dogCurrentAngle;
+                    }
+
+
+                }
+            } else if (!dogBowlConsumeDone) {
+                dogBowlConsumeTimer = 0.0;
+            }
+
+
+            if (dogBowlWaitingForEmpty) {
+                if (
+                    typeof waterFillAmount === "undefined" ||
+                    waterFillAmount <= dogBowlEmptyThreshold
+                ) {
+                    dogBowlWaitingForEmpty = false;
+                    dogBowlRisingActive = true;
+
+                    // to lock angle
+                    dogBowlRiseAngleLocked = true;
+                    dogBowlRiseLockedAngle = dogCurrentAngle;
+                }
+            }
+
+            if (dogBowlRisingActive && dogFetchLowerAmount < 0.0003) {
+
+                /* var finalStandPos = getDogSafeBowlStandPosition();
+                dogFetchX = finalStandPos.x;
+                dogFetchZ = finalStandPos.z; */
+
+                dogFetchLowerAmount = 0.0;
+                dogFetchLoweringActive = false;
+                dogBowlRisingActive = false;
+                dogBowlWaitingForEmpty = false;
+
+                  // blocco l'angolo sull'ultimo angolo buono
+                if (dogBowlRiseAngleLocked) {
+                    dogCurrentAngle = dogBowlRiseLockedAngle;
+                }
+
+                dogBowlRiseAngleLocked = false;
+
+                dogCrouchActive = false;
+                dogCrouchAmount = 0.0;
+
+                dogFetchObjectType = null;
+
+                dogBowlInteractionLocked = false;
+                dogBowlActiveKind = null;
+                dogBowlBusyMessageShown = false;
+
+                dogFetchTarget = {
+                    x: dogFetchX,
+                    z: dogFetchZ
+                };
+            }
+
             return;
         }
 
-        if (dogFetchObjectType === "frisbee") {
+        else if (dogFetchObjectType === "frisbee") {
             var pickupDeltaTime =
                 typeof deltaTime === "number" && isFinite(deltaTime)
                     ? Math.min(deltaTime, 0.05)
@@ -2954,6 +3258,16 @@ function updateSkinnedDogFetchBall(deltaTime) {
                     nextX,
                     nextZ
                 );
+
+                if (
+                    dogFetchObjectType === "bowlWater" ||
+                    dogFetchObjectType === "bowlFood"
+                ) {
+                    corrected = keepDogOutsideBowl(
+                        corrected.x,
+                        corrected.z
+                    );
+                }
             }
 
             /*
@@ -3033,6 +3347,10 @@ function updateSkinnedDogFetchBall(deltaTime) {
                 dogPath = [];
                 dogPathIndex = 0;
 
+                var safeBowlPos = keepDogOutsideBowl(dogFetchX, dogFetchZ);
+                dogFetchX = safeBowlPos.x;
+                dogFetchZ = safeBowlPos.z;
+
                 dogFetchLoweringActive = true;
                 dogFetchLowerAmount = 0.0;
 
@@ -3046,11 +3364,21 @@ function updateSkinnedDogFetchBall(deltaTime) {
 
                 showDogMusicNote = false;
 
-                updateDogFacingTarget(
+                /* updateDogFacingTarget(
                     bowlX,
                     bowlZ,
                     deltaTime
-                );
+                ); */
+
+                if (dogBowlRiseAngleLocked) {
+                    dogCurrentAngle = dogBowlRiseLockedAngle;
+                } else {
+                    updateDogFacingTarget(
+                        bowlX,
+                        bowlZ,
+                        deltaTime
+                    );
+                }
 
                 return;
             }
@@ -4160,8 +4488,30 @@ function startSkinnedDogGoToBowl(kind) {
         ? "bowlFood"
         : "bowlWater";
 
+    dogBowlInteractionLocked = true;
+    dogBowlActiveKind = dogFetchObjectType;
+    dogBowlBusyMessageShown = false;
+
+
+    // quando va alla ciotola non deve restare nello stato "palla in bocca"
+    dogHasBall = false;
+
+    if (typeof dogHasFrisbee !== "undefined") {
+        dogHasFrisbee = false;
+    }
+
+    if (typeof dogReturningWithFrisbee !== "undefined") {
+        dogReturningWithFrisbee = false;
+    }
+
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
+
+    dogBowlConsumeTimer = 0.0;
+    dogBowlConsumeDone = false;
+    dogBowlRisingActive = false;
+
+    dogBowlWaitingForEmpty = false;
 
     dogCrouchActive = false;
     dogCrouchAmount = 0.0;

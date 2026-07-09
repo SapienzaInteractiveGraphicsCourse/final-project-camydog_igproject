@@ -990,39 +990,32 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     localOverrides[15] = rotationXMat4Raw(Math.sin(tonguePhase + 0.50) * 16.0);
 
 
-    /* //Walk to reach ball, based on distance to ball
-    if (dogFetchLowerAmount > 0.01  && !dogFetchBallMode) {
-        var lower = dogFetchLowerAmount;
-
-        // abbassamento collo verso la palla
-        localOverrides[30] = rotationXMat4Raw(28.0 * lower); // Wolf_Neck_01SHJnt
-        localOverrides[28] = rotationXMat4Raw(18.0 * lower); // Wolf_Neck_02SHJnt
-        localOverrides[27] = rotationXMat4Raw(10.0 * lower); // Wolf_Neck_TopSHJnt
-
-
-    } */
-
     // Walk to reach ball/frisbee, based on distance to target
-    if (dogFetchLowerAmount > 0.01 && !dogFetchBallMode) {
+    var isBowlPoseObject =
+        dogFetchObjectType === "bowlWater" ||
+        dogFetchObjectType === "bowlFood";
+
+    var lowerPoseThreshold = isBowlPoseObject
+        ? 0.0001
+        : 0.01;
+
+    if (dogFetchLowerAmount > lowerPoseThreshold && !dogFetchBallMode) {
         var lower = dogFetchLowerAmount;
 
-          if (
-                dogFetchObjectType === "bowlWater" ||
-                dogFetchObjectType === "bowlFood"
+            if (
+                isBowlPoseObject &&
+                dogFetchLowerAmount > 0.0001 &&
+                !dogFetchBallMode
             ) {
-                /*
-                    Abbassamento più delicato per bere/mangiare.
+    
+                /*Abbassamento più delicato per bere/mangiare.
+                Stessa posa per acqua e croccantini.
+                Solo collo/testa, niente zampe strane.
                 */
-                /*
-                    Stessa posa per acqua e croccantini.
-                    Solo collo/testa, niente zampe strane.
-                */
-                 var bowlLower = Math.min(lower, 0.68);
 
-                // collo/testa verso la ciotola
-                /* localOverrides[30] = rotationXMat4Raw(30.0 * bowlLower);
-                localOverrides[28] = rotationXMat4Raw(10.0 * bowlLower);
-                localOverrides[27] = rotationXMat4Raw(5.0 * bowlLower); */
+                //console.log("BOWL POSE BLOCK ACTIVE");
+                var bowlLower = Math.min(lower, 0.68);
+
 
                 
                 localOverrides[30] = rotationXMat4Raw(100.0 * bowlLower);
@@ -1090,16 +1083,84 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     /* Legs */
 
 
-    dogIsWalking =
-    (
-        dogFetchBallMode ||
+    /* var dogGoingToBowl =
+        typeof dogFetchObjectType !== "undefined" &&
         (
-            dogFireflyCatchActive &&
-            dogFireflyCatchPhase === "chase"
+            dogFetchObjectType === "bowlWater" ||
+            dogFetchObjectType === "bowlFood"
+        ) &&
+        dogFetchLowerAmount <= 0.01 &&
+        dogPath &&
+        dogPath.length > 0;
+ */
+    
+    //REVIEW - MODIFICA  PER scattino cane
+
+    var isBowlObjectForWalk =
+        typeof dogFetchObjectType !== "undefined" &&
+        (
+            dogFetchObjectType === "bowlWater" ||
+            dogFetchObjectType === "bowlFood"
+        );
+
+    var dogIsInBowlPoseOrRecovery =
+        isBowlObjectForWalk &&
+        (
+            dogFetchLoweringActive ||
+            dogBowlRisingActive ||
+            dogBowlWaitingForEmpty ||
+            dogFetchLowerAmount > 0.0001
+        );
+
+    var dogGoingToBowl =
+        isBowlObjectForWalk &&
+        dogFetchBallMode &&
+        !dogIsInBowlPoseOrRecovery &&
+        dogFetchLowerAmount <= 0.01 &&
+        dogPath &&
+        dogPath.length > 0;
+
+    
+    /* dogIsWalking =
+        (
+            dogFetchBallMode ||  dogGoingToBowl ||
+            (
+                dogFireflyCatchActive &&
+                dogFireflyCatchPhase === "chase"
+            )
         )
-    )
-    &&
-    dogCrouchAmount < 0.1;
+        &&
+        dogCrouchAmount < 0.1; */
+
+    dogIsWalking =
+        (
+            (
+                dogFetchBallMode ||
+                dogGoingToBowl ||
+                (
+                    dogFireflyCatchActive &&
+                    dogFireflyCatchPhase === "chase"
+                )
+            )
+            &&
+            !dogIsInBowlPoseOrRecovery
+        )
+        &&
+        dogCrouchAmount < 0.1;
+
+    if (
+        dogFetchObjectType === "bowlWater" ||
+        dogFetchObjectType === "bowlFood"
+    ) {
+        //console.log(
+        //    "BOWL WALK DEBUG",
+        //    "dogFetchBallMode:", dogFetchBallMode,
+        //    "dogGoingToBowl:", dogGoingToBowl,
+        //    "dogFetchLowerAmount:", dogFetchLowerAmount,
+        //    "dogPath length:", dogPath ? dogPath.length : null,
+        //    "dogIsWalking:", dogIsWalking
+        //);
+    }
 
     var legA = 0.0;
     var legB = 0.0;
@@ -1181,8 +1242,12 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
 
 
+    // --- camminata più visibile quando va alla bowl ---
 
-    if (dogHasBall) {
+
+    if (dogHasBall &&
+        dogFetchObjectType !== "bowlWater" &&
+        dogFetchObjectType !== "bowlFood") {
         //console.log("DOG CROUCH ACTIVE");
 
         // zampa posteriore sinistra
@@ -1258,9 +1323,10 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
 
     if (
-        dogFetchObjectType === "bowlWater" ||
-        dogFetchObjectType === "bowlFood"
-    ) {
+        isBowlPoseObject &&
+        !dogFetchBallMode &&
+        dogFetchLowerAmount > 0.0001
+        ) {
         var bowlLower = Math.min(dogFetchLowerAmount, 0.50);
 
         var bowlPose = bowlLower / 0.68;
@@ -1301,16 +1367,37 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
        var lick = 0.5 + 0.5 * Math.sin(t * 12.0);
 
-        localOverrides[17] = rotationXMat4Raw(18.0 + 8.0 * lick);
+        /*
+            Non cambio i valori della lingua.
+            Aggiungo solo un blend per farla rientrare prima durante il rialzo.
+        */
+        var tongueAmount = 1.0;
+
+        if (
+            typeof dogBowlRisingActive !== "undefined" &&
+            dogBowlRisingActive
+        ) {
+            tongueAmount = dogFetchLowerAmount / 0.22;
+
+            tongueAmount = Math.min(Math.max(tongueAmount, 0.0), 1.0);
+
+            // smoothstep: rientro morbido
+            tongueAmount =
+                tongueAmount * tongueAmount * (3.0 - 2.0 * tongueAmount);
+        }
+
+        localOverrides[17] = rotationXMat4Raw(
+            (18.0 + 8.0 * lick) * tongueAmount
+        );
 
         localOverrides[16] = mat4MultiplyRaw(
-            rotationXMat4Raw(28.0 + 12.0 * lick),
-            translationMat4Raw(0.0, 0.0, -0.15)
+            rotationXMat4Raw((28.0 + 12.0 * lick) * tongueAmount),
+            translationMat4Raw(0.0, 0.0, -0.15 * tongueAmount)
         );
 
         localOverrides[15] = mat4MultiplyRaw(
-            rotationXMat4Raw(50.0 + 18.0 * lick),
-            translationMat4Raw(0.0, 0.0, -0.15)
+            rotationXMat4Raw((50.0 + 18.0 * lick) * tongueAmount),
+            translationMat4Raw(0.0, 0.0, -0.15 * tongueAmount)
         );
 
 
@@ -1336,6 +1423,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
        
 
     }
+
     /*
         Frisbee pickup front legs override.
         This must stay AFTER the normal walk legs animation,
@@ -1637,7 +1725,10 @@ function getSkinnedDogModelMatrix() {
             Math.abs(Math.sin(t * 12.4)) * 0.01;
     }
 
-    var angle = 90.0;
+    var angle =
+        typeof dogCurrentAngle === "number" && isFinite(dogCurrentAngle)
+            ? dogCurrentAngle
+            : 90.0;
 
     var lookX = dogFetchX;
     var lookZ = dogFetchZ;
@@ -1647,25 +1738,38 @@ function getSkinnedDogModelMatrix() {
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
     } 
-    
+
     else if (dogFetchTarget) {
         // quando è arrivato, conserva il target finale
-        // per esempio la posizione della camera
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
     } else {
         // fallback: guarda la palla
         lookX = dogLookAtBallX;
         lookZ = dogLookAtBallZ;
-}
-
-    var dxLook = lookX - dogFetchX;
-    var dzLook = lookZ - dogFetchZ;
-
-    if (Math.sqrt(dxLook * dxLook + dzLook * dzLook) > 0.001) {
-        angle = Math.atan2(dxLook, dzLook) * 180.0 / Math.PI;
     }
-    dogCurrentAngle = angle;
+
+    if (
+        typeof dogBowlRiseAngleLocked !== "undefined" &&
+        dogBowlRiseAngleLocked
+    ) {
+        dogCurrentAngle = dogBowlRiseLockedAngle;
+    } else {
+        var dxLook = lookX - dogFetchX;
+        var dzLook = lookZ - dogFetchZ;
+
+        var lookDist = Math.sqrt(dxLook * dxLook + dzLook * dzLook);
+
+        // se il target è troppo vicino, NON torno a 90:
+        // mantengo l'angolo precedente
+        if (lookDist > 0.001) {
+            angle = Math.atan2(dxLook, dzLook) * 180.0 / Math.PI;
+        }
+
+        dogCurrentAngle = angle;
+    }
+
+
     var dogScale = 2.0;
 
     var holdBallBodyDown = 0.0;

@@ -326,11 +326,34 @@ var waterScale=0.3;
 var waterButton;
 
 //bowl variables
+var DOG_BOWL_VISUAL_EPS = 0.0001;
+
+var dogBowlBusyMessageShown = false;
+var dogBowlInteractionLocked = false;
+var dogBowlActiveKind = null;
+
+var dogBowlWaitingForEmpty = false;
+var dogBowlEmptyThreshold = 0.05;
+var dogBowlConsumeTimer = 0.0;
+var dogBowlConsumeDelay = 3.5;        // how long the dog will drink before finishing
+var dogBowlConsumeDone = false;
+var dogBowlConsumePoseThreshold = 0.56; // how much time the dog will be in drinking pose
+
+var dogBowlRisingActive = false;
+
+var dogBowlRiseAngleLocked = false;
+var dogBowlRiseLockedAngle = 0.0;
+
 var bowlX=5.0;
 var bowlY=-2.25;
 var bowlZ=5.0;
 var bowlBody = null;
 
+const BOWL_FINAL_MARGIN = 0.10;   // quello che ora ti piace quando beve
+const BOWL_STAND_MARGIN = 0.80;   // distanza sicura mentre cammina
+const DRINK_FORWARD_SLIDE = 0.12;
+
+var drinkPoseT = 0.0;
 
 //skinned dog variables
 var skinnedDog = null;
@@ -472,7 +495,7 @@ var isSunHalo=false;
 //bowl with water variables
 var waterVisible = false;
 var waterFillAmount = 0.0;
-var waterFillSpeed = 1.8;
+var waterFillSpeed = 0.8;
 var waterSound = new Audio("./Audio/water.mp3");
  waterSound.volume = 0.6;
 
@@ -492,7 +515,7 @@ var kibbleVisible = false;
 var kibbleCatchRadius = 0.04;
 var kibbleCatchHeight = 0.08;
 
-var numKibbles = 30;
+var numKibbles = 25;
 var kibbleRadius = 0.035;
 
 // piano invisibile dove atterrano i croccantini
