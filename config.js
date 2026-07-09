@@ -159,7 +159,12 @@ var waterDiskTexture;
 var waterHighlightTexture;
 var curtainTexture = null;
 var kibbleTexture ;
+
 var benchTexture;
+var benchBaseColorTexture = null;
+var benchNormalTexture = null;
+var benchRoughnessTexture = null;
+var benchMetallicTexture = null;
 var frisbeeTexture;
 var grassBlockTexture;
 var leafTexture;
@@ -362,7 +367,9 @@ var skinnedDogAttribs = {};
 var skinnedDogUniforms = {};
 
 var EXPORT_DOG_MERMAID_TXT = false;
+var DEBUG_DOG_HIERARCHY = false;
 var skinnedDogLoadState = "pending";
+
 // pending | loading | ready | failed
 
 var DOG_WALL_PICKUP_MARGIN = 1.70;
@@ -570,6 +577,9 @@ var BENCH_COLLIDER_ROT_Y = 90.0;
 
 // margine per il cane
 var BENCH_DOG_MARGIN = 1.2;
+
+
+
 
 
 /**********FRISBEE */

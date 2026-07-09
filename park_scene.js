@@ -73,7 +73,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
     modelMatrixBench = mult(modelMatrixBench, rotate(90, [0, 1, 0]));
     modelMatrixBench = mult(modelMatrixBench, scalem(2.0, 2.0, 2.0));
 
-    drawObject(
+    /* drawObject(
         benchBuffers,
         benchTexture,  // benchTexture
         modelMatrixBench,
@@ -84,6 +84,13 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
         false,  // twoSided
         true,   // receiveShadow
         0
+    ); */
+
+    drawBenchMaterial(
+        benchBuffers,
+        modelMatrixBench,
+        viewMatrix,
+        projectionMatrix
     );
 
     //if collision debug is enabled, draw the bench collider box

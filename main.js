@@ -331,6 +331,12 @@ onload = async function init() {
     canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);
 
+    var derivativesExtension = gl.getExtension("OES_standard_derivatives");
+
+    if (!derivativesExtension) {
+        console.warn("OES_standard_derivatives not supported. Normal mapping may not work.");
+    }
+
     gl.viewport(0, 0, canvas.width, canvas.height);
     aspect = canvas.width / canvas.height;
 
@@ -539,7 +545,12 @@ onload = async function init() {
             generateDogMermaidTxtFromGltf(result.gltf);
         }
 
-        
+        if (DEBUG_DOG_HIERARCHY) {
+            printDogParentRelationships(result.gltf);
+            printDogMermaidFromGltf(result.gltf);
+        }
+
+
         skinnedDog = createSkinnedDogBuffers(
             gl,
             result.gltf,
@@ -603,16 +614,25 @@ onload = async function init() {
     grassTexture= loadTexture(path_img_grass);
     //bowlTexture= loadTexture(path_img_blue);
     //bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
-//bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
-bowlTexture = loadTexture ("./Textures/bowl_2.png");
+    //bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
+    bowlTexture = loadTexture ("./Textures/bowl_2.png");
     waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
     waterHighlightTexture = createSolidColorTexture(gl, 255, 255, 255, 180);
     //kibbleTexture = createSolidColorTexture(gl, 115, 70, 30, 255);
     kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
-    //benchTexture = createSolidColorTexture(gl, 185, 155, 115, 255);
+  
+
+
     benchTexture = loadTexture(path_img_bench);
+
+    // Advanced bench material textures
+    benchBaseColorTexture = loadTexture("./Textures/textures_bench/bench_baseColor.png");
+    benchNormalTexture = loadTexture("./Textures/textures_bench/bench_normal.png");
+    benchRoughnessTexture = loadTexture("./Textures/textures_bench/bench_roughness.png");
+    benchMetallicTexture = loadTexture("./Textures/textures_bench/bench_metallic.png");
+
     frisbeeTexture= loadTexture(path_img_frisbee);
-    //frisbeeTexture = createSolidColorTexture(gl, 230, 20, 35, 255);
+    
     grassBlockTexture = loadTexture(path_img_grass_block);
     leafTexture = loadTexture(path_img_leaf);
     fireflyTexture = createSolidColorTexture(
@@ -1017,6 +1037,25 @@ bowlTexture = loadTexture ("./Textures/bowl_2.png");
 
     tableMaterialUniforms.aoMap =
         gl.getUniformLocation(tableMaterialProgram, "aoMap");
+
+
+    //new uniforms used for bench
+    tableMaterialUniforms.normalMap =
+        gl.getUniformLocation(tableMaterialProgram, "normalMap");
+
+    tableMaterialUniforms.roughnessMap =
+        gl.getUniformLocation(tableMaterialProgram, "roughnessMap");
+
+    tableMaterialUniforms.metallicMap =
+        gl.getUniformLocation(tableMaterialProgram, "metallicMap");
+
+    tableMaterialUniforms.useNormalMap =
+        gl.getUniformLocation(tableMaterialProgram, "useNormalMap");
+
+    tableMaterialUniforms.usePBRMaps =
+        gl.getUniformLocation(tableMaterialProgram, "usePBRMaps");
+
+    ////////////////////
 
 
     tableMaterialUniforms.receiveShadow =
@@ -4079,6 +4118,204 @@ function focusDogCamera() {
 
 ////////////////////////
 
+function drawBenchMaterial(benchObj, modelMatrix, viewMatrix, projectionMatrix) {
+    if (!tableMaterialProgram) {
+        drawObject(
+            benchObj,
+            benchTexture,
+            modelMatrix,
+            viewMatrix,
+            projectionMatrix,
+            true,
+            false,
+            false,
+            true
+        );
+        return;
+    }
+
+    gl.useProgram(tableMaterialProgram);
+
+    gl.uniform1i(tableMaterialUniforms.receiveShadow, true);
+    gl.uniform1i(
+        tableMaterialUniforms.usePointShadowMap,
+        usePointShadowMap ? 1 : 0
+    );
+
+    gl.uniform1i(tableMaterialUniforms.useNormalMap, 1);
+    gl.uniform1i(tableMaterialUniforms.usePBRMaps, 1);
+
+    var modelNMat = normalMatrix(modelMatrix, true);
+
+    gl.uniformMatrix4fv(
+        tableMaterialUniforms.modelMatrix,
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        tableMaterialUniforms.viewMatrix,
+        false,
+        flatten(viewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        tableMaterialUniforms.projectionMatrix,
+        false,
+        flatten(projectionMatrix)
+    );
+
+    gl.uniformMatrix3fv(
+        tableMaterialUniforms.modelNormalMatrix,
+        false,
+        flatten(modelNMat)
+    );
+
+    gl.uniform4fv(
+        tableMaterialUniforms.lightPosition,
+        flatten(lightPosition)
+    );
+
+    // Texture 0: Base Color
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        benchBaseColorTexture || benchTexture
+    );
+    gl.uniform1i(tableMaterialUniforms.diffuseMap, 0);
+
+    // Texture 1: Normal map
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        benchNormalTexture || benchTexture
+    );
+    gl.uniform1i(tableMaterialUniforms.normalMap, 1);
+
+    // Texture 2: Roughness map
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        benchRoughnessTexture || benchTexture
+    );
+    gl.uniform1i(tableMaterialUniforms.roughnessMap, 2);
+
+    // Texture 3: Metallic map
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(
+        gl.TEXTURE_2D,
+        benchMetallicTexture || benchTexture
+    );
+    gl.uniform1i(tableMaterialUniforms.metallicMap, 3);
+
+    if (usePointShadowMap) {
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap0, 4);
+
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap1, 5);
+
+        gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap2, 6);
+
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap3, 7);
+
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap4, 8);
+
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
+        gl.uniform1i(tableMaterialUniforms.pointShadowMap5, 9);
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix0,
+            false,
+            flatten(pointLightViewMatrices[0])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix1,
+            false,
+            flatten(pointLightViewMatrices[1])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix2,
+            false,
+            flatten(pointLightViewMatrices[2])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix3,
+            false,
+            flatten(pointLightViewMatrices[3])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix4,
+            false,
+            flatten(pointLightViewMatrices[4])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightViewMatrix5,
+            false,
+            flatten(pointLightViewMatrices[5])
+        );
+
+        gl.uniformMatrix4fv(
+            tableMaterialUniforms.pointLightProjectionMatrix,
+            false,
+            flatten(pointLightProjectionMatrix)
+        );
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, benchObj.vBuffer);
+    gl.vertexAttribPointer(
+        tableMaterialAttribs.vPosition,
+        4,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(tableMaterialAttribs.vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, benchObj.nBuffer);
+    gl.vertexAttribPointer(
+        tableMaterialAttribs.vNormal,
+        4,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(tableMaterialAttribs.vNormal);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, benchObj.tBuffer);
+    gl.vertexAttribPointer(
+        tableMaterialAttribs.vTexCoord,
+        2,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(tableMaterialAttribs.vTexCoord);
+
+    gl.drawArrays(gl.TRIANGLES, 0, benchObj.numVertices);
+
+    gl.useProgram(program);
+}
+
+////////////////////////////
+
 
 function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) {
     if (!tableMaterialProgram) return;
@@ -4087,6 +4324,10 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
 
     gl.uniform1i(tableMaterialUniforms.receiveShadow, true);
     gl.uniform1i(tableMaterialUniforms.usePointShadowMap, usePointShadowMap ? 1 : 0);
+
+    // I need that for the bench so I deactivate it
+    gl.uniform1i(tableMaterialUniforms.useNormalMap, 0);
+    gl.uniform1i(tableMaterialUniforms.usePBRMaps, 0);
 
     var modelNMat = normalMatrix(modelMatrix, true);
 
