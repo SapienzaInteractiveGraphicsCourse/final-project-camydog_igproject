@@ -756,75 +756,155 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
     gl.uniform4fv(
         skinnedDogUniforms.lightPosition,
         flatten(lightPosition)
-);
-
-if (usePointShadowMap) {
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap0, 4);
-
-    gl.activeTexture(gl.TEXTURE5);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap1, 5);
-
-    gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap2, 6);
-
-    gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap3, 7);
-
-    gl.activeTexture(gl.TEXTURE8);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap4, 8);
-
-    gl.activeTexture(gl.TEXTURE9);
-    gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
-    gl.uniform1i(skinnedDogUniforms.pointShadowMap5, 9);
-
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix0,
-        false,
-        flatten(pointLightViewMatrices[0])
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix1,
-        false,
-        flatten(pointLightViewMatrices[1])
+
+    var dogWallLampActive =
+        currentScene === "home" &&
+        isNight &&
+        wallLampEnabled;
+
+    var dogWallLampDirection =
+        normalize(
+            subtract(
+                wallLampTarget,
+                wallLampPosition
+            )
+        );
+
+    gl.uniform1i(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampEnabled"
+        ),
+        dogWallLampActive ? 1 : 0
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix2,
-        false,
-        flatten(pointLightViewMatrices[2])
+    gl.uniform3fv(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampPosition"
+        ),
+        flatten(wallLampPosition)
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix3,
-        false,
-        flatten(pointLightViewMatrices[3])
+    gl.uniform3fv(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampDirection"
+        ),
+        flatten(dogWallLampDirection)
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix4,
-        false,
-        flatten(pointLightViewMatrices[4])
+    gl.uniform3fv(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampColor"
+        ),
+        flatten(wallLampColor)
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightViewMatrix5,
-        false,
-        flatten(pointLightViewMatrices[5])
+    gl.uniform1f(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampIntensity"
+        ),
+        wallLampIntensity
     );
 
-    gl.uniformMatrix4fv(
-        skinnedDogUniforms.pointLightProjectionMatrix,
-        false,
-        flatten(pointLightProjectionMatrix)
+    gl.uniform1f(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampRange"
+        ),
+        wallLampRange
     );
-}
+
+    gl.uniform1f(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampCutoff"
+        ),
+        wallLampCutoff
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(
+            skinnedDogProgram,
+            "wallLampOuterCutoff"
+        ),
+        wallLampOuterCutoff
+    );
+
+
+
+    if (usePointShadowMap) {
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[0]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap0, 4);
+
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[1]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap1, 5);
+
+        gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[2]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap2, 6);
+
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[3]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap3, 7);
+
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[4]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap4, 8);
+
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, pointShadowTextures[5]);
+        gl.uniform1i(skinnedDogUniforms.pointShadowMap5, 9);
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix0,
+            false,
+            flatten(pointLightViewMatrices[0])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix1,
+            false,
+            flatten(pointLightViewMatrices[1])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix2,
+            false,
+            flatten(pointLightViewMatrices[2])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix3,
+            false,
+            flatten(pointLightViewMatrices[3])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix4,
+            false,
+            flatten(pointLightViewMatrices[4])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightViewMatrix5,
+            false,
+            flatten(pointLightViewMatrices[5])
+        );
+
+        gl.uniformMatrix4fv(
+            skinnedDogUniforms.pointLightProjectionMatrix,
+            false,
+            flatten(pointLightProjectionMatrix)
+        );
+    }
 
 
 
@@ -964,7 +1044,7 @@ gl.drawElements(
 
 }
 
-function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShadowPass) {
+/* function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShadowPass) {
     if (!skinnedDog || !skinnedDogShadowProgram) return;
 
     gl.useProgram(skinnedDogShadowProgram);
@@ -1028,13 +1108,17 @@ function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShado
         gl.UNSIGNED_SHORT,
         0
     );
-}
+} */
 
 
 function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
     if (!skinnedDog || !skinnedDogDepthProgram) return;
 
+   
+
     gl.useProgram(skinnedDogDepthProgram);
+
+    
 
     var modelMatrix = getSkinnedDogModelMatrix();
 
@@ -1045,8 +1129,6 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
 
     var boneData = computeBoneMatricesRaw(skinnedDog, localOverrides);
 
-    //var boneData = computeBoneMatricesRaw(skinnedDog, {}); 
-    // prima test senza animazione nello shadow pass
 
     gl.uniformMatrix4fv(
         skinnedDogDepthUniforms.modelMatrix,
@@ -1071,6 +1153,9 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
         false,
         boneData
     );
+
+   
+    //////////////////
 
     gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
     gl.vertexAttribPointer(
@@ -1129,6 +1214,116 @@ function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
         true
     );
 }
+
+
+function drawSkinnedDogWallLampShadow() {
+    if (!skinnedDog || !skinnedDogDepthProgram) {
+        return;
+    }
+
+    gl.useProgram(skinnedDogDepthProgram);
+
+    var modelMatrix = getSkinnedDogModelMatrix();
+
+    var localOverrides = {};
+    applySkinnedDogPoseOverrides(localOverrides);
+
+    var boneData = computeBoneMatricesRaw(
+        skinnedDog,
+        localOverrides
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.modelMatrix,
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.lightViewMatrix,
+        false,
+        flatten(wallLampViewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.lightProjectionMatrix,
+        false,
+        flatten(wallLampProjectionMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        skinnedDogDepthUniforms.boneMatrices,
+        false,
+        boneData
+    );
+
+    /*
+        Per la wall lamp NON è point shadow cubemap.
+        È una shadow map 2D normale.
+    */
+    gl.uniform4fv(
+        skinnedDogDepthUniforms.lightPosition,
+        flatten(vec4(
+            wallLampPosition[0],
+            wallLampPosition[1],
+            wallLampPosition[2],
+            1.0
+        ))
+    );
+
+    gl.uniform1f(
+        skinnedDogDepthUniforms.pointShadowFar,
+        wallLampFar
+    );
+
+    gl.uniform1i(
+        skinnedDogDepthUniforms.pointShadowPass,
+        0
+    );
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vPosition,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.jointBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vJoints,
+        4,
+        gl.UNSIGNED_BYTE,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vJoints);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.weightBuffer);
+    gl.vertexAttribPointer(
+        skinnedDogDepthAttribs.vWeights,
+        4,
+        gl.FLOAT,
+        false,
+        0,
+        0
+    );
+    gl.enableVertexAttribArray(skinnedDogDepthAttribs.vWeights);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinnedDog.indexBuffer);
+
+    gl.drawElements(
+        gl.TRIANGLES,
+        skinnedDog.indexCount,
+        gl.UNSIGNED_SHORT,
+        0
+    );
+}
+
 
 
 

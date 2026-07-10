@@ -658,12 +658,22 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     );
 
 
-    drawObject(bowlBuffers,
-         bowlTexture,
-          modelMatrixBowl,
-           viewMatrix,
-            projectionMatrix,true, 
-            false,false,true)
+    drawObject(
+        bowlBuffers,
+        bowlTexture,
+        modelMatrixBowl,
+        viewMatrix,
+        projectionMatrix,
+        true,   // useTexture
+        false,  // isLightMarker
+        false,  // twoSided
+        true,   // receiveShadow
+        0,      // wallShadowMode
+        false,  // isSunHalo
+        1.0,    // globalAlpha
+        false,  // isWallLampModel
+        true    // isBowlMaterial
+    );
 
 
     //drawKibbleParticles(viewMatrix, projectionMatrix);

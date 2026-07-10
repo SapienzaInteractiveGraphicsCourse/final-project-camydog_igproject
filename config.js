@@ -135,6 +135,7 @@ var path_folder_bench="./Textures/Bench_tex/";
 var path_folder_table="./Textures/Table_tex/";
 var path_folder_wall_lamp="./Textures/WallLamp_tex/";
 var path_img_wall_lamp_base_color="./Textures/wall_lamp_baseColor_new.png";
+var path_folder_bowl="./Textures/Bowl_tex/";
 
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
@@ -182,6 +183,8 @@ var sunTexture;
 var haloTexture;
 var grassTexture;
 var bowlTexture;
+var bowlNormalTexture;
+var bowlRoughnessTexture;
 var waterDiskTexture;
 
 var curtainTexture = null;
@@ -833,11 +836,19 @@ var useWallLampShadow = true;
 var wallLampColor = vec3(1.0, 0.72, 0.38);
 
 // intensità luce
-var wallLampIntensity = 2.8;
+/* var wallLampIntensity = 2.8;
 var wallLampRange = 7.0;
 
 var wallLampCutoff = 0.48;
-var wallLampOuterCutoff = 0.25;
+var wallLampOuterCutoff = 0.25; */
+
+
+var wallLampIntensity = 4.6;
+var wallLampRange = 6.4;
+
+var wallLampCutoff = 0.68;
+var wallLampOuterCutoff = 0.46;
+
 
 var wallLampPosition = vec3(-6.05, 1.05, -2.0);
 var wallLampTarget = vec3(-2.0, -1.7, -2.0);

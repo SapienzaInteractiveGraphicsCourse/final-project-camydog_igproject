@@ -553,6 +553,19 @@ onload = async function init() {
     //bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
     //bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
     bowlTexture = loadTexture ("./Textures/bowl_2.png");
+
+    /* bowlTexture = loadTexture(
+        path_folder_bowl + "bowl_BaseColor.png"
+    );
+ */
+    bowlNormalTexture = loadTexture(
+        path_folder_bowl + "bowl_NormalOGL.png"
+    );
+
+    bowlRoughnessTexture = loadTexture(
+        path_folder_bowl + "bowl_Roughness.png"
+    );
+
     waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
 
     kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
@@ -2393,25 +2406,23 @@ onload = async function init() {
             Se sto usando uno slider/input, non intercetto la tastiera.
             Così non disturbo altri controlli.
         */
-        var tag = event.target.tagName;
+       
+            var code = event.code;
 
-        if (
-            tag === "INPUT" ||
-            tag === "TEXTAREA" ||
-            tag === "SELECT"
-        ) {
-            return;
-        }
+            var tag = event.target && event.target.tagName
+                ? event.target.tagName
+                : "";
 
-        var code = event.code;
 
-        /*
-            1) Teapot keyboard controls
-            Attivi solo quando sei in modalità teapot.
-            Questi NON usano WASD, quindi non entrano in conflitto
-            con la camera.
-        */
-        if (isTeapotKeyboardControlActive()) {
+            var isRangeInput =
+                tag === "INPUT" &&
+                event.target.type === "range";
+
+            var isInputElement =
+                tag === "INPUT" ||
+                tag === "TEXTAREA" ||
+                tag === "SELECT";
+
             var isTeapotKey =
                 code === "KeyI" ||
                 code === "KeyK" ||
@@ -2425,26 +2436,67 @@ onload = async function init() {
                 code === "ArrowLeft" ||
                 code === "ArrowRight";
 
-            if (isTeapotKey) {
-                event.preventDefault();
 
-                teapotKeyboardKeys[code] = true;
+            var isCameraKey =
+                code === "KeyW" ||
+                code === "KeyA" ||
+                code === "KeyS" ||
+                code === "KeyD";
 
-                /*
-                    R funziona come A del joystick:
-                    toggle della rotazione automatica.
-                */
-                if (code === "KeyR" && !event.repeat) {
-                    flag_rot_teapot = !flag_rot_teapot;
-                    updateRotationDemoButtons();
-
-                    console.log(
-                        "Keyboard toggle teapot rotation:",
-                        flag_rot_teapot
-                    );
-                }
-
+            /*
+                Se sto usando uno slider/input, normalmente non intercetto la tastiera.
+                Però se sono in modalità teapot e premo un tasto della teapot,
+                allora lo gestisco comunque.
+            */
+             if (
+                isInputElement &&
+                !(isRangeInput && isCameraKey) &&
+                !(isRangeInput && isTeapotKeyboardControlActive() && isTeapotKey)
+            ) {
                 return;
+            }
+
+            /*
+                Tolgo il focus dallo slider, così le frecce non modificano più
+                lo slider ma tornano a controllare la teapot.
+            */
+            if (
+                isRangeInput &&
+                (
+                    isCameraKey ||
+                    (isTeapotKeyboardControlActive() && isTeapotKey)
+                )
+            ) {
+                event.target.blur();
+            }
+            /*
+            1) Teapot keyboard controls
+            Attivi solo quando sei in modalità teapot.
+            Questi NON usano WASD, quindi non entrano in conflitto
+            con la camera.
+        */
+             if (isTeapotKeyboardControlActive()) {
+
+                if (isTeapotKey) {
+                    event.preventDefault();
+
+                    teapotKeyboardKeys[code] = true;
+
+                    /*
+                        R funziona come A del joystick:
+                        toggle della rotazione automatica.
+                    */
+                    if (code === "KeyR" && !event.repeat) {
+                        flag_rot_teapot = !flag_rot_teapot;
+                        updateRotationDemoButtons();
+
+                        console.log(
+                            "Keyboard toggle teapot rotation:",
+                            flag_rot_teapot
+                        );
+                    }
+
+                    return;
             }
         }
 
@@ -2453,11 +2505,7 @@ onload = async function init() {
             Ora è attivo anche durante Teapot Chase.
             WASD muove sempre la camera.
         */
-        var isCameraKey =
-            code === "KeyW" ||
-            code === "KeyA" ||
-            code === "KeyS" ||
-            code === "KeyD";
+        
 
         if (isCameraKey) {
 
@@ -2476,6 +2524,13 @@ onload = async function init() {
                 cameraKeyboardKeys["KeyA"] = false;
                 cameraKeyboardKeys["KeyS"] = false;
                 cameraKeyboardKeys["KeyD"] = false;
+
+                if (!event.repeat) {
+                    showGameMessage(
+                        "Throw the frisbee before moving the camera!",
+                        2000
+                    );
+                }
 
                 return;
             }
@@ -3561,18 +3616,19 @@ function render() {
 }
 
 function drawObject(obj,
-     texture,
-      modelMatrix,
-       viewMatrix,
-        projectionMatrix,
+    texture,
+    modelMatrix,
+    viewMatrix,
+    projectionMatrix,
     useTexture = true,
-     isLightMarker=false,
-     twoSided = false, 
-     receiveShadow = true,
-     wallShadowMode=false,
+    isLightMarker=false,
+    twoSided = false, 
+    receiveShadow = true,
+    wallShadowMode=false,
     isSunHalo = false,
     globalAlpha = 1.0,
-    isWallLampModel = false
+    isWallLampModel = false,
+    isBowlMaterial = false
     ) {
 
     //to differentiate between day and night lighting
@@ -3754,6 +3810,32 @@ function drawObject(obj,
     gl.uniform1f(
         gl.getUniformLocation(program, "shadowMapSize"),
         POINT_SHADOW_SIZE
+    );
+
+
+    // bowl part 
+    gl.activeTexture(gl.TEXTURE9);
+    gl.bindTexture(gl.TEXTURE_2D, bowlNormalTexture);
+    gl.uniform1i(
+        gl.getUniformLocation(program, "bowlNormalMap"),
+        9
+    );
+
+    gl.activeTexture(gl.TEXTURE10);
+    gl.bindTexture(gl.TEXTURE_2D, bowlRoughnessTexture);
+    gl.uniform1i(
+        gl.getUniformLocation(program, "bowlRoughnessMap"),
+        10
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isBowlMaterial"),
+        isBowlMaterial ? 1 : 0
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(program, "cameraWorldPosition"),
+        flatten(eye)
     );
 
     var modelViewMatrix = mult(viewMatrix, modelMatrix);

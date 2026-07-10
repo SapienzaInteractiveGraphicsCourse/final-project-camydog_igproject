@@ -343,7 +343,7 @@
 
                  <div class="control-row">
                     <label for="LightX">Light X:</label>
-                    <input id="LightX" type="range" min="-10" max="20" step="0.1" value="6.6">
+                    <input id="LightX" type="range" min="-15" max="20" step="0.1" value="6.6">
                     <span id="LightXValue">6.6</span>
                  </div>
 
@@ -863,7 +863,130 @@ uniform float wallLampShadowBias;
 
 uniform bool isWallLampModel;
 
+uniform bool isBowlMaterial;
+uniform sampler2D bowlNormalMap;
+uniform sampler2D bowlRoughnessMap;
+uniform vec3 cameraWorldPosition;
+
+
+
+vec3 computeBowlMaterialColor(vec3 objectBaseColor)
+{
+    vec3 normalMapValue =
+        texture2D(bowlNormalMap, fTexCoord).rgb;
+
+    vec3 normalDetail =
+        normalMapValue * 2.0 - 1.0;
+
+    /*
+        Normal map semplificata:
+        aggiungo un piccolo dettaglio alla normale reale.
+        Non è tangent-space PBR perfetto, ma dà rilievo visivo.
+    */
+    vec3 N =
+        normalize(fWorldNormal + normalDetail * 0.45);
+
+    vec3 L =
+        normalize(lightPosition.xyz - fWorldPos);
+
+    vec3 V =
+        normalize(cameraWorldPosition - fWorldPos);
+
+    vec3 H =
+        normalize(L + V);
+
+    float diffuse =
+        max(dot(N, L), 0.0);
+
+    float roughness =
+        texture2D(bowlRoughnessMap, fTexCoord).r;
+
+    float shininessBowl =
+        mix(90.0, 14.0, roughness);
+
+    float specularStrength =
+        mix(0.75, 0.12, roughness);
+
+    float specular =
+        pow(
+            max(dot(N, H), 0.0),
+            shininessBowl
+        ) * specularStrength;
+
+    vec3 color =
+        objectBaseColor * uAmbientStrength
+        + objectBaseColor * diffuse * uLightIntensity * uLightTint
+        + vec3(specular);
+
+    return color;
+}
+
 vec3 computeWallLampLight(vec3 objectBaseColor, vec3 normal)
+{
+    vec3 fromLampToFragment =
+        fWorldPos - wallLampPosition;
+
+    float distanceToLamp =
+        length(fromLampToFragment);
+
+    vec3 lampToFragmentDir =
+        normalize(fromLampToFragment);
+
+    vec3 fragmentToLampDir =
+        normalize(wallLampPosition - fWorldPos);
+
+    vec3 N =
+        normalize(normal);
+
+    float diffuse =
+        max(dot(N, fragmentToLampDir), 0.0);
+
+    float attenuation =
+        clamp(1.0 - distanceToLamp / wallLampRange, 0.0, 1.0);
+
+     attenuation = pow(attenuation, 1.25);
+
+    float theta =
+        dot(lampToFragmentDir, normalize(wallLampDirection));
+
+    float spot =
+        smoothstep(
+            wallLampOuterCutoff,
+            wallLampCutoff,
+            theta
+        );
+
+    vec3 spotLight =
+        objectBaseColor *
+        wallLampColor *
+        diffuse *
+        attenuation *
+        spot *
+        wallLampIntensity;
+
+    /*
+        Glow vicino alla lampada, ma NON sferico puro.
+        frontMask evita che l'alone appaia dietro la lampada.
+    */
+    float frontMask =
+        smoothstep(0.00, 0.28, theta);
+
+    float localGlow =
+        clamp(1.0 - distanceToLamp / 1.85, 0.0, 1.0);
+
+    localGlow = localGlow * localGlow;
+    localGlow = localGlow * frontMask;
+
+    vec3 wallGlow =
+        objectBaseColor *
+        wallLampColor *
+        localGlow *
+        0.38;
+
+    return spotLight + wallGlow;
+}
+
+vec3 computeWallLampLight_old_old(vec3 objectBaseColor, vec3 normal)
 {
     vec3 fromLampToFragment =
         fWorldPos - wallLampPosition;
@@ -1561,6 +1684,14 @@ void main(){
 
     }
 
+    if (isBowlMaterial) {
+        vec3 bowlBaseColor =
+            useTexture ? texColor.rgb : vec3(1.0);
+
+        baseColor.rgb =
+            computeBowlMaterialColor(bowlBaseColor);
+    }
+
     float finalShadow = shadow;
 
     /*
@@ -1753,7 +1884,7 @@ void main()
 }
 </script>
 
-<!-- Prova shader rigged dog -->
+<!-- Shader for rigged dog -->
 <script id="skinned-dog-vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 attribute vec4 vNormal;
@@ -2103,6 +2234,87 @@ uniform float uAmbientStrength;
 uniform vec3 uLightTint;
 
 
+// for wall lamp
+uniform bool wallLampEnabled;
+uniform vec3 wallLampPosition;
+uniform vec3 wallLampDirection;
+uniform vec3 wallLampColor;
+uniform float wallLampIntensity;
+uniform float wallLampRange;
+uniform float wallLampCutoff;
+uniform float wallLampOuterCutoff;
+
+
+vec3 computeWallLampLightForDog(vec3 objectBaseColor, vec3 normal)
+{
+    vec3 fromLampToFragment =
+        fWorldPos - wallLampPosition;
+
+    float distanceToLamp =
+        length(fromLampToFragment);
+
+    vec3 lampToFragmentDir =
+        normalize(fromLampToFragment);
+
+    vec3 fragmentToLampDir =
+        normalize(wallLampPosition - fWorldPos);
+
+    vec3 N =
+        normalize(normal);
+
+    /*
+        Diffuse normale + piccolo wrap.
+        Il wrap serve perché il cane è curvo e scuro:
+        così non resta completamente spento se non guarda perfettamente la luce.
+    */
+    float normalDiffuse =
+        max(dot(N, fragmentToLampDir), 0.0);
+
+    float wrappedDiffuse =
+        max(dot(N, fragmentToLampDir) * 0.5 + 0.5, 0.0);
+
+    float diffuse =
+        mix(normalDiffuse, wrappedDiffuse, 0.35);
+
+    float attenuation =
+        clamp(1.0 - distanceToLamp / wallLampRange, 0.0, 1.0);
+
+    attenuation =
+        pow(attenuation, 1.25);
+
+    float theta =
+        dot(lampToFragmentDir, normalize(wallLampDirection));
+
+    float spot =
+        smoothstep(
+            wallLampOuterCutoff,
+            wallLampCutoff,
+            theta
+        );
+
+    vec3 directLight =
+        objectBaseColor *
+        wallLampColor *
+        diffuse *
+        attenuation *
+        spot *
+        wallLampIntensity;
+
+    /*
+        Piccolo fill caldo, solo dentro il cono.
+        Serve a rendere leggibile il cane nella zona illuminata.
+    */
+    vec3 warmFill =
+        objectBaseColor *
+        wallLampColor *
+        attenuation *
+        spot *
+        wallLampIntensity *
+        0.12;
+
+    return directLight + warmFill;
+}
+
 int choosePointShadowFace(vec3 dir)
 {
     vec3 absDir = abs(dir);
@@ -2395,6 +2607,17 @@ void main()
 
     vec3 finalColor =
         ambient + (diffuse + specular) * shadow;
+
+
+    if (wallLampEnabled) {
+        vec3 wallLampDogLight =
+            computeWallLampLightForDog(
+                baseColor,
+                fWorldNormal
+            );
+
+        finalColor += wallLampDogLight;
+    }
 
     /*
         Nel parco di notte il cane deve restare leggibile.

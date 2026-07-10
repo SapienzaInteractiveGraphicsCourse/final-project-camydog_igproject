@@ -314,16 +314,8 @@ function renderWallLampShadowMap() {
 
 
 function drawWallLampShadowCasters() {
-    /*
-        Qui mettiamo gli oggetti che devono bloccare la luce
-        della wall lamp.
-
-        Esempi:
-        drawWallLampShadowObject(teapotBuffers, modelMatrixTeapot);
-        drawWallLampShadowObject(tableBuffers, modelMatrixTable);
-        drawWallLampShadowObject(catBuffers, modelMatrixCat);
-        drawWallLampShadowObject(ballBuffers, modelMatrixBall);
-    */
+   // here i want the ombject that can cast shadow from the wall lamp
+   // so ball +dog+ teapot
     var modelMatrixBall= getBallModelMatrix();
     drawWallLampShadowObject(ballBuffers, modelMatrixBall);
 
@@ -332,6 +324,10 @@ function drawWallLampShadowCasters() {
             teapotBuffers,
             getTeapotModelMatrix()
         );
+    }
+
+    if (skinnedDog && skinnedDogDepthProgram) {
+        drawSkinnedDogWallLampShadow();
     }
 
 
