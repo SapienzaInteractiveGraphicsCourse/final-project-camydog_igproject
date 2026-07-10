@@ -111,6 +111,8 @@ function updateStartSettingsPanel() {
     }
 }
 
+
+
 function resetDogHeartEffect() {
     if (typeof showDogHeart !== "undefined") {
         showDogHeart = false;

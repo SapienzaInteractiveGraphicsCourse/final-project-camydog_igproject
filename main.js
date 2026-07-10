@@ -390,13 +390,23 @@ onload = async function init() {
             */
             startGlobalAudioEnabled = !startGlobalAudioEnabled;
 
-            /*
-                Poi richiamo la logica globale già esistente.
-            */
+            
+
             toggleGlobalAudioMute();
+
             updateGlobalAudioButton();
 
             updateStartSettingsPanel();
+
+            if (!startGlobalAudioEnabled) {
+                hardStopWaterSound();
+            } else {
+                var waterAudio = document.getElementById("waterSound");
+
+                if (waterAudio) {
+                    waterAudio.muted = false;
+                }
+            }
         };
     }
     
@@ -1292,8 +1302,15 @@ onload = async function init() {
 
             waterVisible = true;
 
-            if (startGlobalAudioEnabled && waterSound) {
-                waterSound.currentTime = 0;
+            if (startGlobalAudioEnabled && waterSound && !waterSound.muted) {
+                 waterSound.pause();
+               
+
+                try {
+                    waterSound.currentTime = 0;
+                } catch (error) {
+                    console.log("Could not reset water sound:", error);
+                }
 
                 waterSound.play().catch(function(error) {
                     console.log("Water sound could not be played:", error);
@@ -1442,13 +1459,42 @@ onload = async function init() {
 
     
     //settings for global audio
+
+    function hardStopWaterSound() {
+        var oldWaterSound = document.getElementById("waterSound");
+
+        if (!oldWaterSound) {
+            return;
+        }
+
+        oldWaterSound.pause();
+        oldWaterSound.muted = true;
+
+        try {
+            oldWaterSound.currentTime = 0;
+        } catch (error) {
+            console.log("Could not reset water sound:", error);
+        }
+
+        /*
+            Fix forte:
+            sostituisco proprio il tag audio con una copia.
+            Così anche se il browser aveva una play() pendente,
+            il suono vecchio viene eliminato.
+        */
+        var newWaterSound = oldWaterSound.cloneNode(true);
+        newWaterSound.muted = true;
+
+        oldWaterSound.parentNode.replaceChild(newWaterSound, oldWaterSound);
+
+        /*
+            Aggiorno anche la variabile globale creata dall'id HTML,
+            così i click successivi usano il nuovo audio.
+        */
+        window.waterSound = newWaterSound;
+    }
+
      var globalAudioButton = document.getElementById("ButtonGlobalAudio");
-    /*
-    if (globalAudioButton) {
-        globalAudioButton.onclick = function () {
-            toggleGlobalAudioMute();
-        };
-    } */
 
     if (globalAudioButton) {
         globalAudioButton.onclick = function () {
@@ -1457,6 +1503,18 @@ onload = async function init() {
             toggleGlobalAudioMute();
             updateGlobalAudioButton();
             updateStartSettingsPanel();
+
+            
+
+             if (!startGlobalAudioEnabled) {
+                hardStopWaterSound();
+            } else {
+                var waterAudio = document.getElementById("waterSound");
+
+                if (waterAudio) {
+                    waterAudio.muted = false;
+                }
+            }
         };
     }
 

@@ -1544,22 +1544,17 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         dogPath.length > 0;
 
     
-    /* dogIsWalking =
-        (
-            dogFetchBallMode ||  dogGoingToBowl ||
-            (
-                dogFireflyCatchActive &&
-                dogFireflyCatchPhase === "chase"
-            )
-        )
-        &&
-        dogCrouchAmount < 0.1; */
+    var dogIsCallWalking =
+        typeof dogCallMode !== "undefined" &&
+        dogCallMode;
+
 
     dogIsWalking =
         (
             (
                 dogFetchBallMode ||
                 dogGoingToBowl ||
+                dogIsCallWalking ||
                 (
                     dogFireflyCatchActive &&
                     dogFireflyCatchPhase === "chase"
