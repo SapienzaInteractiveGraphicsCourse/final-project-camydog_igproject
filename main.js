@@ -638,8 +638,6 @@ onload = async function init() {
     waterDiskTexture = createSolidColorTexture(gl, 130, 210, 230, 120);
 
     kibbleTexture = createSolidColorTexture(gl, 130, 75, 35, 255);
-  
-
 
     benchTexture = loadTexture(path_img_bench);
 
@@ -658,6 +656,15 @@ onload = async function init() {
         gl,
         255, 230, 110, 255
     );
+
+    wallLampTexture = loadTexture(path_img_wall_lamp_base_color);
+
+    wallLampNormalTexture =
+        loadTexture(wallLampNormalTexturePath);
+
+    wallLampRoughnessTexture =
+        loadTexture(wallLampRoughnessTexturePath);
+
 
     setLoadingProgress(
         50,
@@ -725,7 +732,13 @@ onload = async function init() {
 
     
     
-    
+    //second light .. wall lamp loading
+    await loadOBJ(modelPath_wallLamp);
+    console.log("OBJ Wall Lamp loaded");
+    var wallLampPoints = pointsArray.slice();
+    var wallLampNormals = normalsArray.slice();
+    var wallLampTex = texCoordsArray.slice();
+    wallLampBuffers = createBuffers(wallLampPoints, wallLampNormals, wallLampTex);
 
     //moon loading
     await loadOBJ(modelPath_moon);

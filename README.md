@@ -90,7 +90,8 @@ Ok messo con Cannon... ci sta l'ombra da sistemare ma mi sempre carino
 [Frisbee(2.5$)](https://www.cgtrader.com/3d-models/sports/toy/flat-disc-frisbee),
 [Leaf](https://www.cgtrader.com/free-3d-models/plant/leaf/tree-leaf), 
 [Bench](https://www.cgtrader.com/free-3d-models/exterior/street-exterior/park-bench-modern-outdoor-bench-long-seat), 
-[Music Note](https://www.cgtrader.com/free-3d-models/various/various-models/music-note-33d9edfd57a7bc1b72f2d9dedbea46e5).
+[Music Note](https://www.cgtrader.com/free-3d-models/various/various-models/music-note-33d9edfd57a7bc1b72f2d9dedbea46e5) , 
+[Wall Lamp](https://www.cgtrader.com/free-3d-models/exterior/street-exterior/wall-lamp-35a16b45-0427-4a69-907c-709c1568032d)
 
 - **Free3D**: [Ball](https://free3d.com/it/3d-model/beach-ball-v2--259926.html), 
 [Table](https://free3d.com/3d-model/tablle-396579.html?dd_referrer=), 

@@ -196,6 +196,38 @@ function ensureLightMatricesExist() {
         }
     }
 }
+
+// /////////////////////////////////////
+/**** SECOND LIGHT_ WALL LAMP */
+
+function getWallLampModelMatrix() {
+    var modelMatrix = mat4();
+
+    modelMatrix = mult(
+        modelMatrix,
+        translate(
+            wallLampModelPosition[0],
+            wallLampModelPosition[1],
+            wallLampModelPosition[2]
+        )
+    );
+
+    modelMatrix = mult(
+        modelMatrix,
+        rotate(wallLampModelRotationY, [0, 1, 0])
+    );
+
+    modelMatrix = mult(
+        modelMatrix,
+        scalem(
+            wallLampModelScale[0],
+            wallLampModelScale[1],
+            wallLampModelScale[2]
+        )
+    );
+
+    return modelMatrix;
+}
 ///////////////////////////////
 function updateTeapotControlsLegend() {
     var legend = document.getElementById("TeapotControlsLegend");

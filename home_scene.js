@@ -812,31 +812,6 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     
     if ((ballVisible || dogHasBall) && ballBody) {
         var modelMatrixBall = getBallModelMatrix();
-        /* if (dogHasBall) {
-            var rad = dogCurrentAngle * Math.PI / 180.0;
-
-            var forwardX = Math.sin(rad);
-            var forwardZ = Math.cos(rad);
-
-            
-            var mouthX = dogFetchX + forwardX * 1.10;
-           var mouthY = -1.50;
-            var mouthZ = dogFetchZ + forwardZ * 1.10;
-
-            modelMatrixBall = mult(modelMatrixBall, translate(mouthX, mouthY, mouthZ));
-            modelMatrixBall = mult(modelMatrixBall, scalem(ballRadius, ballRadius, ballRadius));
-        } else {
-            modelMatrixBall = mult(
-                modelMatrixBall,
-                translate(
-                    ballBody.position.x,
-                    ballBody.position.y,
-                    ballBody.position.z
-                )
-            );
-
-            modelMatrixBall = mult(modelMatrixBall, scalem(0.25, 0.25, 0.25));
-        } */
 
         drawObject(
             ballBuffers,
@@ -880,6 +855,20 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     viewMatrix, projectionMatrix, true, false, false, true, 3);
 
     
+     var modelMatrixWallLamp = getWallLampModelMatrix();
+
+    drawObject(
+        wallLampBuffers,
+        wallLampTexture,
+        modelMatrixWallLamp,
+        viewMatrix,
+        projectionMatrix,
+        true,   // use texture
+        false,  // is light marker
+        true,   // two sided, utile per parti sottili/vetro
+        true,   // receive shadow
+        0       // normal object
+    );
 
 
     //curtain part

@@ -79,6 +79,7 @@ var modelPath_bench="./Objects/bench.obj";
 var modelPath_frisbee="./Objects/frisbee.obj";
 var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Green_Tall.obj";
 var modelPath_leaf="./Objects/leaf.obj";
+var modelPath_wallLamp="./Objects/wallLamp_new.obj";
 
 
 // images & textures paths
@@ -110,6 +111,8 @@ var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Stran
 var path_img_leaf="./Textures/leaf.jpg";
 var path_folder_bench="./Textures/Bench_tex/";
 var path_folder_table="./Textures/Table_tex/";
+var path_folder_wall_lamp="./Textures/WallLamp_tex/";
+var path_img_wall_lamp_base_color="./Textures/wall_lamp_baseColor_new.png";
 
 //icons path
 var path_icon_music_off="./Icons/music_off.png"
@@ -791,3 +794,86 @@ var DOG_TEAPOT_TABLE_TARGET_EXTRA = 1.10;
 
 var DOG_TEAPOT_PATH_EXTRA = 1.65;
 var DOG_TEAPOT_WAYPOINT_RADIUS = 0.55;
+
+
+/********** SECOND LIGHT PART-> WALL LAMP */
+
+// stato della lampada
+var wallLampEnabled = false;
+
+// se voglio permettere le ombre della lampada
+var wallLampShadowEnabled = true;
+
+// viene disattivata quando Performance Saver è ON
+var useWallLampShadow = false;
+
+// posizione della lampada dentro la stanza
+var wallLampPosition = vec3(-6.65, 0.80, -2.0);
+
+// punto verso cui guarda la lampada
+var wallLampTarget = vec3(0.0, -1.5, 0.0);
+
+// colore caldo da lampada notturna
+var wallLampColor = vec3(1.0, 0.72, 0.42);
+
+// intensità luce
+var wallLampIntensity = 1.2;
+
+// distanza massima della luce
+var wallLampFar = 18.0;
+
+// apertura dello spotlight
+var wallLampFov = 70.0;
+
+// cutoff dello spotlight
+var wallLampCutoff = 0.72;
+var wallLampOuterCutoff = 0.55;
+
+// shadow map della wall lamp
+var wallLampShadowFramebuffer = null;
+var wallLampShadowTexture = null;
+
+var wallLampViewMatrix = null;
+var wallLampProjectionMatrix = null;
+
+// risoluzione shadow map
+// se pesa troppo, metti 1024
+var WALL_LAMP_SHADOW_SIZE = 2048;
+
+// bias per evitare shadow acne
+var wallLampShadowBias = 0.0025;
+
+
+// ===============================
+// WALL LAMP MODEL
+// ===============================
+
+
+var wallLampBuffers = null;
+
+// posizione/scala/rotazione del modello visivo
+var wallLampModelPosition = vec3(-6.5, 0.75, -2.0);
+var wallLampModelScale = vec3(0.45, 0.45, 0.45);
+var wallLampModelRotationY = -90.0;
+
+// ===============================
+// WALL LAMP TEXTURES / MATERIAL
+// ===============================
+
+var wallLampNormalTexture = null;
+var wallLampRoughnessTexture = null;
+var wallLampTexture;
+
+// colore base, visto che non abbiamo una diffuse/baseColor texture
+var wallLampBaseColor = vec4(0.015, 0.015, 0.018, 1.0);
+
+// materiale abbastanza metallico/scuro
+var wallLampSpecularStrength = 0.8;
+var wallLampShininess = 80.0;
+
+// path texture
+var wallLampNormalTexturePath =
+    path_folder_wall_lamp + "normal.png";
+
+var wallLampRoughnessTexturePath =
+    path_folder_wall_lamp + "roughness.png";
