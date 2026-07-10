@@ -107,41 +107,6 @@ var debugLineProjectionMatrixLoc;
 
 
 
-
-//new shadow variables
-
-var isPointShadowPass = false;
-
-var POINT_SHADOW_FAR = 40.0;
-
-var usePointShadowMap = true;
-
-
-var pointShadowFramebuffers = [];
-var pointShadowTextures = [];
-
-var pointLightViewMatrices = [];
-var pointLightProjectionMatrix;
-var pointShadowDirections = [
-    vec3( 1.0,  0.0,  0.0), // +X
-    vec3(-1.0,  0.0,  0.0), // -X
-    vec3( 0.0,  1.0,  0.0), // +Y
-    vec3( 0.0, -1.0,  0.0), // -Y
-    vec3( 0.0,  0.0,  1.0), // +Z
-    vec3( 0.0,  0.0, -1.0)  // -Z
-];
-
-var pointShadowUps = [
-    vec3(0.0, -1.0,  0.0), // +X
-    vec3(0.0, -1.0,  0.0), // -X
-    vec3(0.0,  0.0,  1.0), // +Y
-    vec3(0.0,  0.0, -1.0), // -Y
-    vec3(0.0, -1.0,  0.0), // +Z
-    vec3(0.0, -1.0,  0.0)  // -Z
-];
-
-
-
 //variables for collisions
 var tableColliderX = 0.0;
 var tableColliderY = -1.3;
@@ -198,65 +163,7 @@ function applyStartChoicesAfterLoading() {
     }
 }
 
-function initPointShadowMaps()
-{
-    pointShadowFramebuffers = [];
-    pointShadowTextures = [];
 
-    for (var i = 0; i < 6; i++) {
-        var framebuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            POINT_SHADOW_SIZE,
-            POINT_SHADOW_SIZE,
-            0,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            null
-        );
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        var depthBuffer = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-        gl.renderbufferStorage(
-            gl.RENDERBUFFER,
-            gl.DEPTH_COMPONENT16,
-            POINT_SHADOW_SIZE,
-            POINT_SHADOW_SIZE
-        );
-
-        gl.framebufferTexture2D(
-            gl.FRAMEBUFFER,
-            gl.COLOR_ATTACHMENT0,
-            gl.TEXTURE_2D,
-            texture,
-            0
-        );
-
-        gl.framebufferRenderbuffer(
-            gl.FRAMEBUFFER,
-            gl.DEPTH_ATTACHMENT,
-            gl.RENDERBUFFER,
-            depthBuffer
-        );
-
-        pointShadowFramebuffers.push(framebuffer);
-        pointShadowTextures.push(texture);
-    }
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
 
 
 function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
@@ -520,13 +427,24 @@ onload = async function init() {
     gl.useProgram(program);
     shadowProgram = initShaders(gl, "shadow-vertex-shader", "shadow-fragment-shader");
     console.log("shadowProgram =", shadowProgram);
-    
+
+
+    wallLampShadowProgram = initShaders(
+        gl,
+        "wall-lamp-shadow-vertex-shader",
+        "wall-lamp-shadow-fragment-shader"
+    );
+
+    console.log("wallLampShadowProgram =", wallLampShadowProgram);
 
     initShadowMap();
 
 
     //new shadow map for point light
     initPointShadowMaps();
+
+
+    initWallLampShadowMap();
 
     //clear shadow map eventually for park mode
     clearOldShadowMaps();
@@ -1564,6 +1482,69 @@ onload = async function init() {
             }
     };
 
+    //wall lamp button
+   var buttonWallLamp = document.getElementById("ButtonWallLamp");
+
+    function updateWallLampButton() {
+        if (!buttonWallLamp) {
+            return;
+        }
+
+        var canShowWallLampButton =
+            isNight &&
+            currentScene === "home";
+
+        if (!canShowWallLampButton) {
+            buttonWallLamp.classList.add("hidden");
+            buttonWallLamp.classList.remove("wall-lamp-on");
+
+            wallLampEnabled = false;
+
+            return;
+        }
+
+        buttonWallLamp.classList.remove("hidden");
+
+        if (wallLampEnabled) {
+            buttonWallLamp.title = "Wall Lamp: ON";
+            buttonWallLamp.classList.add("wall-lamp-on");
+        } else {
+            buttonWallLamp.title = "Wall Lamp: OFF";
+            buttonWallLamp.classList.remove("wall-lamp-on");
+        }
+    }
+        if (buttonWallLamp) {
+            buttonWallLamp.onclick = function () {
+                if (!isNight) {
+                    wallLampEnabled = false;
+                    updateWallLampButton();
+
+                    showGameMessage(
+                        "The wall lamp can be turned on only at night :)",
+                        2200
+                    );
+
+                    return;
+                }
+
+                wallLampEnabled = !wallLampEnabled;
+                updateWallLampButton();
+            };
+    }
+
+    if (buttonWallLamp) {
+        buttonWallLamp.onclick = function () {
+            if (!isNight || currentScene !== "home") {
+                wallLampEnabled = false;
+                updateWallLampButton();
+                return;
+            }
+
+            wallLampEnabled = !wallLampEnabled;
+            updateWallLampButton();
+        };
+    }
+
     //frisbee button
 
     var buttonFrisbee = document.getElementById("ButtonFrisbee");
@@ -1673,6 +1654,11 @@ onload = async function init() {
                 function () {
                     // before going to park-> if the ball minigame is active, stop it
                     miniGameActive = false;
+
+                    wallLampEnabled = false;
+                    updateWallLampButton();
+
+
                     resetBallSettingsPanelState();
 
                     updateTeapotControlsLegend();
@@ -1736,6 +1722,8 @@ onload = async function init() {
             "Loading the room...",
             function () {
                     currentScene = "home";
+
+                    updateWallLampButton();
 
                     miniGameActive = false;
                     resetBallSettingsPanelState();
@@ -1958,7 +1946,10 @@ onload = async function init() {
             // day mode-> show the moon icon to switch to night mode
             nightDayIcon.src = path_icon_moon
             nightDayButton.title = "Switch to Night Mode";
+
+            wallLampEnabled = false;
         }
+        updateWallLampButton();
     };
 
     //button for teapot minigame
@@ -3542,8 +3533,22 @@ function render() {
     aspect = canvas.width / canvas.height;
     projectionMatrix = perspective(cameraFov, aspect, 0.1,50.0)
 
-    
+    // to avooid warnings whan switching directly to the park mode
     ensureLightMatricesExist();
+
+    updateWallLampMatrices();
+
+    if (
+        currentScene === "home" &&
+        isNight &&
+        wallLampEnabled &&
+        wallLampShadowEnabled
+    ) {
+        
+        renderWallLampShadowMap();
+    }
+
+
 
     if (currentScene === "home") {
         drawHomeScene(gl,viewMatrix, projectionMatrix);
@@ -3567,6 +3572,7 @@ function drawObject(obj,
      wallShadowMode=false,
     isSunHalo = false,
     globalAlpha = 1.0,
+    isWallLampModel = false
     ) {
 
     //to differentiate between day and night lighting
@@ -3607,6 +3613,115 @@ function drawObject(obj,
     gl.uniform3fv(
         gl.getUniformLocation(program, "uLightTint"),
         flatten(lightTint)
+    );
+
+    var wallLampActive =
+    isNight &&
+    wallLampEnabled &&
+    currentScene === "home";
+
+    // part for wall lamp spotlight
+    var wallLampDirection = normalize(
+        subtract(wallLampTarget, wallLampPosition)
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "wallLampEnabled"),
+        wallLampActive ? 1 : 0
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(program, "wallLampPosition"),
+        flatten(wallLampPosition)
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(program, "wallLampDirection"),
+        flatten(wallLampDirection)
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(program, "wallLampColor"),
+        flatten(wallLampColor)
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "wallLampIntensity"),
+        wallLampIntensity
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "wallLampRange"),
+        wallLampRange
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "wallLampCutoff"),
+        wallLampCutoff
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "wallLampOuterCutoff"),
+        wallLampOuterCutoff
+    );
+
+   
+    // trying to display shadows
+    var wallLampShadowActive =
+        wallLampActive &&
+        wallLampShadowEnabled &&
+        wallLampShadowTexture !== null &&
+        wallLampViewMatrix !== null &&
+        wallLampProjectionMatrix !== null;
+
+
+    if (!window.debugWallLampShadowUniformLogged) {
+        console.log("wallLampActive =", wallLampActive);
+        console.log("wallLampShadowActive =", wallLampShadowActive);
+        console.log("wallLampShadowTexture =", wallLampShadowTexture);
+        console.log("wallLampViewMatrix =", wallLampViewMatrix);
+        console.log("wallLampProjectionMatrix =", wallLampProjectionMatrix);
+        console.log(
+            "MAX_TEXTURE_IMAGE_UNITS =",
+            gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)
+        );
+
+        window.debugWallLampShadowUniformLogged = true;
+    }
+
+    gl.activeTexture(gl.TEXTURE8);
+    gl.bindTexture(gl.TEXTURE_2D, wallLampShadowTexture);
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "wallLampShadowMap"),
+        8
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "wallLampViewMatrix"),
+        false,
+        flatten(wallLampViewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(program, "wallLampProjectionMatrix"),
+        false,
+        flatten(wallLampProjectionMatrix)
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "useWallLampShadow"),
+        wallLampShadowActive ? 1 : 0
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "wallLampShadowBias"),
+        wallLampShadowBias
+    );
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isWallLampModel"),
+        isWallLampModel ? 1 : 0
     );
 
     ///////
@@ -3817,57 +3932,6 @@ function drawObject(obj,
 }
 
 
-
-function drawShadowObject(obj, modelMatrix) {
-    // be sure to use the right shader program before setting uniforms and attributes
-    gl.useProgram(shadowProgram);
-    var lightModelViewMatrix = mult(lightViewMatrix, modelMatrix);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, obj.vBuffer);
-    var vPosition = gl.getAttribLocation(shadowProgram, "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    gl.uniformMatrix4fv(
-        gl.getUniformLocation(shadowProgram, "lightModelViewMatrix"),
-        false,
-        flatten(lightModelViewMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        gl.getUniformLocation(shadowProgram, "lightProjectionMatrix"),
-        false,
-        flatten(lightProjectionMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        gl.getUniformLocation(shadowProgram, "modelMatrix"),
-        false,
-        flatten(modelMatrix)
-    );
-
-    gl.uniform4fv(
-        gl.getUniformLocation(shadowProgram, "lightPosition"),
-        flatten(lightPosition)
-    );
-
-    gl.uniform1i(
-        gl.getUniformLocation(shadowProgram, "pointShadowPass"),
-        isPointShadowPass ? 1 : 0
-    );
-
-    gl.uniform1i(
-        gl.getUniformLocation(shadowProgram, "pointShadowPass"),
-        isPointShadowPass ? 1 : 0
-    );
-
-    gl.uniform1f(
-        gl.getUniformLocation(shadowProgram, "pointShadowFar"),
-        POINT_SHADOW_FAR
-    );
-
-    gl.drawArrays(gl.TRIANGLES, 0, obj.numVertices);
-}
 
 function clampTeapotToTable() {
     //if teapot goes under the table we set it back to the table height

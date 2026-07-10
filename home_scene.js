@@ -867,7 +867,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         false,  // is light marker
         true,   // two sided, utile per parti sottili/vetro
         true,   // receive shadow
-        0       // normal object
+        0     // normal object
     );
 
 

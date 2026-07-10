@@ -112,6 +112,37 @@ function updateStartSettingsPanel() {
 }
 
 
+function getTeapotModelMatrix() {
+    var modelMatrixTeapot = mat4();
+
+    modelMatrixTeapot = mult(
+        modelMatrixTeapot,
+        translate(
+            objPos[0],
+            objPos[1],
+            objPos[2]
+        )
+    );
+
+    modelMatrixTeapot = mult(
+        modelMatrixTeapot,
+        rotate(theta[0], [1, 0, 0])
+    );
+
+    modelMatrixTeapot = mult(
+        modelMatrixTeapot,
+        rotate(theta[1], [0, 1, 0])
+    );
+
+    modelMatrixTeapot = mult(
+        modelMatrixTeapot,
+        rotate(theta[2], [0, 0, 1])
+    );
+
+    return modelMatrixTeapot;
+}
+
+
 
 function resetDogHeartEffect() {
     if (typeof showDogHeart !== "undefined") {
@@ -227,6 +258,22 @@ function getWallLampModelMatrix() {
     );
 
     return modelMatrix;
+}
+
+
+function updateWallLampMatrices() {
+    wallLampViewMatrix = lookAt(
+        wallLampPosition,
+        wallLampTarget,
+        vec3(0.0, 1.0, 0.0)
+    );
+
+    wallLampProjectionMatrix = perspective(
+        wallLampFov,
+        1.0,
+        wallLampNear,
+        wallLampFar
+    );
 }
 ///////////////////////////////
 function updateTeapotControlsLegend() {
@@ -1131,49 +1178,8 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
     return texture;
 }
 
-////////////////////////////////////////////////
-function clearOldShadowMaps() {
-    /*
-        white -> depth far = no shadow
-    */
 
-    var oldViewport = gl.getParameter(gl.VIEWPORT);
 
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
-    // ===== clear point shadow maps =====
-    if (pointShadowFramebuffers && pointShadowFramebuffers.length > 0) {
-        gl.viewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
-
-        for (var i = 0; i < pointShadowFramebuffers.length; i++) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, pointShadowFramebuffers[i]);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        }
-    }
-
-    // ===== clear old directional shadow map =====
-    if (shadowFramebuffer) {
-        var directionalShadowSize = POINT_SHADOW_SIZE; 
-
-        gl.viewport(0, 0, directionalShadowSize, directionalShadowSize);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    }
-
-    // back to normal framebuffer
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    // reset viewport canvas
-    gl.viewport(
-        oldViewport[0],
-        oldViewport[1],
-        oldViewport[2],
-        oldViewport[3]
-    );
-
-    // reset clear color
-    gl.clearColor(0.7, 0.9, 0.7, 1.0);
-}
 ////////////////////////////////////////////////
 // create sphere for light source
  function loadTexture(path,isMoon=false) {

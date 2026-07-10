@@ -55,7 +55,29 @@ var mouseSensitivityY = 0.02;
 var POINT_SHADOW_SIZE_HIGH = 4096;
 var POINT_SHADOW_SIZE_LOW = 2048;
 var POINT_SHADOW_SIZE = POINT_SHADOW_SIZE_HIGH;
-
+var isPointShadowPass = false;
+var POINT_SHADOW_FAR = 40.0;
+var usePointShadowMap = true;
+var pointShadowFramebuffers = [];
+var pointShadowTextures = [];
+var pointLightViewMatrices = [];
+var pointLightProjectionMatrix;
+var pointShadowDirections = [
+    vec3( 1.0,  0.0,  0.0), // +X
+    vec3(-1.0,  0.0,  0.0), // -X
+    vec3( 0.0,  1.0,  0.0), // +Y
+    vec3( 0.0, -1.0,  0.0), // -Y
+    vec3( 0.0,  0.0,  1.0), // +Z
+    vec3( 0.0,  0.0, -1.0)  // -Z
+];
+var pointShadowUps = [
+    vec3(0.0, -1.0,  0.0), // +X
+    vec3(0.0, -1.0,  0.0), // -X
+    vec3(0.0,  0.0,  1.0), // +Y
+    vec3(0.0,  0.0, -1.0), // -Y
+    vec3(0.0, -1.0,  0.0), // +Z
+    vec3(0.0, -1.0,  0.0)  // -Z
+];
 
 // variable to enable debug mode
 var showCollisionDebug = false;
@@ -77,7 +99,7 @@ var modelPath_moon= "./Objects/moon.obj";
 var modelPath_bowl="./Objects/dog_bowl.obj";
 var modelPath_bench="./Objects/bench.obj";
 var modelPath_frisbee="./Objects/frisbee.obj";
-var modelPath_grassBlock="./grass_field/Grass/Grass/Grass_Green/Grass_Patch_Green_Tall.obj";
+var modelPath_grassBlock="./Objects/grassGreen_patchTall.obj";
 var modelPath_leaf="./Objects/leaf.obj";
 var modelPath_wallLamp="./Objects/wallLamp_new.obj";
 
@@ -107,7 +129,7 @@ var path_img_steel="./Textures/steel.png";
 var path_img_blue="./Textures/blue_navy.jpg";
 var path_img_frisbee= "./Textures/frisbee_2.png";
 var path_img_bench= "./Textures/Bench_tex/bench_base_color.png";
-var path_img_grass_block="./grass_field/Grass/Grass/Grass_Green/GrassGreen_Strands_color.jpg";
+var path_img_grass_block="./Textures/grassGreen_Strands.jpg";
 var path_img_leaf="./Textures/leaf.jpg";
 var path_folder_bench="./Textures/Bench_tex/";
 var path_folder_table="./Textures/Table_tex/";
@@ -805,29 +827,27 @@ var wallLampEnabled = false;
 var wallLampShadowEnabled = true;
 
 // viene disattivata quando Performance Saver è ON
-var useWallLampShadow = false;
-
-// posizione della lampada dentro la stanza
-var wallLampPosition = vec3(-6.65, 0.80, -2.0);
-
-// punto verso cui guarda la lampada
-var wallLampTarget = vec3(0.0, -1.5, 0.0);
+var useWallLampShadow = true;
 
 // colore caldo da lampada notturna
-var wallLampColor = vec3(1.0, 0.72, 0.42);
+var wallLampColor = vec3(1.0, 0.72, 0.38);
 
 // intensità luce
-var wallLampIntensity = 1.2;
+var wallLampIntensity = 2.8;
+var wallLampRange = 7.0;
 
-// distanza massima della luce
-var wallLampFar = 18.0;
+var wallLampCutoff = 0.48;
+var wallLampOuterCutoff = 0.25;
 
-// apertura dello spotlight
-var wallLampFov = 70.0;
+var wallLampPosition = vec3(-6.05, 1.05, -2.0);
+var wallLampTarget = vec3(-2.0, -1.7, -2.0);
 
-// cutoff dello spotlight
-var wallLampCutoff = 0.72;
-var wallLampOuterCutoff = 0.55;
+
+var wallLampNear = 0.03;
+var wallLampFar = 16.0;
+var wallLampFov = 120.0;
+
+
 
 // shadow map della wall lamp
 var wallLampShadowFramebuffer = null;
@@ -836,12 +856,8 @@ var wallLampShadowTexture = null;
 var wallLampViewMatrix = null;
 var wallLampProjectionMatrix = null;
 
-// risoluzione shadow map
-// se pesa troppo, metti 1024
-var WALL_LAMP_SHADOW_SIZE = 2048;
-
 // bias per evitare shadow acne
-var wallLampShadowBias = 0.0025;
+var wallLampShadowBias = 0.0004;
 
 
 // ===============================
@@ -877,3 +893,21 @@ var wallLampNormalTexturePath =
 
 var wallLampRoughnessTexturePath =
     path_folder_wall_lamp + "roughness.png";
+
+
+
+// ===============================
+// WALL LAMP SHADOW MAP
+// ===============================
+
+var wallLampShadowProgram = null;
+
+var wallLampShadowFramebuffer = null;
+var wallLampShadowTexture = null;
+
+var wallLampViewMatrix = null;
+var wallLampProjectionMatrix = null;
+
+var WALL_LAMP_SHADOW_SIZE = 1024;
+
+var wallLampShadowEnabled = true;

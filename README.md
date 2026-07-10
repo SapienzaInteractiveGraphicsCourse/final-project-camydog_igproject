@@ -173,3 +173,4 @@ From **FlatIcon**
 * [Camera Icon](https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651)
 * [Shiba Icon (Flaticon)](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763)
 * [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576)
+* [Light Bulb](https://www.flaticon.com/free-icon/idea_9901812?term=lamp&related_id=9901812)

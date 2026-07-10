@@ -3808,3 +3808,19 @@ body.ui-panel-hidden .toggle-side-panel-button {
 #ButtonPetDogMode:active {
     transform: scale(0.97) !important;
 }
+
+
+
+.wall-lamp-button.wall-lamp-on {
+    background: rgba(255, 210, 90, 0.35);
+    box-shadow: 0 0 12px rgba(255, 210, 90, 0.85);
+}
+
+.wall-lamp-button.wall-lamp-disabled {
+    opacity: 0.45;
+    filter: grayscale(0.8);
+}
+
+.hidden {
+    display: none !important;
+}

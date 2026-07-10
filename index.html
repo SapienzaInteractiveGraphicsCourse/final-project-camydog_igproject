@@ -487,7 +487,12 @@
                                     <button id="ButtonAutoSun" class="auto-sun-button" title="Auto Sun: OFF">
                                         <img id="AutoSunIcon" src="./Icons/auto_moving_sun.png" alt="Auto Sun">
                                     </button>
+                                
+                                    <button  id="ButtonWallLamp" class="water-button wall-lamp-button hidden" title="Wall Lamp: OFF">
+                                        <img id="WallLampIcon" src="./Icons/light_bulb.png" alt="Wall Lamp">
+                                    </button>
                                 </div>
+
                          </div>
                          <div class="control-group">
                                 <h3>Minigames</h3>
@@ -838,6 +843,132 @@ uniform bool isMoon;
 uniform float uLightIntensity;
 uniform float uAmbientStrength;
 uniform vec3 uLightTint;
+
+
+//new for light wall shadows
+uniform bool wallLampEnabled;
+uniform vec3 wallLampPosition;
+uniform vec3 wallLampDirection;
+uniform vec3 wallLampColor;
+uniform float wallLampIntensity;
+uniform float wallLampRange;
+uniform float wallLampCutoff;
+uniform float wallLampOuterCutoff;
+
+uniform sampler2D wallLampShadowMap;
+uniform mat4 wallLampViewMatrix;
+uniform mat4 wallLampProjectionMatrix;
+uniform bool useWallLampShadow;
+uniform float wallLampShadowBias;
+
+uniform bool isWallLampModel;
+
+vec3 computeWallLampLight(vec3 objectBaseColor, vec3 normal)
+{
+    vec3 fromLampToFragment =
+        fWorldPos - wallLampPosition;
+
+    float distanceToLamp =
+        length(fromLampToFragment);
+
+    vec3 lampToFragmentDir =
+        normalize(fromLampToFragment);
+
+    vec3 fragmentToLampDir =
+        normalize(wallLampPosition - fWorldPos);
+
+    float diffuse =
+        max(dot(normalize(normal), fragmentToLampDir), 0.0);
+
+    float attenuation =
+        clamp(1.0 - distanceToLamp / wallLampRange, 0.0, 1.0);
+
+    attenuation = attenuation * attenuation;
+
+    float theta =
+        dot(lampToFragmentDir, normalize(wallLampDirection));
+
+    float spot =
+        smoothstep(
+            wallLampOuterCutoff,
+            wallLampCutoff,
+            theta
+        );
+
+    vec3 spotLight =
+        objectBaseColor *
+        wallLampColor *
+        diffuse *
+        attenuation *
+        spot *
+        wallLampIntensity;
+
+    /*
+        Piccolo alone locale vicino alla lampada.
+        Serve per far vedere la luce sulla parete dove è attaccata.
+    */
+    float localGlow =
+        clamp(1.0 - distanceToLamp / 2.4, 0.0, 1.0);
+
+    localGlow = localGlow * localGlow;
+
+    vec3 wallGlow =
+        objectBaseColor *
+        wallLampColor *
+        localGlow *
+        0.75;
+
+    return spotLight + wallGlow;
+}
+
+
+float computeWallLampShadow()
+{
+    vec4 shadowCoord =
+        wallLampProjectionMatrix *
+        wallLampViewMatrix *
+        vec4(fWorldPos, 1.0);
+
+    vec3 projCoords =
+        shadowCoord.xyz / shadowCoord.w;
+
+    projCoords =
+        projCoords * 0.5 + 0.5;
+
+    if (
+        projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0 ||
+        projCoords.z < 0.0 || projCoords.z > 1.0
+    ) {
+        return 1.0;
+    }
+
+    float shadowSum = 0.0;
+    float texelSize = 1.0 / 1024.0;
+
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 offset =
+                vec2(float(x), float(y)) * texelSize;
+
+            float closestDepth =
+                texture2D(
+                    wallLampShadowMap,
+                    projCoords.xy + offset
+                ).r;
+
+            if (projCoords.z > closestDepth + wallLampShadowBias) {
+                shadowSum += 1.0;
+            }
+        }
+    }
+
+    float shadowFactor =
+        shadowSum / 9.0;
+
+    return 1.0 - 0.85 * shadowFactor;
+    //return 1.0 - shadowFactor;
+}
 
 int choosePointShadowFace(vec3 dir)
 {
@@ -1433,17 +1564,54 @@ void main(){
     float finalShadow = shadow;
 
     /*
-        I ciuffetti ricevono l'ombra, ma in modo più leggero,
-        altrimenti diventano troppo neri e flickerano.
+        Grass patches receive shadow, but in a lighter way,
+        otherwise they become too dark and flicker.
     */
+    
     if (wallShadowMode == 6) {
         finalShadow = mix(1.0, shadow, 0.45);
     }
 
 
 
-    gl_FragColor = vec4(
+    /*gl_FragColor = vec4(
         baseColor.rgb * finalShadow,
+        baseColor.a
+    );*/
+
+    vec3 finalColor =
+        baseColor.rgb * finalShadow;
+
+    if (wallLampEnabled) {
+        vec3 lampNormal =
+            normalize(fWorldNormal);
+
+        if (!gl_FrontFacing) {
+            lampNormal = -lampNormal;
+        }
+
+        vec3 lampBaseColor =
+            useTexture ? texColor.rgb : vec3(1.0);
+
+        vec3 wallLampLight =
+            computeWallLampLight(
+                lampBaseColor,
+                lampNormal
+            );
+
+        float lampShadow = 1.0;
+
+        if (useWallLampShadow) {
+            lampShadow = computeWallLampShadow();
+        }
+
+        finalColor += wallLampLight * lampShadow;
+    }
+    
+
+
+    gl_FragColor = vec4(
+        finalColor,
         baseColor.a
     );
 
@@ -1453,34 +1621,6 @@ void main(){
 }
 </script>
 
-
-<!-- SHADOW SHADERS -->
-<!-- Per il teapot ombreggiato, con ombre dinamiche -->
-
-<!-- <script id="shadow-vertex-shader" type="x-shader/x-vertex">
-attribute vec4 vPosition;
-
-
-uniform mat4 lightModelViewMatrix;
-uniform mat4 lightProjectionMatrix;
-
-void
-main(){
-    gl_Position = lightProjectionMatrix * lightModelViewMatrix * vPosition;
-}
-
-</script>
-
-<script id="shadow-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
-
-void main() 
-{
-
-    float d = gl_FragCoord.z;
-    gl_FragColor = vec4(d, d, d, 1.0);
-} 
-</script> -->
 <script id="shadow-vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 
@@ -2995,6 +3135,35 @@ void main()
 </script>
 
 
+<!-- Shader for the second additional light -> wall lamp -->
+ <script id="wall-lamp-shadow-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+uniform mat4 modelMatrix;
+uniform mat4 wallLampViewMatrix;
+uniform mat4 wallLampProjectionMatrix;
+
+void main()
+{
+    gl_Position =
+        wallLampProjectionMatrix *
+        wallLampViewMatrix *
+        modelMatrix *
+        vPosition;
+}
+</script>
+
+<script id="wall-lamp-shadow-fragment-shader" type="x-shader/x-fragment">
+precision highp float;
+
+void main()
+{
+    float d = gl_FragCoord.z;
+    gl_FragColor = vec4(d, d, d, 1.0);
+}
+</script>
+
+
 <script type="text/javascript" src="./Common/webgl-utils.js"></script>
 <script type="text/javascript" src="./Common/initShaders.js"></script>
 <script type="text/javascript" src="./Common/MV.js"></script>
@@ -3002,6 +3171,7 @@ void main()
 <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
 
 <script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="shadow_maps.js"></script>
 <script type="text/javascript" src="utils.js"></script>
 <script type="text/javascript" src="utils_park.js"></script>
 <script type="text/javascript" src="frisbee.js"></script>
