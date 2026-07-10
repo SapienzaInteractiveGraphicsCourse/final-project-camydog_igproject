@@ -873,13 +873,75 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         modelMatrixWallLamp,
         viewMatrix,
         projectionMatrix,
-        true,   // use texture
-        false,  // is light marker
-        true,   // two sided, utile per parti sottili/vetro
-        true,   // receive shadow
-        0     // normal object
+        true,   // useTexture
+        false,  // isLightMarker
+        false,  // twoSided
+        false,  // receiveShadow
+        0,      // wallShadowMode
+        false,  // isSunHalo
+        1.0,    // globalAlpha
+        true,   // isWallLampModel
+        false   // isBowlMaterial
     );
 
+    
+    if (
+        currentScene === "home" &&
+        isNight &&
+        wallLampEnabled
+    ) {
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        gl.depthMask(false);
+
+        /*
+            Disegno il glow PRIMA della lampada.
+            Così la struttura nera della lanterna viene disegnata sopra.
+        */
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.CULL_FACE);
+
+
+        drawWallLampGlow(
+            viewMatrix,
+            projectionMatrix,
+            0.35,
+            0.22
+        );
+
+        drawWallLampGlow(
+            viewMatrix,
+            projectionMatrix,
+            0.14,
+            0.70
+        );
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+    }
+
+    /*
+        Subito DOPO disegna normalmente il modello della lampada.
+    */
+    drawObject(
+        wallLampBuffers,
+        wallLampTexture,
+        modelMatrixWallLamp,
+        viewMatrix,
+        projectionMatrix,
+        true,
+        false,
+        false,
+        false,
+        0,
+        false,
+        1.0,
+        true,
+        false
+    );
 
     //curtain part
     if (curtain) {
@@ -1028,28 +1090,24 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             )
         );
 
-         drawObject(
+        drawObject(
             moonBuffers,
             moonTexture,
-            modelMatrixMoon, // non modelMatrixLight
+            modelMatrixMoon,
             viewMatrix,
             projectionMatrix,
-            true,
-            true,
-            false,
-            false
+            true,   // useTexture
+            true,   // isLightMarker
+            false,  // twoSided
+            false,  // receiveShadow
+            0,      // wallShadowMode
+            false,  // isSunHalo
+            1.0,    // globalAlpha
+            false,  // isWallLampModel
+            false,  // isBowlMaterial
+            true    // isMoonMarker
         );
-        /* drawObject(
-            lightSphereBuffers,
-            moonTexture,
-            modelMatrixLight,
-            viewMatrix,
-            projectionMatrix,
-            true,   // usa texture
-            true,   // è il light marker
-            false,
-            false
-        ); */
+        
     } else {
 
         //halo

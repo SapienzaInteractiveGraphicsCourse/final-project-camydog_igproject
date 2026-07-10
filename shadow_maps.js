@@ -333,3 +333,143 @@ function drawWallLampShadowCasters() {
 
 }
 
+
+
+
+function getWallLampBulbModelMatrix(scale) {
+    var modelMatrix = mat4();
+
+    modelMatrix = mult(
+        modelMatrix,
+        translate(
+            -6.30,
+            0.89,
+            -2.00
+        )
+    );
+
+    modelMatrix = mult(
+        modelMatrix,
+        scalem(
+            scale,
+            scale,
+            scale
+        )
+    );
+
+    return modelMatrix;
+}
+
+
+function initWallLampGlowQuad() {
+    wallLampGlowBuffers = {};
+
+    var positions = [
+        vec4(0.0, -1.0, -1.0, 1.0),
+        vec4(0.0,  1.0, -1.0, 1.0),
+        vec4(0.0,  1.0,  1.0, 1.0),
+
+        vec4(0.0, -1.0, -1.0, 1.0),
+        vec4(0.0,  1.0,  1.0, 1.0),
+        vec4(0.0, -1.0,  1.0, 1.0)
+    ];
+
+    var texCoords = [
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        vec2(0.0, 0.0),
+        vec2(1.0, 1.0),
+        vec2(0.0, 1.0)
+    ];
+
+    wallLampGlowBuffers.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, wallLampGlowBuffers.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(positions), gl.STATIC_DRAW);
+
+    wallLampGlowBuffers.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, wallLampGlowBuffers.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
+
+    wallLampGlowBuffers.numVertices = 6;
+}
+
+
+function drawWallLampGlow(viewMatrix, projectionMatrix, scale, alpha) {
+    if (!wallLampGlowProgram || !wallLampGlowBuffers) {
+        return;
+    }
+
+    var modelMatrix = mat4();
+
+    modelMatrix = mult(
+        modelMatrix,
+        translate(
+            -6.30,
+            0.65,
+            -2.00
+        )
+    );
+
+    modelMatrix = mult(
+        modelMatrix,
+        scalem(
+            scale,
+            scale,
+            scale
+        )
+    );
+
+    gl.useProgram(wallLampGlowProgram);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, wallLampGlowBuffers.vBuffer);
+
+    var vPosition =
+        gl.getAttribLocation(wallLampGlowProgram, "vPosition");
+
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, wallLampGlowBuffers.tBuffer);
+
+    var vTexCoord =
+        gl.getAttribLocation(wallLampGlowProgram, "vTexCoord");
+
+    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(wallLampGlowProgram, "modelMatrix"),
+        false,
+        flatten(modelMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(wallLampGlowProgram, "viewMatrix"),
+        false,
+        flatten(viewMatrix)
+    );
+
+    gl.uniformMatrix4fv(
+        gl.getUniformLocation(wallLampGlowProgram, "projectionMatrix"),
+        false,
+        flatten(projectionMatrix)
+    );
+
+    gl.uniform3fv(
+        gl.getUniformLocation(wallLampGlowProgram, "glowColor"),
+        flatten(vec3(1.0, 0.55, 0.16))
+    );
+
+    gl.uniform1f(
+        gl.getUniformLocation(wallLampGlowProgram, "glowAlpha"),
+        alpha
+    );
+
+    gl.drawArrays(
+        gl.TRIANGLES,
+        0,
+        wallLampGlowBuffers.numVertices
+    );
+}

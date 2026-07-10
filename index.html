@@ -867,7 +867,7 @@ uniform bool isBowlMaterial;
 uniform sampler2D bowlNormalMap;
 uniform sampler2D bowlRoughnessMap;
 uniform vec3 cameraWorldPosition;
-
+uniform bool isWallLampBulb;
 
 
 vec3 computeBowlMaterialColor(vec3 objectBaseColor)
@@ -981,9 +981,9 @@ vec3 computeWallLampLight(vec3 objectBaseColor, vec3 normal)
         objectBaseColor *
         wallLampColor *
         localGlow *
-        0.38;
+        0.10;
 
-    return spotLight + wallGlow;
+    return spotLight ; //+ wallGlow;
 }
 
 vec3 computeWallLampLight_old_old(vec3 objectBaseColor, vec3 normal)
@@ -1320,6 +1320,17 @@ void main(){
     //    return;
     //}
 
+    if (isWallLampBulb) {
+        gl_FragColor = vec4(
+            1.0,
+            0.58,
+            0.16,
+            uGlobalAlpha
+        );
+
+        return;
+    }
+
     if (isLightMarker && isMoon) {
         vec3 p = normalize(fMoonObjectPos);
 
@@ -1337,10 +1348,11 @@ void main(){
         return;
     }
     
-    if (isLightMarker) {
+    /*if (isLightMarker) {
         if (isNightMode && useTexture) {
             gl_FragColor =  texture2D(uTexture, fTexCoord) ;//vec4(0.82, 0.88, 1.0, 1.0);
-        } else {
+        } 
+        else if (useTexture) {
             //gl_FragColor = texture2D(uTexture, fTexCoord); //;vec4(1.0, 1.0, 0.25, 1.0);
             gl_FragColor = vec4(
                 texture2D(uTexture, fTexCoord).rgb * 1.2,
@@ -1349,11 +1361,44 @@ void main(){
 
            
         }
+        else{
+             gl_FragColor = vec4(
+                1.0,
+                0.68,
+                0.22,
+                1.0
+            );
+        }
 
-    
+
 
         return;
     }
+    */
+    if (isLightMarker) {
+        /*
+            Se il marker ha una texture, la uso.
+            Se NON ha texture, lo disegno come piccola sorgente luminosa calda.
+        */
+        if (useTexture) {
+            gl_FragColor = vec4(
+                texture2D(uTexture, fTexCoord).rgb * 1.2,
+                1.0
+            );
+        } else {
+            gl_FragColor = vec4(
+                1.0,
+                0.68,
+                0.22,
+                1.0
+            );
+        }
+
+        return;
+    }
+
+
+    
 
    
 
@@ -1713,6 +1758,8 @@ void main(){
     vec3 finalColor =
         baseColor.rgb * finalShadow;
 
+    
+
     if (wallLampEnabled) {
         vec3 lampNormal =
             normalize(fWorldNormal);
@@ -1749,6 +1796,60 @@ void main(){
     
     
 
+}
+</script>
+
+
+
+<script id="wall-lamp-glow-vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec2 vTexCoord;
+
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+varying vec2 fTexCoord;
+
+void main()
+{
+    fTexCoord = vTexCoord;
+
+    gl_Position =
+        projectionMatrix *
+        viewMatrix *
+        modelMatrix *
+        vPosition;
+}
+</script>
+
+<script id="wall-lamp-glow-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec2 fTexCoord;
+
+uniform vec3 glowColor;
+uniform float glowAlpha;
+
+void main()
+{
+    vec2 p = fTexCoord * 2.0 - 1.0;
+
+    float d = length(p);
+
+    float a =
+        1.0 - smoothstep(0.0, 1.0, d);
+
+    /*
+        Non lo quadro, altrimenti resta visibile solo il centro.
+        Con pow < 1 l'alone resta più largo e morbido.
+    */
+    a = pow(a, 0.45);
+
+    gl_FragColor = vec4(
+        glowColor,
+        glowAlpha * a
+    );
 }
 </script>
 

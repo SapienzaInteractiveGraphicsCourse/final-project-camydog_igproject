@@ -437,6 +437,13 @@ onload = async function init() {
 
     console.log("wallLampShadowProgram =", wallLampShadowProgram);
 
+
+    wallLampGlowProgram = initShaders(
+        gl,
+        "wall-lamp-glow-vertex-shader",
+        "wall-lamp-glow-fragment-shader"
+    );
+
     initShadowMap();
 
 
@@ -445,6 +452,9 @@ onload = async function init() {
 
 
     initWallLampShadowMap();
+
+    
+    initWallLampGlowQuad();
 
     //clear shadow map eventually for park mode
     clearOldShadowMaps();
@@ -3628,7 +3638,9 @@ function drawObject(obj,
     isSunHalo = false,
     globalAlpha = 1.0,
     isWallLampModel = false,
-    isBowlMaterial = false
+    isBowlMaterial = false,
+    isMoonMarker = false,
+    isWallLampBulb = false
     ) {
 
     //to differentiate between day and night lighting
@@ -3793,7 +3805,7 @@ function drawObject(obj,
 
     gl.uniform1i(
         gl.getUniformLocation(program, "isMoon"),
-        isNight && isLightMarker ? 1 : 0
+        isMoonMarker ? 1 : 0
     );
 
 
@@ -3945,6 +3957,12 @@ function drawObject(obj,
     gl.uniform1i(
         gl.getUniformLocation(program, "isLightMarker"),
         isLightMarker ? 1 : 0
+    );
+
+
+    gl.uniform1i(
+        gl.getUniformLocation(program, "isWallLampBulb"),
+        isWallLampBulb ? 1 : 0
     );
 
     gl.uniformMatrix4fv(
