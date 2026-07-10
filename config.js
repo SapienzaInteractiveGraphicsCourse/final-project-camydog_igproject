@@ -870,6 +870,13 @@ var wallLampProjectionMatrix = null;
 // bias per evitare shadow acne
 var wallLampShadowBias = 0.0004;
 
+var wallLampBulbOffset = vec3(0.16, -0.12, 0.0);
+var wallLampBulbScale = 0.06;
+var wallLampBulbVisible = true;
+
+var wallLampGlowProgram = null;
+var wallLampGlowBuffers = null;
+
 
 // ===============================
 // WALL LAMP MODEL
