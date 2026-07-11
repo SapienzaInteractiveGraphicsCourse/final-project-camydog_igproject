@@ -3731,7 +3731,8 @@ function render() {
         currentScene === "home" &&
         isNight &&
         wallLampEnabled &&
-        wallLampShadowEnabled
+        wallLampShadowEnabled &&
+        !startPerformanceSaverEnabled
     ) {
         
         renderWallLampShadowMap();
@@ -3862,6 +3863,7 @@ function drawObject(obj,
     var wallLampShadowActive =
         wallLampActive &&
         wallLampShadowEnabled &&
+        !startPerformanceSaverEnabled &&
         wallLampShadowTexture !== null &&
         wallLampViewMatrix !== null &&
         wallLampProjectionMatrix !== null;
