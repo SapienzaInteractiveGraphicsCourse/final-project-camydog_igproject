@@ -51,8 +51,7 @@ The project combines custom WebGL rendering, hierarchical/skinned animation, sha
 | **Skyboxes** | Different skybox backgrounds are used for the home scene, park scene and night mode. |
 | **Rigged dog animation** | The dog uses a rigged/skinned 3D model with walking, tail movement, eating/drinking poses and reaction animations. |
 | **Physics simulation** | Cannon.js is used for the ball simulation, collisions and cloth curtain behavior. |
-| **Minigames** | The scene includes ball throw, frisbee throw and teapot chase interactions. |
-| **Dynamic lighting** | The project supports day/night mode, moving sun, moon visualization and an interactive wall lamp. |
+| **Minigames** | The scene includes ball throw, frisbee throw, teapot chase interactions and a teapot break event triggered by the ball. || **Dynamic lighting** | The project supports day/night mode, moving sun, moon visualization and an interactive wall lamp. |
 | **Shadow mapping** | Dynamic shadows are implemented for the main light, point light and wall lamp shadow demos. |
 | **Interactive controls** | Camera controls, light sliders, ball physics sliders, teapot controls, UI buttons and optional gamepad interaction are available. |
 | **Audio system** | Background music, sound effects and global audio controls are integrated. |
@@ -105,11 +104,15 @@ The project combines custom WebGL rendering, hierarchical/skinned animation, sha
 | Gamepad right stick | Move the teapot |
 | Gamepad LT / RT | Lower / raise the teapot |
 | Gamepad A | Toggle teapot rotation |
+
+
 ## Technical Highlights
 
 ### Rendering
+
+
 The project is rendered using WebGL 1.0 with custom vertex and fragment shaders.  
-Objects support textured materials, lighting parameters, normal transformations and shadow receiving/casting behavior.
+Most scene objects use a Blinn-Phong style illumination model with ambient, diffuse and specular components, combined with textured materials, normal transformations and shadow receiving/casting behavior.
 
 ### Rigged Dog Animation
 
@@ -136,7 +139,9 @@ The scene includes a main light source, day/night mode, a moon/sun visual marker
 Shadow mapping is used to project dynamic shadows from moving objects and interactive demos.
 
 ### Physics
-Cannon.js is used for physics-based interactions, including the ball simulation and the cloth curtain near the window.
+Cannon.js is used for physics-based interactions, including the ball simulation and the cloth curtain near the window. During the ball minigame, the launched ball can collide with the teapot.  
+When this happens, the intact teapot is temporarily hidden and replaced by small animated fragments, creating a lightweight procedural break effect.  
+The teapot is restored when the ball minigame is stopped.
 
 ### Animation
 The dog uses a rigged/skinned model with animated bones for walking and interaction poses.  
@@ -260,6 +265,7 @@ Some visual elements do not rely on image files, but are generated directly in c
 | Element | Procedural usage |
 |---|---|
 | **Teapot color** | Generated with a solid-color texture. |
+| **Teapot break fragments** | Procedural break animation triggered when the ball hits the teapot during the ball minigame. |
 | **Water surface** | Generated with a transparent blue solid-color texture and applied to a procedural disk mesh. |
 | **Kibble pieces** | Generated with a solid brown color and procedural geometry. |
 | **Fireflies** | Generated with a solid yellow color and sphere geometry. |
