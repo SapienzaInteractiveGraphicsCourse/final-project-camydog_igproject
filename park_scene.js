@@ -6,16 +6,13 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
             ? deltaTime
             : 1.0 / 60.0;
 
-    /*
-        Evita salti enormi se il browser si blocca un attimo,
-        ma permette comunque di adattarsi a FPS bassi.
-    */
+    // to avoid slowdowns when running on Pages
     parkDeltaTime = Math.min(parkDeltaTime, 0.05);
 
     // Skybox del parco
     DrawSkybox(gl, viewMatrix, projectionMatrix,flipSkyboxY = false);
 
-    // Usa la stessa luce controllata dagli slider
+    // Use the same light controlled by the sliders
     gl.useProgram(program);
 
     gl.uniform4fv(
@@ -51,7 +48,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
 
     drawObject(
         roomBoxBuffers,
-        grassTexture,        // oppure floorTexture temporaneamente
+        grassTexture,        
         modelMatrixFloor,
         viewMatrix,
         projectionMatrix,
@@ -73,18 +70,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
     modelMatrixBench = mult(modelMatrixBench, rotate(90, [0, 1, 0]));
     modelMatrixBench = mult(modelMatrixBench, scalem(2.0, 2.0, 2.0));
 
-    /* drawObject(
-        benchBuffers,
-        benchTexture,  // benchTexture
-        modelMatrixBench,
-        viewMatrix,
-        projectionMatrix,
-        true,   // useTexture
-        false,  // isLightMarker
-        false,  // twoSided
-        true,   // receiveShadow
-        0
-    ); */
+    
 
     drawBenchMaterial(
         benchBuffers,
@@ -241,7 +227,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
 
         drawObject(
             heartBuffers,
-            heartTexture, // temporaneamente, solo per vedere il modello
+            heartTexture, 
             heartMatrix,
             viewMatrix,
             projectionMatrix,
@@ -291,17 +277,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
             false,
             false
         );
-        /* drawObject(
-            lightSphereBuffers,
-            moonTexture,
-            modelMatrixLight,
-            viewMatrix,
-            projectionMatrix,
-            true,   // usa texture
-            true,   // è il light marker
-            false,
-            false
-        ); */
+        
     } else {
 
         //halo
@@ -338,7 +314,7 @@ function drawParkScene(gl,viewMatrix, projectionMatrix,deltaTIme) {
         gl.depthMask(true);
         gl.disable(gl.BLEND);
 
-        // Ripristina il programma principale
+        // back to the normal program for the sun
         gl.useProgram(program);
 
         gl.enable(gl.DEPTH_TEST);

@@ -1,8 +1,4 @@
 function isSkinnedDogReady() {
-    /*
-        Check robusto ma non troppo rigido:
-        il cane deve esistere ed essere un oggetto.
-    */
     if (!skinnedDog) {
         return false;
     }
@@ -14,11 +10,6 @@ function isSkinnedDogReady() {
         return true;
     }
 
-    /*
-        Fallback: provo a vedere se contiene almeno qualche dato
-        disegnabile o qualche lista interna.
-        Così non dipendiamo troppo dal nome esatto dei campi.
-    */
     var possibleArrays = [
         "meshes",
         "meshBuffers",
@@ -95,10 +86,7 @@ function checkDogModelHealth(deltaTime) {
         return;
     }
 
-    /*
-        Se dovrebbe essere pronto ma non lo è,
-        aspetto un attimo per evitare falsi positivi.
-    */
+    
     if (skinnedDogLoadState === "ready" && !isSkinnedDogReady()) {
         dogMissingCheckTimer += deltaTime;
 
@@ -139,15 +127,15 @@ function getDogTargetNearCamera() {
     dirX /= len;
     dirZ /= len;
 
-    // Si ferma davanti alla camera, non dentro la camera
+    // Stops in front of the camera, not inside the camera
     var stopDistance = 3.5;
 
     var targetX = eye[0] + dirX * stopDistance;
     var targetZ = eye[2] + dirZ * stopDistance;
 
     /*
-        Limite interno della stanza.
-        Uso un margine perché il cane non deve attaccarsi esattamente al muro.
+        Internal room limit.
+        Using a margin because the dog should not stick exactly to the wall.
     */
     var dogRoomMargin = 0.85;
 
@@ -163,12 +151,12 @@ function getDogTargetNearCamera() {
         ROOM_MAX_Z - dogRoomMargin
     );
 
-    // Evita di scegliere un punto dentro il tavolo
+    // Avoid choosing a point inside the table
     var corrected = keepDogOutsideTable(targetX, targetZ);
 
     /*
-        Riclampo anche dopo il tavolo, perché keepDogOutsideTable
-        potrebbe spostarlo leggermente.
+        e-clamp after the table, because keepDogOutsideTable
+        might have moved it slightly.
     */
     corrected.x = clamp(
         corrected.x,
@@ -189,7 +177,7 @@ function getDogTargetNearCamera() {
 }
 
 function callSkinnedDogToCamera() {
-    // Evita conflitti con il minigioco della palla
+    // Avoid conflicts with the ball minigame
     if (miniGameActive) {
         console.log("Stop Ball before calling the dog.");
         return;
@@ -197,7 +185,7 @@ function callSkinnedDogToCamera() {
     showDogHeart = true;
     dogHeartTimer = 0.0;
 
-    // Elimina eventuali stati rimasti dalla palla
+    // Remove any states left from the ball
     dogHasBall = false;
 
     dogFetchBallMode = false;
@@ -246,9 +234,6 @@ function updateSkinnedDogCall(deltaTime) {
 
         var corrected = keepDogOutsideTable(nextX, nextZ);
 
-        /* dogFetchX = corrected.x;
-        dogFetchZ = corrected.z; 
-        */
 
         var dogRoomMargin = 0.85;
 
@@ -264,7 +249,7 @@ function updateSkinnedDogCall(deltaTime) {
             ROOM_MAX_Z - dogRoomMargin
         );
 
-        // Serve anche per orientare il cane
+        // Also used to orient the dog
         dogFetchTarget = {
             x: target.x,
             z: target.z
@@ -276,7 +261,7 @@ function updateSkinnedDogCall(deltaTime) {
             dogCallPathIndex = dogCallPath.length - 1;
             dogCallMode = false;
 
-            // Arrivato: gira il cane verso la telecamera
+            // Arrived: turn the dog towards the camera
             var lookDx = eye[0] - dogFetchX;
             var lookDz = eye[2] - dogFetchZ;
 
@@ -323,7 +308,7 @@ function getDogHeartModelMatrix() {
 
 
 
-    // corregge il cuore capovolto
+    // corrects the upside-down heart
     heartMatrix = mult(
         heartMatrix,
         rotate(270.0, [1, 0, 0])
@@ -341,7 +326,7 @@ function getDogHeartModelMatrix() {
     return heartMatrix;
 }
 
-// modalità carezza al cane
+// dog petting mode
 function updateDogPetAnimation(deltaTime) {
     var targetYaw = petDogMode ? dogPetTargetYaw : 0.0;
     var targetPitch = petDogMode ? dogPetTargetPitch : 0.0;
@@ -422,13 +407,13 @@ function getDogNoteModelMatrix(noteIndex) {
         translate(noteX, noteY, noteZ)
     );
 
-    // rotazione corretta per il tuo OBJ
+    
     noteMatrix = mult(
         noteMatrix,
         rotate(90.0, [0, 1, 0])
     );
 
-    // rotazione su se stessa
+    // rotation on itself to adjust the orientation of the note
     noteMatrix = mult(
         noteMatrix,
         rotate(spin, [0, 1, 0])

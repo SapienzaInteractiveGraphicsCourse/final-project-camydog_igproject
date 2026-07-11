@@ -856,6 +856,9 @@ uniform float uAmbientStrength;
 uniform vec3 uLightTint;
 
 
+uniform float mainLightVisibility;
+
+
 //new for light wall shadows
 uniform bool wallLampEnabled;
 uniform vec3 wallLampPosition;
@@ -997,63 +1000,6 @@ vec3 computeWallLampLight(vec3 objectBaseColor, vec3 normal)
     return spotLight ; //+ wallGlow;
 }
 
-vec3 computeWallLampLight_old_old(vec3 objectBaseColor, vec3 normal)
-{
-    vec3 fromLampToFragment =
-        fWorldPos - wallLampPosition;
-
-    float distanceToLamp =
-        length(fromLampToFragment);
-
-    vec3 lampToFragmentDir =
-        normalize(fromLampToFragment);
-
-    vec3 fragmentToLampDir =
-        normalize(wallLampPosition - fWorldPos);
-
-    float diffuse =
-        max(dot(normalize(normal), fragmentToLampDir), 0.0);
-
-    float attenuation =
-        clamp(1.0 - distanceToLamp / wallLampRange, 0.0, 1.0);
-
-    attenuation = attenuation * attenuation;
-
-    float theta =
-        dot(lampToFragmentDir, normalize(wallLampDirection));
-
-    float spot =
-        smoothstep(
-            wallLampOuterCutoff,
-            wallLampCutoff,
-            theta
-        );
-
-    vec3 spotLight =
-        objectBaseColor *
-        wallLampColor *
-        diffuse *
-        attenuation *
-        spot *
-        wallLampIntensity;
-
-    /*
-        Piccolo alone locale vicino alla lampada.
-        Serve per far vedere la luce sulla parete dove è attaccata.
-    */
-    float localGlow =
-        clamp(1.0 - distanceToLamp / 2.4, 0.0, 1.0);
-
-    localGlow = localGlow * localGlow;
-
-    vec3 wallGlow =
-        objectBaseColor *
-        wallLampColor *
-        localGlow *
-        0.75;
-
-    return spotLight + wallGlow;
-}
 
 
 float computeWallLampShadow()
@@ -1200,9 +1146,21 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     // attenzione // float bias = max(0.003 * (1.0 - ndotl), 0.0002);
     float bias;
 
-    if (wallShadowMode != 0) {
+    if (wallShadowMode == 8) {
+        /*
+            Special bias for the teapot.
+            It reduces self-shadowing on curved/concave geometry
+            without changing the shadows of the whole scene.
+        */
+        bias = max(
+            0.0120 * (1.0 - ndotl),
+            0.0040
+        );
+    }
+    else if (wallShadowMode != 0) {
         bias = 0.000005;
-    } else {
+    } 
+    else {
         bias = max(
             0.0015 * (1.0 - ndotl),
             0.00015
@@ -1508,7 +1466,24 @@ void main(){
     float shadow = 1.0;
 
     if (usePointShadowMap && receiveShadow && applyShadowOnThisFace) {
-        shadow = computePointShadow(fWorldPos,fWorldNormal);
+        //shadow = computePointShadow(fWorldPos,fWorldNormal);
+
+        //modifying 11 July
+            vec3 shadowSamplePos = fWorldPos;
+
+        /*
+            Teapot receiver offset.
+            The teapot is curved/concave, so sampling the shadow map
+            exactly on the surface creates self-shadowing artifacts.
+        */
+        if (wallShadowMode == 8) {
+            shadowSamplePos += normalize(fWorldNormal) * 0.07;
+        }
+
+        shadow = computePointShadow(
+            shadowSamplePos,
+            fWorldNormal
+        );
     }
     else {
         //old shadow map code
@@ -1586,7 +1561,9 @@ void main(){
     }
 
     // Per gli oggetti normali
-    else if (wallShadowMode == 0 || wallShadowMode == 5 || wallShadowMode == 6) {
+    else if (wallShadowMode == 0 || wallShadowMode == 5 || wallShadowMode == 6
+        || wallShadowMode == 8) {
+
             vec3 objectBaseColor = useTexture
                 ? texColor.rgb
                 : vec3(1.0);
@@ -1638,18 +1615,120 @@ void main(){
 
                 baseColor = vec4(floorColor, 1.0);
             }
-
             /*
-                wallShadowMode == 0
-                Oggetti normali.
-                Restano identici a prima.
+                wallShadowMode == 8
+                Teapot.
+                The teapot keeps ambient/fill light, but direct sun diffuse/specular
+                is reduced when the main light is outside the room.
             */
+            
+            else if (wallShadowMode == 8) {
+                vec3 N =
+                    normalize(fWorldNormal);
+
+                vec3 L =
+                    normalize(lightPosition.xyz - fWorldPos);
+
+                vec3 V =
+                    normalize(cameraWorldPosition - fWorldPos);
+
+                vec3 H =
+                    normalize(L + V);
+
+                float diffuseAmount =
+                    max(dot(N, L), 0.0);
+
+                float specularAmount =
+                    pow(
+                        max(dot(N, H), 0.0),
+                        72.0
+                    );
+
+                /*
+                    If the light is blocked by the room, direct light and specular
+                    are reduced through mainLightVisibility.
+                */
+                vec3 ambientColor =
+                    objectBaseColor * uAmbientStrength;
+
+                vec3 diffuseColor =
+                    objectBaseColor *
+                    diffuseAmount *
+                    uLightIntensity *
+                    uLightTint *
+                    mainLightVisibility;
+
+                vec3 specularColor =
+                    vec3(specularAmount) *
+                    0.35 *
+                    uLightIntensity *
+                    uLightTint *
+                    mainLightVisibility;
+
+                float indoorFillStrength =
+                    (1.0 - mainLightVisibility) * 0.10;
+
+
+                float blockedAmount =
+                    1.0 - mainLightVisibility;
+
+                /*
+                    Soft indoor shaping light.
+                    It is not the sun: it only keeps the teapot readable
+                    when the main light is blocked by the room.
+                */
+                vec3 indoorLightDir =
+                    normalize(vec3(-0.35, 0.65, 0.45));
+
+                float indoorShape =
+                    max(dot(N, indoorLightDir), 0.0);
+
+                vec3 indoorShapeColor =
+                    objectBaseColor *
+                    indoorShape *
+                    blockedAmount *
+                    0.18;
+
+                vec3 teapotColor =
+                    ambientColor
+                    + objectBaseColor * indoorFillStrength
+                    + diffuseColor
+                    + specularColor
+                    + indoorShapeColor;
+
+                baseColor =
+                    vec4(teapotColor, 1.0);
+            }
+            
             else {
+                float objectMainLightVisibility =
+                    mainLightVisibility;
+
+                float objectFill =
+                    0.0;
+
+                /*
+                    Wall lamp model:
+                    - when the sun is visible, it can receive normal light;
+                    - when the sun is blocked by the room, direct/specular light fades out;
+                    - a small material fill keeps the lamp visible.
+                */
+                if (isWallLampModel) {
+                    objectMainLightVisibility = mainLightVisibility;
+                    objectFill = (1.0 - mainLightVisibility) * 0.28;
+                }
+
                 vec3 normalColor =
                     objectBaseColor * uAmbientStrength
-                    + objectBaseColor * fColor.rgb * uLightIntensity * uLightTint;
+                    + objectBaseColor * objectFill
+                    + objectBaseColor *
+                    fColor.rgb *
+                    uLightIntensity *
+                    uLightTint *
+                    objectMainLightVisibility;
 
-                baseColor = vec4(normalColor, 1.0);
+                baseColor =
+                    vec4(normalColor, 1.0);
             }
         
 
@@ -1781,6 +1860,17 @@ void main(){
     }
 
     float finalShadow = shadow;
+
+
+    /*
+        Teapot special case.
+        The teapot is curved and concave, so receiving its own shadow map
+        creates strong self-shadow artifacts from the lid/handle/spout.
+        We keep only a very soft shadow contribution on the teapot surface.
+    */
+    if (wallShadowMode == 8) {
+        finalShadow = mix(1.0, shadow, 0.12);
+    }
 
     /*
         Grass patches receive shadow, but in a lighter way,
@@ -2366,6 +2456,9 @@ uniform bool usePointShadowMap;
 
 uniform vec4 lightPosition;
 
+uniform float mainLightBlockedByRoom;
+uniform float mainLightVisibility;
+
 uniform sampler2D pointShadowMap0;
 uniform sampler2D pointShadowMap1;
 uniform sampler2D pointShadowMap2;
@@ -2396,6 +2489,8 @@ uniform float wallLampIntensity;
 uniform float wallLampRange;
 uniform float wallLampCutoff;
 uniform float wallLampOuterCutoff;
+
+
 
 
 vec3 computeWallLampLightForDog(vec3 objectBaseColor, vec3 normal)
@@ -2723,26 +2818,29 @@ void main()
         specularMask *
         (1.0 - roughness * 0.65);
 
-    /*
-        Il cane non deve sembrare metallico come un oggetto duro.
-        Usiamo metallic in modo leggero, solo per modulare la risposta.
-    */
+    
+    
+
     vec3 ambient =
         baseColor * uAmbientStrength;
+
+    
 
     vec3 diffuse =
         baseColor *
         diff *
         uLightIntensity *
         uLightTint *
-        mix(1.0, 0.75, metallic);
+        mix(1.0, 0.75, metallic)*
+        mainLightVisibility ;
 
     vec3 specular =
         vec3(spec) *
         specularStrength *
         uLightIntensity *
         uLightTint *
-        0.35;
+        0.35 *
+        mainLightVisibility;
 
     float shadow = 1.0;
 
@@ -2758,8 +2856,18 @@ void main()
             );
     }
 
-    vec3 finalColor =
+    /*vec3 finalColor =
         ambient + (diffuse + specular) * shadow;
+        */
+
+    float indoorFillStrength =
+    (1.0 - mainLightVisibility) * 0.18;
+
+    vec3 finalColor =
+        ambient
+        + baseColor * indoorFillStrength
+        + (diffuse + specular) * shadow;
+    
 
 
     if (wallLampEnabled) {
@@ -2773,7 +2881,7 @@ void main()
     }
 
     /*
-        Nel parco di notte il cane deve restare leggibile.
+        when it's night in the park , I want to be able to see the dog
     */
     if (uAmbientStrength > 0.50) {
         finalColor += baseColor * 0.12;
@@ -2781,6 +2889,8 @@ void main()
 
     finalColor =
         clamp(finalColor, 0.0, 1.0);
+
+    
 
     gl_FragColor =
         vec4(finalColor, 1.0);

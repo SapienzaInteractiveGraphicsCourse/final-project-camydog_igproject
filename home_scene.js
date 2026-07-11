@@ -76,10 +76,13 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             //updateDogMovementToBall(deltaTime);
 
 
+            checkBallTeapotCollision();
             
             checkBallStoppedAndSendSkinnedDog();
-            //updateSkinnedDogFetchBall(deltaTime);
+            
         }
+        updateTeapotFragments(deltaTime);
+        
         //checking if dog is in follow teapot mode, if so update dog position and animation
         if (dogFollowTeapotMode) {
             updateDogFollowTeapot(deltaTime);
@@ -732,12 +735,22 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     gl.disable(gl.CULL_FACE);
 
-    drawObject(teapotBuffers,
-         teapotTexture,
-          modelMatrix1,
-           viewMatrix,
-            projectionMatrix,useTexture_teapot, 
-            false,false,true);
+    if (!teapotBroken) {
+        drawObject(
+            teapotBuffers,
+            teapotTexture,
+            modelMatrix1,
+            viewMatrix,
+            projectionMatrix,
+            useTexture_teapot,
+            false,
+            false,
+            true,
+            8
+        );
+    } else {
+        drawTeapotFragments(viewMatrix, projectionMatrix);
+    }
 
 
     gl.enable(gl.CULL_FACE);

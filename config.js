@@ -12,7 +12,7 @@ var loadingProgressAnimationId = null;
 //current Scene either "home" or "park"
 var currentScene = "home"; 
 var sceneTransitionActive = false;
-var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
+var ENABLE_SCREEN_TRANSITION = true; 
 var startSceneChoice = "home";
 var showCameraHelpAtStart = true;
 var startGlobalAudioEnabled = true;
@@ -53,7 +53,7 @@ var cameraDogAutoAngle = false;
 var CAMERA_MIN_DISTANCE = 2.2;
 var CAMERA_MAX_DISTANCE = 25.0;
 
-var cameraDogMode = "static"; // valori possibili: "static", "follow", "autoAngle"
+var cameraDogMode = "static"; // possible values: "static", "follow", "autoAngle"
 
 var cameraDogStaticTarget = vec3(0.0, -0.6, 0.0);
 
@@ -376,7 +376,7 @@ var CURTAIN_ORIGIN_Z = -1.28;
 
 //water specular variables
 var waterX = 0.0;
-var waterY = -2.15;  // usa il valore che ti funziona ora
+var waterY = -2.15;  
 var waterZ = 5.0;
 
 var waterScale=0.3;
@@ -407,8 +407,8 @@ var bowlY=-2.25;
 var bowlZ=5.0;
 var bowlBody = null;
 
-const BOWL_FINAL_MARGIN = 0.10;   // quello che ora ti piace quando beve
-const BOWL_STAND_MARGIN = 0.80;   // distanza sicura mentre cammina
+const BOWL_FINAL_MARGIN = 0.10;   
+const BOWL_STAND_MARGIN = 0.80;   // safe distance from the bowl for the dog to stand and drink
 const DRINK_FORWARD_SLIDE = 0.12;
 
 var drinkPoseT = 0.0;
@@ -590,14 +590,14 @@ var kibbleWallSegments = 24;
 
 var kibbleSpawnRemaining = 0;
 var kibbleSpawnTimer = 0.0;
-var kibbleSpawnInterval = 0.14; // cadono uno alla volta, più realistico
+var kibbleSpawnInterval = 0.14; 
 var kibbleSpawnIndex = 0;
 
 
 var kibbleObjects = [];
-var kibbleMaxFallSpeed = 3.0; // più basso = cadono più lentamente
+var kibbleMaxFallSpeed = 3.0; // lower = fall more slowly
 
-var kibbleVisualScale = 2.0;     // grandezza visiva
+var kibbleVisualScale = 2.0;     
 var kibbleVisualYOffset = 0.005;
 
 var foodButton;
@@ -622,17 +622,14 @@ var BENCH_COLLIDER_Y = -1.85;
 var BENCH_COLLIDER_Z = -2.8;
 
 // dimensioni VISIVE del box
-var BENCH_COLLIDER_WIDTH  = 4.0;  // lunghezza panchina
-var BENCH_COLLIDER_HEIGHT = 3.0;  // altezza box
-var BENCH_COLLIDER_DEPTH  = 2.0;  // profondità panchina
+var BENCH_COLLIDER_WIDTH  = 4.0;  // bench length
+var BENCH_COLLIDER_HEIGHT = 3.0;  // box height
+var BENCH_COLLIDER_DEPTH  = 2.0;  // bench depth
 
 var BENCH_COLLIDER_ROT_Y = 90.0;
 
-// margine per il cane
+// dog margin
 var BENCH_DOG_MARGIN = 1.2;
-
-
-
 
 
 /**********FRISBEE */
@@ -683,17 +680,17 @@ var frisbeeHandTargetPos = vec3(-1.2, -1.1, 4.8);
 
 var frisbeeHandFixedZ = 4.8;
 
-// posizione verticale "naturale" della mano
+// vertical "natural" position of the hand
 var frisbeeHandBaseY = -1.1;
 
-// limiti verticali: così non va troppo in alto o troppo in basso
+// vertical limits: so it doesn't go too high or too low
 var frisbeeHandMinY = -1.7;
 var frisbeeHandMaxY = -0.2;
 
-// più è basso, meno segue verticalmente il mouse
+// lower = less vertical follow of the mouse
 var frisbeeHandVerticalSensitivity = 1.0;
 
-// smoothing: più basso = più morbido/lento
+// smoothing: lower = smoother/slower
 var frisbeeHandSmoothing = 0.7;
 
 
@@ -715,16 +712,15 @@ var frisbeeHasMousePosition = false;
 var frisbeeHandDistanceFromCamera = 3.6;
 
 /*
-    Offset nel palmo.
-    X positivo = più a destra.
-    Y positivo = più in alto.
+    Offset in the palm.
+    Positive X = more to the right.
+    Positive Y = higher.
 */
 var frisbeeHandPalmOffsetX = 0.25;
 var frisbeeHandPalmOffsetY = -0.15;
 
 /*
-    Più alto = segue di più la mano.
-    Se lo vedi in ritardo, aumenta.
+    Higher = follows the hand more.
 */
 var frisbeeHandSmoothing = 0.35;
 
@@ -763,7 +759,7 @@ var leafSpawnTimer = 0.0;
 var nextLeafSpawnTime = 0.5;
 
 var maxFallingLeaves = 18;
-// Questa la colleghiamo allo slider del vento
+
 var parkWindStrength = 0.07
 
 
@@ -796,6 +792,12 @@ var dogFireflyCircleCenterZ = 0.0;
 var dogFireflyOrbitAngle = 0.0;
 
 var dogFireflyRearDuration = 3.0;
+
+// teapot collision +ball
+var teapotBroken = false;
+var teapotFragments = [];
+var teapotBreakTimer = 0.0;
+var teapotRespawnTime = 5.0;
 
 /************************** */
 //      TEAPOT PLAY DOG     //
@@ -846,19 +848,19 @@ var DOG_TEAPOT_WAYPOINT_RADIUS = 0.55;
 
 /********** SECOND LIGHT PART-> WALL LAMP */
 
-// stato della lampada
+
 var wallLampEnabled = false;
 
-// se voglio permettere le ombre della lampada
+
 var wallLampShadowEnabled = true;
 
-// viene disattivata quando Performance Saver è ON
+// deactivate when Performance Saver is ON
 var useWallLampShadow = true;
 
-// colore caldo da lampada notturna
+// warm color from night lamp
 var wallLampColor = vec3(1.0, 0.72, 0.38);
 
-// intensità luce
+// light intensity
 /* var wallLampIntensity = 2.8;
 var wallLampRange = 7.0;
 
@@ -883,14 +885,14 @@ var wallLampFov = 120.0;
 
 
 
-// shadow map della wall lamp
+// shadow map of the wall lamp
 var wallLampShadowFramebuffer = null;
 var wallLampShadowTexture = null;
 
 var wallLampViewMatrix = null;
 var wallLampProjectionMatrix = null;
 
-// bias per evitare shadow acne
+// bias to avoid shadow acne
 var wallLampShadowBias = 0.0004;
 
 var wallLampBulbOffset = vec3(0.16, -0.12, 0.0);
@@ -908,7 +910,7 @@ var wallLampGlowBuffers = null;
 
 var wallLampBuffers = null;
 
-// posizione/scala/rotazione del modello visivo
+
 var wallLampModelPosition = vec3(-6.5, 0.75, -2.0);
 var wallLampModelScale = vec3(0.45, 0.45, 0.45);
 var wallLampModelRotationY = -90.0;
@@ -921,10 +923,8 @@ var wallLampNormalTexture = null;
 var wallLampRoughnessTexture = null;
 var wallLampTexture;
 
-// colore base, visto che non abbiamo una diffuse/baseColor texture
 var wallLampBaseColor = vec4(0.015, 0.015, 0.018, 1.0);
 
-// materiale abbastanza metallico/scuro
 var wallLampSpecularStrength = 0.8;
 var wallLampShininess = 80.0;
 

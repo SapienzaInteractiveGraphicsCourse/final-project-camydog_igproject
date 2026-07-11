@@ -532,7 +532,7 @@ onload = async function init() {
             throw new Error("Invalid GLB result: missing gltf or binary data.");
         }
 
-        console.log("GLB debug loaded successfully");
+        //console.log("GLB debug loaded successfully");
 
         // it generates the mermaid code to build the graph
         if (EXPORT_DOG_MERMAID_TXT) {
@@ -562,14 +562,14 @@ onload = async function init() {
 
         skinnedDogLoadState = "ready";
 
-        console.log("Skinned dog buffers created:", skinnedDog);
+        /* console.log("Skinned dog buffers created:", skinnedDog);
         console.log("Kishu Inu texture maps available:", {
             baseColor: !!skinnedDog.baseColorTexture,
             normal: !!skinnedDog.normalTexture,
             metallicRoughness: !!skinnedDog.metallicRoughnessTexture,
             specular: !!skinnedDog.specularTexture,
             normalScale: skinnedDog.normalScale
-        });
+        }); */
         //printDogJointNames();
 
     } catch (error) {
@@ -725,7 +725,7 @@ onload = async function init() {
     
     //second light .. wall lamp loading
     await loadOBJ(modelPath_wallLamp);
-    console.log("OBJ Wall Lamp loaded");
+    //console.log("OBJ Wall Lamp loaded");
     var wallLampPoints = pointsArray.slice();
     var wallLampNormals = normalsArray.slice();
     var wallLampTex = texCoordsArray.slice();
@@ -733,7 +733,7 @@ onload = async function init() {
 
     //moon loading
     await loadOBJ(modelPath_moon);
-    console.log("OBJ Moon loaded");
+    //console.log("OBJ Moon loaded");
     var moonPoints = pointsArray.slice();
     var moonNormals = normalsArray.slice();
     var moonTex = texCoordsArray.slice();
@@ -742,7 +742,7 @@ onload = async function init() {
 
     //sun loading
     await loadOBJ(modelPath_sun);
-    console.log("OBJ Sun loaded");
+    //console.log("OBJ Sun loaded");
     var sunPoints = pointsArray.slice();
     var sunNormals = normalsArray.slice();
     var sunTex = texCoordsArray.slice();
@@ -750,7 +750,7 @@ onload = async function init() {
 
     //loading bowl
     await loadOBJ(modelPath_bowl)
-    console.log("OBJ bowl loaded");
+    //console.log("OBJ bowl loaded");
     var bowlPoints = pointsArray.slice();
     var bowlNormals = normalsArray.slice();
     var bowlTex = texCoordsArray.slice();
@@ -765,7 +765,7 @@ onload = async function init() {
 
     //heart loading
      await loadOBJ(modelPath_heart);
-    console.log("OBJ Heart loaded");
+    //console.log("OBJ Heart loaded");
     var heartPoints = pointsArray.slice();
     var heartNormals = normalsArray.slice();
     var heartTex = texCoordsArray.slice();
@@ -776,7 +776,7 @@ onload = async function init() {
 
     //loading musicNote
     await loadOBJ(modelPath_musicNote);
-    console.log("OBJ Music Note loaded");
+    //console.log("OBJ Music Note loaded");
     var musicNotePoints = pointsArray.slice();
     var musicNoteNormals = normalsArray.slice();
     var musicNoteTex = texCoordsArray.slice();
@@ -787,7 +787,7 @@ onload = async function init() {
 
     //teapot loading
     await loadOBJ(modelPath_teapot);
-    console.log("OBJ  Teapot loaded");
+    //console.log("OBJ  Teapot loaded");
         
     var teapotPoints = pointsArray.slice();
     var teapotNormals = normalsArray.slice();
@@ -799,7 +799,7 @@ onload = async function init() {
 
     //carico parte del tavolo 
     await loadOBJ(modelPath_table);
-    console.log("OBJ  Table loaded");
+    //console.log("OBJ  Table loaded");
 
 
     var tablePoints = pointsArray.slice();
@@ -821,7 +821,7 @@ onload = async function init() {
 
     //ball buffers
     await loadOBJ(modelPath_ball);
-    console.log("OBJ Ball loaded");
+    //console.log("OBJ Ball loaded");
     var ballPoints = pointsArray.slice();
     var ballNormals = normalsArray.slice();
     var ballTex = texCoordsArray.slice();
@@ -3857,7 +3857,7 @@ function drawObject(obj,
     isLightMarker=false,
     twoSided = false, 
     receiveShadow = true,
-    wallShadowMode=false,
+    wallShadowMode=0,
     isSunHalo = false,
     globalAlpha = 1.0,
     isWallLampModel = false,
@@ -3890,6 +3890,17 @@ function drawObject(obj,
         ambientStrength = ambientStrength_sun;
         lightTint = lightTint_sun; // caldo sole
     }
+
+    var mainLightVisibility =
+        computeMainLightVisibilityForHome();
+
+
+
+    gl.uniform1f(
+        gl.getUniformLocation(program, "mainLightVisibility"),
+        mainLightVisibility
+    );
+
 
     gl.uniform1f(
         gl.getUniformLocation(program, "uLightIntensity"),
@@ -3968,7 +3979,7 @@ function drawObject(obj,
 
 
     if (!window.debugWallLampShadowUniformLogged) {
-        console.log("wallLampActive =", wallLampActive);
+      /*   console.log("wallLampActive =", wallLampActive);
         console.log("wallLampShadowActive =", wallLampShadowActive);
         console.log("wallLampShadowTexture =", wallLampShadowTexture);
         console.log("wallLampViewMatrix =", wallLampViewMatrix);
@@ -3976,7 +3987,7 @@ function drawObject(obj,
         console.log(
             "MAX_TEXTURE_IMAGE_UNITS =",
             gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)
-        );
+        );  */
 
         window.debugWallLampShadowUniformLogged = true;
     }

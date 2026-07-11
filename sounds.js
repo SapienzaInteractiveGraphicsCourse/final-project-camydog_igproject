@@ -131,9 +131,7 @@ function setAllGameSoundsVolume(volume) {
         }
     }
     /*
-        dogHappySound è creato con new Audio(),
-        quindi non esiste come elemento HTML con id.
-        Per questo lo aggiorno separatamente.
+        dogHappySound is loaded with a different method, so I have to handle it separately.
     */
     if (typeof dogHappySound !== "undefined" && dogHappySound) {
         applyMasterVolumeToSound(
@@ -185,9 +183,8 @@ function setGlobalAudioMuted(muted) {
     updateGlobalAudioButton();
 
     /*
-        Importantissimo:
-        aggiorno anche il bottone della background music,
-        perché col mute globale la musica non è più udibile.
+        SUPER IMPORTANT: I update the background music button as well, 
+        because with global mute the music is no longer audible.
     */
     updateBackgroundMusicButtonVisualState();
 }
@@ -301,8 +298,8 @@ function warmUpBallThrowSound() {
     var previousVolume = ballThrowSound.volume;
 
     /*
-        Lo faccio partire muto e lo stoppo subito.
-        Serve a far caricare/decodificare il file audio prima del lancio vero.
+        I do it muted and stop it immediately.
+        This is to load/decode the audio file before the actual throw.
     */
     ballThrowSound.volume = 0.0;
     ballThrowSound.currentTime = 0.0;
@@ -341,7 +338,7 @@ function updateWindSound(windValue) {
     if (wind > 0.05) {
         var volume = Math.min(wind / maxWind, 1.0);
 
-        windSound.volume = volume * masterAudioVolume; // volume massimo al 45%
+        windSound.volume = volume * masterAudioVolume;
 
         if (windSound.paused) {
             windSound.play().catch(function(error) {

@@ -1,7 +1,7 @@
 function createParkGrassPatchInstances() {
     grassPatchInstances = [];
 
-    //var count = 200;   // prova 50 / 70 / 100
+    //var count = 200;   //  50 / 70 / 100
     var count = PARK_GRASS_COUNT;
     var minX = -6.0;
     var maxX =  6.0;
@@ -42,14 +42,14 @@ function drawParkGrassPatches(viewMatrix, projectionMatrix) {
 
         drawObject(
             grassBlockBuffers,
-            grassBlockTexture,   // oppure grassTexture se vuoi usare quella
+            grassBlockTexture,   
             m,
             viewMatrix,
             projectionMatrix,
             true,    // useTexture
             false,   // isLightMarker
             false,    // twoSided
-            true,   // receiveShadow, per ora meglio false sui fili d'erba
+            true,   // receiveShadow, 
             6      //wallMode=6 for grass block
         );
     }
@@ -60,7 +60,7 @@ function drawParkGrassPatches(viewMatrix, projectionMatrix) {
 /****LEAVES */
 function updateFallingLeaves(deltaTime) {
     if (isNight) {
-        return; // di notte magari poi mettiamo lucciole
+        return; 
     }
 
     leafSpawnTimer += deltaTime;
@@ -73,7 +73,7 @@ function updateFallingLeaves(deltaTime) {
 
         leafSpawnTimer = 0.0;
 
-        // prossimo spawn random
+        
         nextLeafSpawnTime =
             0.35 + Math.random() * 0.65;
     }
@@ -285,8 +285,8 @@ function drawFallingLeaves(viewMatrix, projectionMatrix) {
             projectionMatrix,
             true,    // useTexture
             false,   // isLightMarker
-            true,    // twoSided, così la foglia si vede da entrambi i lati
-            false,   // receiveShadow: meglio false, evita flickering
+            true,    // twoSided, so the leaf is visible from both sides
+            false,   // receiveShadow: better false, avoids flickering
             0
         );
     }
@@ -411,7 +411,7 @@ function drawFireflies(viewMatrix, projectionMatrix) {
             viewMatrix,
             projectionMatrix,
             true,   // useTexture
-            true,   // isLightMarker: luminosa
+            true,   // isLightMarker: light source, so it glows
             false,  // twoSided
             false,  // receiveShadow
             0
@@ -450,9 +450,8 @@ function updateDogFireflyCatch(deltaTime) {
         dogFireflyCatchTimer += deltaTime;
 
         /*
-            FASE 1:
-            il cane corre su una traiettoria circolare
-            nella zona delle lucciole.
+            Step 1:
+            the dog runs in a circle around the fireflies, chasing them.
         */
         if (dogFireflyCatchPhase === "chase") {
             dogFireflyOrbitAngle += deltaTime * 2.5;
@@ -463,13 +462,7 @@ function updateDogFireflyCatch(deltaTime) {
             var r =
                 dogFireflyChaseRadius + wobble;
 
-            /* dogFetchX =
-                dogFireflyCircleCenterX +
-                Math.cos(dogFireflyOrbitAngle) * r;
-
-            dogFetchZ =
-                dogFireflyCircleCenterZ +
-                Math.sin(dogFireflyOrbitAngle) * r; */
+            
 
                 var proposedDogX =
                     dogFireflyCircleCenterX +
@@ -480,32 +473,20 @@ function updateDogFireflyCatch(deltaTime) {
                     Math.sin(dogFireflyOrbitAngle) * r;
 
                 /*
-                    Uso il collider già esistente della panchina.
-                    Se il cane finisce dentro l'area vietata,
-                    viene spinto fuori.
+                    here i use the bench collider to keep the dog outside the bench area
+                    if the proposed position is inside the bench, i keep the dog in the previous position
                 */
                 
                 dogFetchX = proposedDogX;
                 dogFetchZ = proposedDogZ;
 
             /*
-                IMPORTANTISSIMO:
-                non guarda la lucciola fissa,
-                guarda un punto più avanti sul cerchio.
-                Così sembra che corra davvero lungo la traiettoria.
+                SO IMPORTANT:
+                the dog doesn't look at the firefly directly,
+                it looks at a point ahead on the circle.
+                This way it looks like it's really running along the trajectory.
             */
-            /* var lookAheadAngle =
-                dogFireflyOrbitAngle + 0.55;
-
-            dogFetchTarget = {
-                x:
-                    dogFireflyCircleCenterX +
-                    Math.cos(lookAheadAngle) * r,
-
-                z:
-                    dogFireflyCircleCenterZ +
-                    Math.sin(lookAheadAngle) * r
-            }; */
+            
             var lookAheadX =
                 dogFireflyCircleCenterX +
                 Math.cos(dogFireflyOrbitAngle + 0.35) * r;
@@ -527,8 +508,8 @@ function updateDogFireflyCatch(deltaTime) {
 
             if (dogFireflyCatchTimer >= dogFireflyChaseDuration) {
                 /*
-                    Si ferma esattamente dove è arrivato
-                    e passa alla posa sulle zampe posteriori.
+                    The dog stops exactly where it arrived
+                    and transitions to the rear paw pose.
                 */
                 dogFireflyCatchPhase = "rear";
                 dogFireflyCatchTimer = 0.0;
@@ -545,13 +526,13 @@ function updateDogFireflyCatch(deltaTime) {
         }
 
         /*
-            FASE 2:
-            saltino + zampe anteriori.
+            PHASE 2:
+            jump + front paws.
         */
         if (dogFireflyCatchPhase === "rear") {
             /*
-                Durante questa fase NON cambio dogFetchX/Z.
-                Quindi il cane resta fermo nel punto in cui ha finito la corsa.
+                During this phase I DON'T change dogFetchX/Z.
+                So the dog stays still at the point where it finished the run.
             */
 
             if (dogFireflyTarget) {
@@ -586,7 +567,7 @@ function updateDogFireflyCatch(deltaTime) {
     }
 
     /*
-        Scelgo una lucciola vicina al cane.
+        I choose a firefly close to the dog.
     */
     var bestFirefly = null;
     var bestDist = 999999.0;
@@ -612,10 +593,10 @@ function updateDogFireflyCatch(deltaTime) {
     }
 
     /*
-        Centro della zona delle lucciole:
-        faccio una media delle lucciole vicine alla target.
-        Così il cerchio non è centrato sul cane,
-        ma sulla zona luminosa.
+        Center of the firefly area:
+        I average the positions of the fireflies near the target.
+        This way the circle is not centered on the dog,
+        but on the luminous area.
     */
     var sumX = 0.0;
     var sumZ = 0.0;
@@ -645,8 +626,8 @@ function updateDogFireflyCatch(deltaTime) {
     }
 
     /*
-        Calcolo raggio e angolo iniziale in modo che il cane
-        parta dalla sua posizione attuale, senza teleport brutto.
+        Calculate the initial radius and angle so that the dog
+        starts from its current position, without a sudden teleport.
     */
     var startDx =
         dogFetchX - dogFireflyCircleCenterX;
@@ -682,8 +663,8 @@ function updateDogFireflyCatch(deltaTime) {
     dogFireflyTarget = bestFirefly;
 
     /*
-    Evito di far partire l'animazione delle lucciole
-    se il cerchio di corsa passa dentro la panchina.
+        Avoid starting the firefly animation
+        if the running circle passes through the bench.
     */
     var orbitRadiusWithMargin = dogFireflyChaseRadius + 0.25;
 
@@ -706,8 +687,8 @@ function updateDogFireflyCatch(deltaTime) {
 
 function requestDayNightToggle() {
 
-    // Se siamo di notte e il cane sta facendo l'animazione delle lucciole,
-    // non passare subito al giorno.
+    // If it is night and the dog is performing the firefly animation,
+    // do not switch to day immediately.
     if (
         isNight &&
         dogFireflyCatchActive &&
@@ -717,7 +698,7 @@ function requestDayNightToggle() {
         return;
     }
 
-    // comportamento normale
+    // normal behavior
     isNight = !isNight;
     refreshBackgroundMusicAfterSceneChange();
 }
@@ -775,7 +756,7 @@ function showGameMessage(messageText, duration) {
 
         msg.style.position = "fixed";
 
-        // centrato rispetto al canvas
+        // centered relative to the canvas
         msg.style.left = (rect.left + rect.width / 2) + "px";
 
 
@@ -789,7 +770,7 @@ function showGameMessage(messageText, duration) {
 
         msg.style.boxSizing = "border-box";
 
-        // stile tipo Pokopia
+        // style similar to Pokopia
         msg.style.background = "rgba(65, 76, 175, 0.96)";
         msg.style.color = "white";
 
@@ -798,7 +779,7 @@ function showGameMessage(messageText, duration) {
         msg.style.border = "1.5px solid rgba(130, 145, 255, 0.65)";
         msg.style.boxShadow = "0 5px 14px rgba(0, 0, 0, 0.25)";
 
-        // testo centrato
+        // centered text
         msg.style.display = "flex";
         msg.style.alignItems = "center";
         msg.style.justifyContent = "center";
@@ -821,7 +802,7 @@ function showGameMessage(messageText, duration) {
         document.body.appendChild(msg);
     }
 
-    // aggiorna sempre la posizione rispetto al canvas
+    // always update the position relative to the canvas
     msg.style.left = (rect.left + rect.width / 2) + "px";
 
     msg.textContent = messageText;
@@ -841,12 +822,12 @@ function showGameMessage(messageText, duration) {
 
 function resetDogForHomeScene() {
     /*
-        Quando torno dal parco alla casa, non devo conservare
-        la posizione del cane nel parco, perché in casa potrebbe
-        coincidere con tavolo / oggetti / pareti.
+        When returning from the park to the house, I must not keep
+        the dog's position in the park, because in the house it could
+        coincide with the table / objects / walls.
     */
 
-    // Ferma eventuali movimenti attivi
+    // Stop any active movements
     dogFetchBallMode = false;
     dogPath = [];
     dogPathIndex = 0;
@@ -857,7 +838,7 @@ function resetDogForHomeScene() {
     dogCallPathIndex = 0;
     callDogClickMode = false;
 
-    // Reset stati fetch / gioco
+    // Reset fetch / game states
     dogHasBall = false;
     dogHasFrisbee = false;
     dogReturningWithFrisbee = false;
@@ -865,7 +846,7 @@ function resetDogForHomeScene() {
 
     skinnedDogAlreadyTargeted = false;
 
-    // Reset animazioni speciali
+    // Reset special animations
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
 
@@ -878,7 +859,7 @@ function resetDogForHomeScene() {
     showDogMusicNote = false;
     dogHappySoundPlayed = false;
 
-    // Reset frisbee, se esiste la funzione che abbiamo aggiunto prima
+    // Reset frisbee
     if (typeof stopDogFrisbeeFetch === "function") {
         stopDogFrisbeeFetch();
     }
@@ -890,14 +871,14 @@ function resetDogForHomeScene() {
     frisbeeAttachedToHand = false;
     frisbeeThrowMode = false;
 
-    // Posizione sicura in casa, lontana dal tavolo
+    // Safe position in the house, away from the table
     dogFetchX = -3.2;
     dogFetchZ = 4.0;
 
-    // Orientamento iniziale comodo
+    // Comfortable initial orientation
     dogCurrentAngle = 90.0;
 
-    // Target neutro davanti al cane, così non guarda vecchi target del parco
+    // Neutral target in front of the dog, so it does not look at old park targets
     dogLookAtBallX = dogFetchX + 1.0;
     dogLookAtBallZ = dogFetchZ;
 

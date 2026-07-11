@@ -43,31 +43,9 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
         }
     }
 
-    console.log("Mesh node index:", meshNodeIndex, gltf.nodes[meshNodeIndex]);
+    //console.log("Mesh node index:", meshNodeIndex, gltf.nodes[meshNodeIndex]);
 
     //part fo texture
-    /* var dogTextureFromGLB = null;
-
-    if (
-        gltf.materials &&
-        gltf.materials.length > 0 &&
-        gltf.materials[0].pbrMetallicRoughness &&
-        gltf.materials[0].pbrMetallicRoughness.baseColorTexture
-    ) {
-        var textureIndex = gltf.materials[0].pbrMetallicRoughness.baseColorTexture.index;
-        var imageIndex = gltf.textures[textureIndex].source;
-
-        dogTextureFromGLB = createTextureFromGLBImage(
-            gl,
-            gltf,
-            binary,
-            imageIndex
-        );
-
-        console.log("Using GLB baseColorTexture:", textureIndex, "image:", imageIndex);
-    } else {
-        console.warn("No baseColorTexture found in GLB material");
-    } */
 
     // Texture maps from the Kishu Inu GLB material
     var dogBaseColorTextureFromGLB = null;
@@ -105,11 +83,11 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
             imageIndex
         );
 
-        console.log(
+        /* console.log(
             "Using GLB " + label + ":",
             "texture index:", textureIndex,
             "image index:", imageIndex
-        );
+        ); */
 
         return texture;
     }
@@ -165,13 +143,13 @@ function createSkinnedDogBuffers(gl, gltf, binary) {
                 "specularTexture"
             );
 
-        console.log("Kishu Inu material textures extracted:", {
+       /*  console.log("Kishu Inu material textures extracted:", {
             baseColor: !!dogBaseColorTextureFromGLB,
             normal: !!dogNormalTextureFromGLB,
             metallicRoughness: !!dogMetallicRoughnessTextureFromGLB,
             specular: !!dogSpecularTextureFromGLB,
             normalScale: dogNormalScale
-        });
+        }); */
     } else {
         console.warn("No material found for Kishu Inu GLB.");
     }
@@ -459,10 +437,10 @@ async function loadGLBDebug(url) {
     const version = dataView.getUint32(4, true);
     const length = dataView.getUint32(8, true);
 
-    console.log("GLB header:");
+    /* console.log("GLB header:");
     console.log("magic:", magic.toString(16));
     console.log("version:", version);
-    console.log("length:", length);
+    console.log("length:", length); */
 
     if (magic !== 0x46546C67) {
         throw new Error("This is not a valid GLB file");
@@ -502,10 +480,10 @@ async function loadGLBDebug(url) {
         throw new Error("GLB has no JSON chunk");
     }
 
-    console.log("===== GLTF JSON =====");
-    console.log(jsonChunk);
+    /* console.log("===== GLTF JSON =====");
+    console.log(jsonChunk); */
 
-    console.log("===== SUMMARY =====");
+    /* console.log("===== SUMMARY =====");
     console.log("Scenes:", jsonChunk.scenes ? jsonChunk.scenes.length : 0);
     console.log("Nodes:", jsonChunk.nodes ? jsonChunk.nodes.length : 0);
     console.log("Meshes:", jsonChunk.meshes ? jsonChunk.meshes.length : 0);
@@ -514,18 +492,18 @@ async function loadGLBDebug(url) {
     console.log("Accessors:", jsonChunk.accessors ? jsonChunk.accessors.length : 0);
     console.log("BufferViews:", jsonChunk.bufferViews ? jsonChunk.bufferViews.length : 0);
     console.log("Buffers:", jsonChunk.buffers ? jsonChunk.buffers.length : 0);
-    console.log("Has binary chunk:", binaryChunk !== null);
+    console.log("Has binary chunk:", binaryChunk !== null); */
 
     if (jsonChunk.skins) {
-        console.log("===== SKINS =====");
+        //console.log("===== SKINS =====");
 
         jsonChunk.skins.forEach(function (skin, index) {
-            console.log("Skin", index, skin);
+            //console.log("Skin", index, skin);
 
             if (skin.joints) {
-                console.log("Number of joints:", skin.joints.length);
+                //console.log("Number of joints:", skin.joints.length);
 
-                console.log("Joint node names:");
+                //console.log("Joint node names:");
                 skin.joints.forEach(function (jointNodeIndex) {
                     const node = jsonChunk.nodes[jointNodeIndex];
                     //console.log(jointNodeIndex, node ? node.name : "(no name)");
@@ -533,9 +511,9 @@ async function loadGLBDebug(url) {
             }
 
             if (skin.inverseBindMatrices !== undefined) {
-                console.log("inverseBindMatrices accessor:", skin.inverseBindMatrices);
+                //console.log("inverseBindMatrices accessor:", skin.inverseBindMatrices);
             } else {
-                console.warn("Skin has no inverseBindMatrices");
+                //console.warn("Skin has no inverseBindMatrices");
             }
         });
     } else {
@@ -543,24 +521,24 @@ async function loadGLBDebug(url) {
     }
 
     if (jsonChunk.meshes) {
-        console.log("===== MESH ATTRIBUTES =====");
+        //console.log("===== MESH ATTRIBUTES =====");
 
         jsonChunk.meshes.forEach(function (mesh, meshIndex) {
-            console.log("Mesh", meshIndex, mesh.name);
+            //console.log("Mesh", meshIndex, mesh.name);
 
             mesh.primitives.forEach(function (primitive, primitiveIndex) {
-                console.log("Primitive", primitiveIndex, primitive.attributes);
+                //console.log("Primitive", primitiveIndex, primitive.attributes);
 
                 if (primitive.attributes.JOINTS_0 !== undefined) {
-                    console.log("Has JOINTS_0:", primitive.attributes.JOINTS_0);
+                    //console.log("Has JOINTS_0:", primitive.attributes.JOINTS_0);
                 } else {
-                    console.warn("No JOINTS_0 on this primitive");
+                    //console.warn("No JOINTS_0 on this primitive");
                 }
 
                 if (primitive.attributes.WEIGHTS_0 !== undefined) {
-                    console.log("Has WEIGHTS_0:", primitive.attributes.WEIGHTS_0);
+                    //console.log("Has WEIGHTS_0:", primitive.attributes.WEIGHTS_0);
                 } else {
-                    console.warn("No WEIGHTS_0 on this primitive");
+                    //console.warn("No WEIGHTS_0 on this primitive");
                 }
             });
         });
@@ -702,6 +680,14 @@ function drawSkinnedDog(viewMatrix, projectionMatrix) {
         dogAmbientStrength = 0.35;
         dogLightTint = vec3(1.0, 0.92, 0.78);
     }
+
+    var mainLightVisibility =
+        computeMainLightVisibilityForHome();
+
+    gl.uniform1f(
+        gl.getUniformLocation(skinnedDogProgram, "mainLightVisibility"),
+        mainLightVisibility
+    );
 
     gl.uniform1f(
         gl.getUniformLocation(skinnedDogProgram, "uLightIntensity"),
@@ -1022,9 +1008,9 @@ gl.enableVertexAttribArray(skinnedDogAttribs.vTexCoord);
 gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.jointBuffer);
 
     /*
-       JOINTS_0 nel tuo caso è Uint8Array.
-       In WebGL1 lo passiamo come attributo float,
-       poi nello shader facciamo int(vJoints.x).
+
+       JOINTS_0 is a Uint8Array -> float in 
+    WebGL1, then in the shader we convert to int using int(vJoints.x)
     */
 gl.vertexAttribPointer(skinnedDogAttribs.vJoints, 4, gl.UNSIGNED_BYTE, false, 0, 0);
 gl.enableVertexAttribArray(skinnedDogAttribs.vJoints);
@@ -1044,71 +1030,6 @@ gl.drawElements(
 
 }
 
-/* function drawSkinnedDogShadow(lightViewMatrix, lightProjectionMatrix, pointShadowPass) {
-    if (!skinnedDog || !skinnedDogShadowProgram) return;
-
-    gl.useProgram(skinnedDogShadowProgram);
-
-    var modelMatrix = getSkinnedDogModelMatrix();
-    var boneData = getSkinnedDogBoneData();
-
-    gl.uniformMatrix4fv(
-        skinnedDogShadowUniforms.modelMatrix,
-        false,
-        flatten(modelMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        skinnedDogShadowUniforms.lightViewMatrix,
-        false,
-        flatten(lightViewMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        skinnedDogShadowUniforms.lightProjectionMatrix,
-        false,
-        flatten(lightProjectionMatrix)
-    );
-
-    gl.uniformMatrix4fv(
-        skinnedDogShadowUniforms.boneMatrices,
-        false,
-        boneData
-    );
-
-    gl.uniform4fv(
-        skinnedDogShadowUniforms.lightPosition,
-        flatten(lightPosition)
-    );
-
-    gl.uniform1f(skinnedDogShadowUniforms.pointShadowFar, 40.0);
-
-    gl.uniform1i(
-        skinnedDogShadowUniforms.pointShadowPass,
-        pointShadowPass ? 1 : 0
-    );
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.positionBuffer);
-    gl.vertexAttribPointer(skinnedDogShadowAttribs.vPosition, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vPosition);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.jointBuffer);
-    gl.vertexAttribPointer(skinnedDogShadowAttribs.vJoints, 4, gl.UNSIGNED_BYTE, false, 0, 0);
-    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vJoints);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, skinnedDog.weightBuffer);
-    gl.vertexAttribPointer(skinnedDogShadowAttribs.vWeights, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(skinnedDogShadowAttribs.vWeights);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, skinnedDog.indexBuffer);
-
-    gl.drawElements(
-        gl.TRIANGLES,
-        skinnedDog.indexCount,
-        gl.UNSIGNED_SHORT,
-        0
-    );
-} */
 
 
 function drawSkinnedDogDepthOnly(lightViewMatrix, lightProjectionMatrix) {
@@ -1258,8 +1179,11 @@ function drawSkinnedDogWallLampShadow() {
     );
 
     /*
-        Per la wall lamp NON è point shadow cubemap.
-        È una shadow map 2D normale.
+        ATTENTION: for the wall lamp shadow pass, we are NOT using a point shadow cubemap.
+        IT's a normal 2D shadow map.
+        Since we don't want to use a point shadow cubemap,
+        we need to set the light position and far plane for the shader
+        to compute the correct depth values.
     */
     gl.uniform4fv(
         skinnedDogDepthUniforms.lightPosition,
@@ -1580,7 +1504,7 @@ function createTextureFromGLBImage(gl, gltf, binary, imageIndex) {
 
         URL.revokeObjectURL(imageUrl);
 
-        console.log("GLB texture loaded:", imageIndex);
+        //console.log("GLB texture loaded:", imageIndex);
     };
 
     img.onerror = function () {
@@ -1602,7 +1526,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
     var tongueMove = Math.sin(tonguePhase);
 
-    // movimento leggero e morbido
+    // light and fast tongue movement, to make it more lively
     localOverrides[17] = rotationXMat4Raw(tongueMove * 8.0);
     localOverrides[16] = rotationXMat4Raw(Math.sin(tonguePhase + 0.25) * 12.0);
     localOverrides[15] = rotationXMat4Raw(Math.sin(tonguePhase + 0.50) * 16.0);
@@ -1626,9 +1550,9 @@ function applySkinnedDogPoseOverrides(localOverrides) {
                 !dogFetchBallMode
             ) {
     
-                /*Abbassamento più delicato per bere/mangiare.
-                Stessa posa per acqua e croccantini.
-                Solo collo/testa, niente zampe strane.
+                /* Gentle lowering for drinking/eating.
+                Same pose for water and kibble bowls.
+                Only neck/head, no strange leg positions.
                 */
 
                 //console.log("BOWL POSE BLOCK ACTIVE");
@@ -1645,8 +1569,8 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         else if (dogFetchObjectType === "frisbee") {
             /*
                 Frisbee pickup:
-                il disco è più piatto e basso, quindi il cane abbassa di più
-                collo e testa, ma senza fare la posa sdraiata della palla.
+                The disc is flatter and lower, so the dog lowers
+                its neck and head more, but without assuming the lying pose of the ball.
             */
 
             lower = Math.min(Math.max(lower, 0.0), 1.0);
@@ -1680,9 +1604,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
             localOverrides[11] = rotationXMat4Raw(-8.0 * lower);
             localOverrides[10] = rotationXMat4Raw(14.0 * lower); */
             } else {
-            /*
-                Vecchio comportamento per la palla.
-            */
+            
             localOverrides[30] = rotationXMat4Raw(28.0 * lower);
             localOverrides[28] = rotationXMat4Raw(18.0 * lower);
             localOverrides[27] = rotationXMat4Raw(10.0 * lower);
@@ -1699,20 +1621,6 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     localOverrides[48] = rotationYMat4Raw(Math.sin(t * tailSpeed + 0.75) * 20.0);
 
     /* Legs */
-
-
-    /* var dogGoingToBowl =
-        typeof dogFetchObjectType !== "undefined" &&
-        (
-            dogFetchObjectType === "bowlWater" ||
-            dogFetchObjectType === "bowlFood"
-        ) &&
-        dogFetchLowerAmount <= 0.01 &&
-        dogPath &&
-        dogPath.length > 0;
- */
-    
-    //REVIEW - MODIFICA  PER scattino cane
 
     var isBowlObjectForWalk =
         typeof dogFetchObjectType !== "undefined" &&
@@ -1786,7 +1694,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
             dogFireflyCatchActive &&
             dogFireflyCatchPhase === "chase"
         ) {
-            walkSpeed = 3.0; // più veloce: sembra una corsetta
+            walkSpeed = 3.0; // faster: looks like a little run
         }
 
         var walkPhase = t * walkSpeed;
@@ -1855,7 +1763,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
     localOverrides[HIND_LEFT_KNEE2] = rotationXMat4Raw(hindKneeB * 0.4);
 
 
-    // --- camminata più visibile quando va alla bowl ---
+    // --- more visible walk when going to the bowl ---
 
 
     if (dogHasBall &&
@@ -1863,13 +1771,13 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         dogFetchObjectType !== "bowlFood") {
         //console.log("DOG CROUCH ACTIVE");
 
-        // zampa posteriore sinistra
+        // left hind leg
         localOverrides[41] = rotationXMat4Raw(18.0);   // hip
         localOverrides[40] = rotationXMat4Raw(-28.0);  // knee1
         localOverrides[39] = rotationXMat4Raw(18.0);   // knee2
         localOverrides[38] = rotationXMat4Raw(8.0);    // ankle
 
-        // zampa posteriore destra
+        // right hind leg
         localOverrides[47] = rotationXMat4Raw(18.0);   // hip
         localOverrides[46] = rotationXMat4Raw(-28.0);  // knee1
         localOverrides[45] = rotationXMat4Raw(18.0);   // knee2
@@ -1893,14 +1801,14 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         
 
         //front legs
-        // sinistra
+        // left
         localOverrides[4] = rotationXMat4Raw(-30.0 * c);
         localOverrides[3] = rotationXMat4Raw(100.0 * c);
         localOverrides[2] = rotationXMat4Raw(-8.0 * c);
         localOverrides[1] = rotationXMat4Raw(-50.0 * c);
         localOverrides[0] = rotationXMat4Raw(12.0 * c);
 
-        // destra
+        // right
         localOverrides[11] = rotationXMat4Raw(-30.0 * c);
         localOverrides[10] = rotationXMat4Raw(100.0 * c);
         localOverrides[9]  = rotationXMat4Raw(-8.0 * c);
@@ -1910,7 +1818,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
         // ---- HIND LEGS ----
         // HIND LEGS
-        // sinistra
+        // left
     
         localOverrides[41] = rotationXMat4Raw(-100.0 * c);
         localOverrides[40] = rotationXMat4Raw(0.0 * c);
@@ -1923,8 +1831,8 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         localOverrides[44] = rotationXMat4Raw(-2.0 * c);
 
 
-            //spline
-            // SPINE
+        //spline
+        // SPINE
         localOverrides[35] = rotationXMat4Raw(-16.0 * c);
         localOverrides[34] = rotationXMat4Raw(-14.0 * c);
         localOverrides[33] = rotationXMat4Raw(-12.0 * c); 
@@ -1947,8 +1855,8 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         bowlPose = bowlPose * bowlPose * (3.0 - 2.0 * bowlPose);
 
         /*
-            Schiena appena giù.
-            Non troppo, altrimenti sembra che collassi.
+            back is slightly lowered but not too much,
+            to avoid the dog looking like it's lying down.
         */
         /* localOverrides[35] = rotationXMat4Raw(-10.0 * bowlPose);
         localOverrides[34] = rotationXMat4Raw(-30.0 * bowlPose);
@@ -1961,7 +1869,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         
 
         /*
-            Zampe davanti leggermente piegate.
+            Front legs slightly bent.
         */
         /* localOverrides[4] = rotationXMat4Raw(-10.0 * bowlPose);
         localOverrides[3] = rotationXMat4Raw(-60.0 * bowlPose);
@@ -1981,8 +1889,8 @@ function applySkinnedDogPoseOverrides(localOverrides) {
        var lick = 0.5 + 0.5 * Math.sin(t * 12.0);
 
         /*
-            Non cambio i valori della lingua.
-            Aggiungo solo un blend per farla rientrare prima durante il rialzo.
+            I don't change the values of the tongue.
+            I only add a blend to make it retract earlier during the rise.
         */
         var tongueAmount = 1.0;
 
@@ -1994,7 +1902,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
 
             tongueAmount = Math.min(Math.max(tongueAmount, 0.0), 1.0);
 
-            // smoothstep: rientro morbido
+            // smoothstep: soft retraction
             tongueAmount =
                 tongueAmount * tongueAmount * (3.0 - 2.0 * tongueAmount);
         }
@@ -2014,7 +1922,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         );
 
 
-        // --- ALLUNGAMENTO LEGGERO ZAMPE DIETRO ---
+        // --- LIGHT STRETCHING OF HIND LEGS ---
 
         localOverrides[41] = rotationXMat4Raw(-100.0 * bowlPose);
 
@@ -2025,7 +1933,7 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         localOverrides[46] = rotationXMat4Raw(30.0 * bowlPose);
 
 
-       // --- abbassa zona groppa / attaccatura coda ---
+       // --- LOWER HINDQUARTERS / TAIL BASE ---
 
         //localOverrides[48] = rotationXMat4Raw(-100.0 * bowlPose);
 
@@ -2054,13 +1962,14 @@ function applySkinnedDogPoseOverrides(localOverrides) {
         
 
         /*
-            Clamp: evita che la posa diventi troppo estrema
-            quando dogFetchLowerAmount arriva alto.
+            Clamp: prevents the pose from becoming too extreme
+            when dogFetchLowerAmount gets high.
         */
         /*
-            Amplifico la posa di pickup:
-            dogFetchLowerAmount resta magari basso, ma visivamente voglio
-            una posa più leggibile quando prende il frisbee.
+            Amplify the pickup pose:
+
+            dogFetchLowerAmount may remain low, but visually I want
+            a more readable pose when picking up the frisbee.
         */
         var pickupPose = Math.min(softLower * 2.2, 0.4);
 
@@ -2126,16 +2035,16 @@ function applySkinnedDogPoseOverrides(localOverrides) {
                 Math.sin(t * 9.0) * 5.0 * rearAmount;
 
             /*
-                SPINA / SCHIENA
-                Qui facciamo ruotare meglio il corpo,
-                non solo le zampe davanti.
+                SPINE
+                Here we rotate the body better,
+                not just the front legs.
             */
                   
             
             /*
                 SPINE - rear pose
-                Distribuisco la posa sulla schiena,
-                così non sembra che ruoti tutto il modello come un pezzo unico.
+                Distribute the pose along the spine,
+                so it doesn't look like the whole model is rotating as a single piece.
             */
 
             var spineBend =
@@ -2157,12 +2066,12 @@ function applySkinnedDogPoseOverrides(localOverrides) {
                 rotationXMat4Raw(-2.0 * spineBend);
                         
            /*
-                ZAMPE ANTERIORI
-                Più distese: le alza, ma senza chiuderle troppo.
+                FRONT LEGS
+                More extended: lifts them, but without closing them too much.
             */
 
             var pawBend = rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
-            var pawWave = 0.0;   // per ora meglio fermo, così non si allontanano
+            var pawWave = 0.0;   // for now better stationary, so they don't move away
 
             // ---------- FRONT LEFT ----------
             localOverrides[4] =
@@ -2197,51 +2106,38 @@ function applySkinnedDogPoseOverrides(localOverrides) {
             localOverrides[7] =
                 rotationXMat4Raw(2.0 * pawBend);
             /*
-                ZAMPE POSTERIORI
-                Più distese: devono reggere il corpo,
-                non farlo sedere.
+                HIND LEGS
+                More extended: they need to support the body,
+                not make it sit.
             */
 
-            // posteriore sinistra
+            // hind left
         
             
-        /*
-    HIND LEGS
-    Le gambe restano abbastanza stabili.
-    Correggo soprattutto ankle/ball/toe per far puntare i piedi verso terra.
-*/
 
-// sinistra
-/*
-    HIND LEGS - cleaned rear pose
-    Obiettivo: non arricciare i piedi, ma tenerli abbastanza naturali.
-*/
+            /*
+                HIND LEGS - neutral
+                Non forzo più i piedi posteriori.
+            */
 
-// sinistra
-/*
-    HIND LEGS - neutral
-    Non forzo più i piedi posteriori.
-*/
+            // ---------- HIND LEFT ----------
+            var rearHipBend = rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
 
-// ---------- HIND LEFT ----------
-var rearHipBend = rearAmount * rearAmount * (3.0 - 2.0 * rearAmount);
-
-localOverrides[41] = rotationXMat4Raw(-24.0 * rearHipBend);
-localOverrides[47] = rotationXMat4Raw(-24.0 * rearHipBend);
-// posteriore sinistra
+            localOverrides[41] = rotationXMat4Raw(-24.0 * rearHipBend);
+            localOverrides[47] = rotationXMat4Raw(-24.0 * rearHipBend);
+            // hind left
 
 
 
             /*
-                COLLO / TESTA
-                Un po' verso l'alto, come se guardasse la lucciola.
+                NECK / HEAD goeas a bit upwards, as if looking at the firefly.
             */
             localOverrides[30] = rotationXMat4Raw(18.0 * rearAmount);
             localOverrides[28] = rotationXMat4Raw(12.0 * rearAmount);
             localOverrides[27] = rotationXMat4Raw(8.0 * rearAmount);
 
             /*
-                Coda viva.
+                TAIL movement.
             */
             localOverrides[51] =
                 rotationYMat4Raw(Math.sin(t * 10.0) * 14.0 * rearAmount);
@@ -2303,28 +2199,25 @@ function getSkinnedDogModelMatrix() {
         }
 
         /*
-            Più morbido:
-            meno rotazione, più lift.
+            Softer:
+            less rotation, more lift.
         */
         fireflyHop = rearAmount * 0.10;
         fireflyPitch = -45.0 * rearAmount;
 
         /*
-            Questo è il fix importante:
-            compensazione verticale extra per non entrare nel terreno.
+            extra vertical compensation to avoid sinking into the ground.
         */
         rearGroundLift = rearAmount * 0.42;
 
         /*
-            Piccolo spostamento in avanti per compensare la rotazione.
+            Small forward shift to compensate for the rotation.
         */
         rearForwardOffset = rearAmount * 0.10;
     }
 
-    // Bob solo quando il cane sta andando verso la palla
-    /* if (dogFetchBallMode) {
-        bodyBob = Math.abs(Math.sin(t * 6.0)) * 0.025;
-    } */
+    // Bob only when the dog is going towards the ball
+   
     var dogModelIsWalking =
         (
             dogFetchBallMode ||
@@ -2347,17 +2240,17 @@ function getSkinnedDogModelMatrix() {
     var lookZ = dogFetchZ;
 
     if ((dogFetchBallMode || dogCallMode) && dogFetchTarget) {
-        // mentre cammina guarda il waypoint
+        // while walking, look at the waypoint
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
     } 
 
     else if (dogFetchTarget) {
-        // quando è arrivato, conserva il target finale
+        // when arrived, keep the final target
         lookX = dogFetchTarget.x;
         lookZ = dogFetchTarget.z;
     } else {
-        // fallback: guarda la palla
+        // fallback: look at the ball
         lookX = dogLookAtBallX;
         lookZ = dogLookAtBallZ;
     }
@@ -2373,8 +2266,8 @@ function getSkinnedDogModelMatrix() {
 
         var lookDist = Math.sqrt(dxLook * dxLook + dzLook * dzLook);
 
-        // se il target è troppo vicino, NON torno a 90:
-        // mantengo l'angolo precedente
+        // if the target is too close, DO NOT return to 90:
+        // keep the previous angle
         if (lookDist > 0.001) {
             angle = Math.atan2(dxLook, dzLook) * 180.0 / Math.PI;
         }
@@ -2421,14 +2314,10 @@ function getSkinnedDogModelMatrix() {
     );
     modelMatrix = mult(modelMatrix, rotate(dogCurrentAngle, [0, 1, 0]));
 
-    // per farlo più orizzontale/horizontal 
-    // Solleva la parte anteriore e rende il corpo più orizzontale
+    // to make it more horizontal
+    // Raises the front part and makes the body more horizontal
     var lyingPitch = -18.0 * dogCrouchAmount  + fireflyPitch;
 
-    /* modelMatrix = mult(
-        modelMatrix,
-        rotate(lyingPitch, [1, 0, 0])
-    ); */
 
 
     if (
@@ -2436,9 +2325,9 @@ function getSkinnedDogModelMatrix() {
             dogFireflyCatchPhase === "rear"
         ) {
             /*
-                Pivot finto vicino alle zampe posteriori:
-                così il cane si alza col busto invece di ruotare
-                tutto attorno al centro del corpo.
+                Pivot close to the hind legs:
+                so the dog rises with the torso instead of rotating
+                around the center of the body.
             */
 
             var pivotY = -0.25;

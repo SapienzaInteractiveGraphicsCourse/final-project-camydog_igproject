@@ -140,11 +140,6 @@ function drawShadowObject(obj, modelMatrix) {
         isPointShadowPass ? 1 : 0
     );
 
-    gl.uniform1i(
-        gl.getUniformLocation(shadowProgram, "pointShadowPass"),
-        isPointShadowPass ? 1 : 0
-    );
-
     gl.uniform1f(
         gl.getUniformLocation(shadowProgram, "pointShadowFar"),
         POINT_SHADOW_FAR
@@ -474,4 +469,34 @@ function drawWallLampGlow(viewMatrix, projectionMatrix, scale, alpha) {
         0,
         wallLampGlowBuffers.numVertices
     );
+}
+
+function smoothstepJS(edge0, edge1, x) {
+    var t = Math.max(
+        0.0,
+        Math.min(1.0, (x - edge0) / (edge1 - edge0))
+    );
+
+    return t * t * (3.0 - 2.0 * t);
+}
+
+function computeMainLightVisibilityForHome() {
+    if (currentScene !== "home") {
+        return 1.0;
+    }
+
+    var absX = Math.abs(lightPosition[0]);
+    var absZ = Math.abs(lightPosition[2]);
+
+    /*
+        Inner = starts fading.
+        Outer = almost fully blocked.
+    */
+    var xVisibility =
+        1.0 - smoothstepJS(7.5, 15.0, absX);
+
+    var zVisibility =
+        1.0 - smoothstepJS(5.5,15.0, absZ);
+
+    return Math.min(xVisibility, zVisibility);
 }

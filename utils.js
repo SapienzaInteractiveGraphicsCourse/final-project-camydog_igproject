@@ -44,9 +44,6 @@ function ensureWallLampOnForDemo() {
     var buttonWallLamp =
         document.getElementById("ButtonWallLamp");
 
-    /*
-        Se non siamo in home + notte, la demo non deve accendere nulla.
-    */
     if (
         currentScene !== "home" ||
         !isNight
@@ -55,16 +52,12 @@ function ensureWallLampOnForDemo() {
     }
 
     /*
-        Se la lampada è già accesa, non clicco,
-        altrimenti il click la spegnerebbe.
+        if light is already on, do nothing. Otherwise, click the button to turn it on.
     */
     if (!wallLampEnabled && buttonWallLamp) {
         buttonWallLamp.click();
     }
 
-    /*
-        Sicurezza: anche se il click non parte, forzo lo stato logico.
-    */
     wallLampEnabled = true;
 
     if (buttonWallLamp) {
@@ -102,17 +95,11 @@ function stopWallLampBallDemo() {
     var buttonWallLamp =
         document.getElementById("ButtonWallLamp");
 
-    /*
-        Disattivo il colore del bottone demo.
-    */
+    
     if (demoButton) {
         demoButton.classList.remove("wall-lamp-demo-active");
     }
 
-    /*
-        Spengo la wall lamp usando il suo bottone,
-        così resta coerente con la logica già esistente.
-    */
     if (wallLampEnabled && buttonWallLamp) {
         buttonWallLamp.click();
     } else {
@@ -125,7 +112,7 @@ function stopWallLampBallDemo() {
     }
 
     /*
-        Fermo la palla senza farla ripartire.
+        stop the ball minigame if it is active, and reset all related states and UI elements.
     */
     if (miniGameActive) {
         miniGameActive = false;
@@ -354,10 +341,7 @@ function updateStartSettingsPanel() {
         );
     }
 
-    /*
-        Sync visivo con il bottone Global Audio già esistente.
-        Nel tuo HTML il bottone principale ha title tipo "Audio ON".
-    */
+    
     var startAudioButton = document.getElementById("StartGlobalAudioToggle");
 
     if (startAudioButton) {
@@ -585,11 +569,7 @@ function updateTeapotControlsLegend() {
     if (dogFollowTeapotMode) {
         legend.classList.remove("hidden");
 
-        /*
-            Richiamo visivo quando si attiva Teapot Chase.
-            Rimuovo e riaggiungo la classe per far ripartire l'animazione
-            anche se l'utente riattiva la modalità più volte.
-        */
+       
         legend.classList.remove("attention");
 
         void legend.offsetWidth;
@@ -661,12 +641,7 @@ function resetTableRotationToStart() {
 function setTeapotRotationDemoActive(active) {
     flag_rot_teapot = active;
 
-    /*
-        Se sono dentro Teapot Chase o Focus Teapot,
-        il bottone deve solo accendere/spegnere la rotazione.
-        NON deve spostare la teapot, altrimenti durante il minigioco
-        torna sul tavolo.
-    */
+   
     if (dogFollowTeapotMode || teapotFocus) {
         updateRotationDemoButtons();
         return;
@@ -674,15 +649,11 @@ function setTeapotRotationDemoActive(active) {
 
     if (flag_rot_teapot) {
         /*
-            Demo normale:
-            alzo la teapot per evitare che ruotando entri nel tavolo.
+            standard demo position for the teapot, when rotation is active
         */
         objPos[1] = TEAPOT_ROTATION_DEMO_Y;
     } else {
-        /*
-            Solo fuori dal minigioco:
-            quando spengo la demo, torno alla posa iniziale.
-        */
+        
         objPos[0] = TEAPOT_REST_X;
         objPos[1] = TEAPOT_REST_Y;
         objPos[2] = TEAPOT_REST_Z;
@@ -726,7 +697,7 @@ function updateBallSettingsOverlay(playAttention) {
     }
 
     /*
-        Fuori dalla home non mostro il pannello.
+        no panel when I am not in the home scene, even if the minigame is active.
     */
     if (currentScene !== "home") {
         panel.style.display = "none";
@@ -735,9 +706,9 @@ function updateBallSettingsOverlay(playAttention) {
     }
 
     /*
-        Quando il minigame viene attivato:
-        - il pannello deve comparire sempre
-        - anche se prima era stato chiuso con la X
+        When the minigame is activated:
+        - the panel must always appear
+        - even if it was previously closed with the X
     */
     if (miniGameActive) {
         ballSettingsPanelHasBeenOpened = true;
@@ -759,9 +730,9 @@ function updateBallSettingsOverlay(playAttention) {
     }
 
     /*
-        Quando il minigame viene disattivato:
-        - il pannello resta visibile se era già stato aperto
-        - sparisce solo se l'utente lo ha chiuso con la X
+        When the minigame is deactivated:
+        - the panel remains visible if it was already opened
+        - disappears only if the user closed it with the X
     */
     if (
         ballSettingsPanelHasBeenOpened &&
@@ -894,16 +865,13 @@ function animateLoadingProgress() {
 function resetBallSettingsPanelState() {
     var panel = document.getElementById("BallSettingsPanel");
 
-    /*
-        Reset logico del minigame palla.
-        Se resta true, updateBallSettingsOverlay può riaprire il pannello.
-    */
+    
     if (typeof miniGameActive !== "undefined") {
         miniGameActive = false;
     }
 
     /*
-        Reset stato interno del pannello.
+        Reset internal state of the panel.
     */
     if (typeof ballSettingsPanelHasBeenOpened !== "undefined") {
         ballSettingsPanelHasBeenOpened = false;
@@ -914,7 +882,7 @@ function resetBallSettingsPanelState() {
     }
 
     /*
-        Reset visivo forzato.
+        Reset visual state of the panel.
     */
     if (panel) {
         panel.style.display = "none";
@@ -925,8 +893,8 @@ function resetBallSettingsPanelState() {
 
 function finishInitialLoading() {
     /*
-        Prima porto la barra al 100%.
-        Poi, dopo un piccolo delay, nascondo il loading screen.
+        First, I bring the loading bar to 100%.
+        Then, after a short delay, I hide the loading screen.
     */
 
     if (typeof setLoadingProgress === "function") {
@@ -940,8 +908,8 @@ function finishInitialLoading() {
         }, 450);
     } else {
         /*
-            Safety: se per qualche motivo setLoadingProgress non esiste,
-            il loading funziona comunque come prima.
+            Safety: if for some reason setLoadingProgress does not exist,
+            the loading still works as before.
         */
         finishInitialLoadingAfterProgress();
     }
@@ -956,8 +924,8 @@ function finishInitialLoadingAfterProgress() {
         document.getElementById("startScreen");
 
     /*
-        Ora la start screen è già stata usata prima del loading.
-        Quindi dopo il loading entro direttamente nel gioco.
+        Now the start screen has already been used before loading.
+        So after loading, I enter directly into the game.
     */
 
     if (loadingScreen) {
@@ -985,10 +953,10 @@ function updateAutoSun(deltaTime) {
     var speed;
 
     if (isNight) {
-        // Luna un po' più lenta
+        // Moon a bit slower
         speed = 0.20;
     } else {
-        // Sole un po' più veloce
+        // Sun a bit faster
         speed = 0.35;
     }
 
@@ -1066,22 +1034,22 @@ function createCurtainRodObject(gl, segments = 48) {
         let u1 = i / segments;
         let u2 = (i + 1) / segments;
 
-        // lato del cilindro, primo triangolo
+        // cylinder side, first triangle
         pushVertex(x1, y1, zMin, x1, y1, 0.0, u1, 0.0);
         pushVertex(x1, y1, zMax, x1, y1, 0.0, u1, 1.0);
         pushVertex(x2, y2, zMin, x2, y2, 0.0, u2, 0.0);
 
-        // lato del cilindro, secondo triangolo
+        // cylinder side, second triangle
         pushVertex(x1, y1, zMax, x1, y1, 0.0, u1, 1.0);
         pushVertex(x2, y2, zMax, x2, y2, 0.0, u2, 1.0);
         pushVertex(x2, y2, zMin, x2, y2, 0.0, u2, 0.0);
 
-        // tappo sinistro
+        // left cap
         pushVertex(0.0, 0.0, zMin, 0.0, 0.0, -1.0, 0.5, 0.5);
         pushVertex(x2, y2, zMin, 0.0, 0.0, -1.0, 1.0, 0.5);
         pushVertex(x1, y1, zMin, 0.0, 0.0, -1.0, 0.0, 0.5);
 
-        // tappo destro
+        // right cap
         pushVertex(0.0, 0.0, zMax, 0.0, 0.0, 1.0, 0.5, 0.5);
         pushVertex(x1, y1, zMax, 0.0, 0.0, 1.0, 0.0, 0.5);
         pushVertex(x2, y2, zMax, 0.0, 0.0, 1.0, 1.0, 0.5);
@@ -1205,9 +1173,7 @@ function updateSceneButtonsVisibility() {
         ballSettingsPanel.style.display = isHome ? "block" : "none";
     }
 
-    /* if (curtainSettingsPanel) {
-        curtainSettingsPanel.style.display = isHome ? "block" : "none";
-    } */
+   
 
     if (rotationSettingsPanel) {
         rotationSettingsPanel.style.display = isHome ? "block" : "none";
@@ -1246,8 +1212,8 @@ function segmentCrossesExpandedTableArea(x1, z1, x2, z2) {
 
 function getSafeTeapotChaseTarget(targetX, targetZ) {
     /*
-        Se il percorso cane -> teapot attraversa il tavolo,
-        mando prima il cane a un lato del tavolo.
+        If the dog -> teapot path crosses the table,
+        first send the dog to a side of the table.
     */
 
     if (!segmentCrossesExpandedTableArea(dogFetchX, dogFetchZ, targetX, targetZ)) {
@@ -1277,8 +1243,8 @@ function getSafeTeapotChaseTarget(targetX, targetZ) {
     }
 
     /*
-        Prima vado lateralmente fuori dal tavolo.
-        Uso una z intermedia così non punta subito dietro al tavolo.
+        First, I move laterally out of the table.
+        I use an intermediate z so it doesn't point directly behind the table.
     */
     var sideZ = dogFetchZ + (targetZ - dogFetchZ) * 0.35;
 
@@ -1290,9 +1256,9 @@ function getSafeTeapotChaseTarget(targetX, targetZ) {
 ///////////////////////////////////////
 function isBallMinigameBusyForTeapot() {
     /*
-        Se la palla è attiva, visibile, in movimento,
-        o il cane la sta inseguendo/prendendo,
-        non permetto di attivare Teapot Chase.
+        If the ball is active, visible, in motion,
+        or the dog is chasing/holding it,
+        Teapot Chase cannot be activated.
     */
 
     if (miniGameActive) {
@@ -1409,13 +1375,13 @@ function createWaterDiskObject(gl, segments = 64) {
     function pushVertex(x, y, z, u, v) {
         vertices.push(vec4(x, y, z, 1.0));
 
-        // normale verso l'alto, perché Y è verticale
+        // normal pointing upwards, because Y is vertical
         normals.push(vec4(0.0, 1.0, 0.0, 0.0));
 
         texCoords.push(vec2(u, v));
     }
 
-    // disco sul piano XZ, con centro in (0,0,0)
+    // disk on the XZ plane, centered at (0,0,0)
     for (let i = 0; i < segments; i++) {
         let a1 = 2.0 * Math.PI * i / segments;
         let a2 = 2.0 * Math.PI * (i + 1) / segments;
@@ -1503,7 +1469,7 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        //tolgo per texture tavolo 2000x2000
+        // remove for 2000x2000 table texture
         //gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -1512,7 +1478,7 @@ function createSolidColorTexture(gl, r, g, b, a = 255) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 
-        //per non interferire
+        // to avoid interference
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
 
@@ -1646,7 +1612,7 @@ function createKibbleObject(gl, radius = 1.0, latBands = 8, longBands = 10, seed
             var y = cosTheta;
             var z = sinPhi * sinTheta;
 
-            // small irregularity on the surface to make tehm look real
+            // small irregularity on the surface to make them look real
             var noise = pseudoRandom(lat * 31.0 + lon * 17.0);
             var bump = 0.88 + noise * 0.24;
 
@@ -1923,16 +1889,15 @@ function createRightWallWithWindowBuffers() {
         texCoords.push(vec2(0.0, 1.0));
     }
 
-    /*
-        Questa parete è costruita come una box standard:
-        coordinate locali da -0.5 a +0.5.
+   
 
-        La parete destra è a x = +0.5.
-        Il buco della finestra è nel piano x = +0.5.
-        Su questa parete:
-        - y = verticale
-        - z = orizzontale lungo la parete
+    /*  right wall is at x=+0.5, so we define the x coordinate for the wall 
+        the window hole is in the plane x=+0.5, so we define the x coordinate for the wall
+        on this wall:
+        - y = vertical
+        - z = horizontal along the wall
     */
+
 
     var x = 0.5;
 
@@ -1942,7 +1907,7 @@ function createRightWallWithWindowBuffers() {
     var zMin = -0.5;
     var zMax =  0.5;
 
-    // Finestra in coordinate locali della box
+    // Window in local coordinates of the box
     var winZCenter = -0.10;
     var winYCenter =  0.10;
 
@@ -1955,11 +1920,11 @@ function createRightWallWithWindowBuffers() {
     var winY0 = winYCenter - winHeight / 2.0;
     var winY1 = winYCenter + winHeight / 2.0;
 
-    // normale della parete destra della box
+    // normal of the right wall of the box
     //var n = vec4(1.0, 0.0, 0.0, 0.0);
     var n = vec4(-.0, 0.0, 0.0, 0.0);
 
-    // pezzo sotto la finestra
+    // piece below the window
     addFace(
         vec4(x, yMin, zMin, 1.0),
         vec4(x, yMin, zMax, 1.0),
@@ -1968,7 +1933,7 @@ function createRightWallWithWindowBuffers() {
         n
     );
 
-    // pezzo sopra la finestra
+    // piece above the window
     addFace(
         vec4(x, winY1, zMin, 1.0),
         vec4(x, winY1, zMax, 1.0),
@@ -1977,7 +1942,7 @@ function createRightWallWithWindowBuffers() {
         n
     );
 
-    // pezzo sinistro del buco, lungo z
+    // piece to the left of the hole, along z
     addFace(
         vec4(x, winY0, zMin, 1.0),
         vec4(x, winY0, winZ0, 1.0),
@@ -1986,7 +1951,7 @@ function createRightWallWithWindowBuffers() {
         n
     );
 
-    // pezzo destro del buco, lungo z
+    // piece to the right of the hole, along z
     addFace(
         vec4(x, winY0, winZ1, 1.0),
         vec4(x, winY0, zMax, 1.0),
@@ -2046,7 +2011,7 @@ function createRoomBoxWithoutRightWallBuffers() {
     // left face
     addFace(v[4], v[0], v[3], v[7], vec4(1.0, 0.0, 0.0, 0.0));
 
-    // right face RIMOSSA perché la sostituiamo con la parete bucata
+    // right face REMOVED because we replace it with the wall with a hole
     // addFace(v[1], v[5], v[6], v[2], vec4(1.0, 0.0, 0.0, 0.0));
 
     // top face
@@ -2444,7 +2409,7 @@ function DrawSkybox(gl, viewMatrix, projectionMatrix, flipY = false)
 
     gl.drawArrays(gl.TRIANGLES, 0, 36);
 
-    // Ripristino obbligatorio
+    
     gl.depthMask(true);
     gl.depthFunc(gl.LESS);
     gl.enable(gl.DEPTH_TEST);
@@ -2460,12 +2425,12 @@ function createBoxBuffers() {
     var texCoords = [];
 
     function addFace(a, b, c, d, normal) {
-        // triangolo 1
+        // triangle 1
         points.push(a);
         points.push(b);
         points.push(c);
 
-        // triangolo 2
+        // triangle 2
         points.push(a);
         points.push(c);
         points.push(d);
@@ -2537,7 +2502,7 @@ function LoadSkyboxTextureFromCross(gl, url)
 
     //code to avoid warning on Pages
     const emptyCubemapFace = new Uint8Array(512 * 512 * 4);
-    // Placeholder iniziale per ogni faccia
+    // Initial placeholder for each face
     faceInfos.forEach(function(faceInfo) {
         gl.texImage2D(
             faceInfo.target,
@@ -2632,7 +2597,7 @@ function DrawLightDirectionArrow(gl, lightPosition, targetPosition, viewMatrix, 
         targetPosition[2]
     );
 
-    // direzione fisica/debug: dalla luce verso il punto osservato
+    // physical/debug direction: from the light to the observed point
     var dir = normalize(subtract(target, lightPos));
 
     var arrowLength = 1.8;
@@ -3017,10 +2982,10 @@ function getMoonMatrix() {
     var dy = eye[1] - lightPosition[1];
     var dz = eye[2] - lightPosition[2];
 
-    // Rotazione orizzontale
+    
     var yaw = Math.atan2(dx, dz) * 180.0 / Math.PI;
 
-    // Rotazione verticale
+    
     var horizontalDistance = Math.sqrt(dx * dx + dz * dz);
     var pitch = -Math.atan2(dy, horizontalDistance) * 180.0 / Math.PI;
 
