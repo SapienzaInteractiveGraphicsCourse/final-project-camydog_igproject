@@ -1,6 +1,7 @@
 // variable to enable start screen
 var ENABLE_START_SCREEN = true; 
 var ENABLE_LOADING_SCREEN = true;
+var startClickSoundAlreadyPlayed = false;
 
 
 //loading bar variables 
@@ -386,6 +387,7 @@ var DOG_BOWL_VISUAL_EPS = 0.0001;
 var dogBowlBusyMessageShown = false;
 var dogBowlInteractionLocked = false;
 var dogBowlActiveKind = null;
+var dogBowlInteractionLockDuration = 10000;
 
 var dogBowlWaitingForEmpty = false;
 var dogBowlEmptyThreshold = 0.05;

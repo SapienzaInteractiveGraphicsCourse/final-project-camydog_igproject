@@ -110,7 +110,47 @@ function updateStartSettingsPanel() {
         );
     }
 }
+function isDogBusyWithBowlInteraction() {
+    var isBowlTarget =
+        typeof dogFetchObjectType !== "undefined" &&
+        (
+            dogFetchObjectType === "bowlWater" ||
+            dogFetchObjectType === "bowlFood"
+        );
 
+    return (
+        dogBowlInteractionLocked ||
+        isBowlTarget ||
+        dogBowlWaitingForEmpty ||
+        dogBowlRisingActive
+    );
+}
+
+function blockDogModeIfBowlBusy() {
+    if (isDogBusyWithBowlInteraction()) {
+        showDogBowlBusyMessage();
+        return true;
+    }
+
+    return false;
+}
+
+function showDogBowlBusyMessage() {
+    if (dogBowlBusyMessageShown) {
+        return;
+    }
+
+    dogBowlBusyMessageShown = true;
+
+    showGameMessage(
+        "Wait for the dog to finish eating or drinking!",
+        2200
+    );
+
+    setTimeout(function () {
+        dogBowlBusyMessageShown = false;
+    }, 1800);
+}
 
 function getTeapotModelMatrix() {
     var modelMatrixTeapot = mat4();

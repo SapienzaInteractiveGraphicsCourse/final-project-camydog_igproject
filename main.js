@@ -164,6 +164,52 @@ function applyStartChoicesAfterLoading() {
 }
 
 
+function preloadMouseClickSound() {
+    var sound = document.getElementById("mouseClickSound");
+
+    if (!sound) {
+        return;
+    }
+
+    sound.preload = "auto";
+    sound.load();
+}
+
+function playMouseClickSound() {
+    var sound = document.getElementById("mouseClickSound");
+
+    if (
+        !startGlobalAudioEnabled ||
+        !sound
+    ) {
+        return;
+    }
+
+    sound.pause();
+
+    try {
+        sound.currentTime = 0;
+    } catch (error) {
+        console.log("Could not reset mouse click sound:", error);
+    }
+
+    sound.volume = 0.45;
+
+    sound.play().catch(function(error) {
+        console.log("Mouse click sound blocked:", error);
+    });
+}
+
+function playStartClickSoundOnce() {
+    if (startClickSoundAlreadyPlayed) {
+        return;
+    }
+
+    startClickSoundAlreadyPlayed = true;
+    playMouseClickSound();
+}
+
+
 
 
 function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
@@ -179,6 +225,7 @@ function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
                 event.stopPropagation();
             }
 
+            
             closeStartSettingsPanel();
 
             if (typeof warmUpBallThrowSound === "function") {
@@ -256,6 +303,13 @@ onload = async function init() {
     fpsValueElement = document.getElementById("FpsValue");
    
     var startButton = document.getElementById("ButtonStartGame");
+    preloadMouseClickSound();
+
+    if (startButton) {
+        startButton.addEventListener("pointerdown", function () {
+            playStartClickSoundOnce();
+        });
+    }
     var startScreen = document.getElementById("startScreen");
     var loadingScreen = document.getElementById("loadingScreen");
 
@@ -1189,6 +1243,11 @@ onload = async function init() {
     //button for petting the dog
     var petDogButton = document.getElementById("ButtonPetDogMode");
     petDogButton.onclick = function () {
+
+        if (blockDogModeIfBowlBusy()) {
+            return;
+        }
+
         petDogMode = !petDogMode;
 
         if (petDogMode) {
@@ -1242,7 +1301,12 @@ onload = async function init() {
 
     waterButton.addEventListener("click", function () {
 
-         if (!waterVisible && miniGameActive) {
+        if (dogBowlInteractionLocked) {
+                showDogBowlBusyMessage();
+                return;
+        }
+
+        if (!waterVisible && miniGameActive) {
             showGameMessage(
                 "Please stop the ball minigame before using water or food.",
                 2800
@@ -1262,7 +1326,7 @@ onload = async function init() {
                 
                 waterSound.pause();
                
-                 applyMasterVolumeToSound(
+                applyMasterVolumeToSound(
                     waterSound,
                     audioBaseVolumes.waterSound
                 );
@@ -1283,6 +1347,13 @@ onload = async function init() {
 
             startSkinnedDogGoToBowl("water");
 
+            dogBowlInteractionLocked = true;
+            dogBowlActiveKind = "water";
+            setTimeout(function () {
+                dogBowlInteractionLocked = false;
+                dogBowlActiveKind = null;
+            }, dogBowlInteractionLockDuration);
+
         } else {
             deactivateWater();
             stopSkinnedDogGoToBowl();
@@ -1296,6 +1367,12 @@ onload = async function init() {
     foodButton = document.getElementById("ButtonFood");
 
     foodButton.addEventListener("click", function () {
+
+        if (dogBowlInteractionLocked) {
+                showDogBowlBusyMessage();
+                return;
+        }
+
         if (!kibbleVisible && miniGameActive) {
             showGameMessage(
                 "Please stop the ball minigame before using water or food.",
@@ -1317,6 +1394,14 @@ onload = async function init() {
             foodButton.title = "Remove Food";
             startSkinnedDogGoToBowl("food");
 
+            dogBowlInteractionLocked = true;
+            dogBowlActiveKind = "food";
+
+            setTimeout(function () {
+                dogBowlInteractionLocked = false;
+                dogBowlActiveKind = null;
+            }, dogBowlInteractionLockDuration);
+
         } else {
             deactivateFood();
             stopSkinnedDogGoToBowl();
@@ -1329,6 +1414,10 @@ onload = async function init() {
     var callDogButton = document.getElementById("ButtonCallDogMode");
 
     callDogButton.onclick = function () {
+        if (blockDogModeIfBowlBusy()) {
+            return;
+        }
+
         callDogClickMode = !callDogClickMode;
 
         // Block any remaining active dragging

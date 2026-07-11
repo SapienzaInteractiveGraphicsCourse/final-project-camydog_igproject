@@ -149,6 +149,7 @@ Everyone comes from PixaBay
 * [Wind](https://pixabay.com/sound-effects/nature-gust-of-wind-511325/)
 * [Dog Kibble?](https://pixabay.com/sound-effects/film-special-effects-jump-sound-531048/)
 * [Teapot pouring?](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-teapot-lid-large-170428-1477-79908/)
+* [Mouse click](https://pixabay.com/sound-effects/film-special-effects-mouse-click-290204/)
 # Icons references
 From **FlatIcon**
 
