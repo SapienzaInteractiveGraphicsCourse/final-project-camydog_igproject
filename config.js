@@ -146,16 +146,17 @@ var path_img_curtain = "./Textures/curtain_tex.png";
 var path_img_musicNote = "./Textures/hot_pink.jpg";
 var path_img_halo = "./Textures/halo.png";
 var path_img_grass="./Textures/grass_3.jpg";
-var path_img_steel="./Textures/steel.png";
 var path_img_blue="./Textures/blue_navy.jpg";
 var path_img_frisbee= "./Textures/frisbee_2.png";
 var path_img_bench= "./Textures/Bench_tex/bench_base_color.png";
+var path_img_bowl="./Textures/Bowl_tex/bowl_2.png";
 var path_img_grass_block="./Textures/grassGreen_Strands.jpg";
 var path_img_leaf="./Textures/leaf.jpg";
+
 var path_folder_bench="./Textures/Bench_tex/";
 var path_folder_table="./Textures/Table_tex/";
 var path_folder_wall_lamp="./Textures/WallLamp_tex/";
-var path_img_wall_lamp_base_color="./Textures/wall_lamp_baseColor_new.png";
+var path_img_wall_lamp_base_color="./Textures/WallLamp_tex/wall_lamp_baseColor_new.png";
 var path_folder_bowl="./Textures/Bowl_tex/";
 
 //icons path

@@ -615,15 +615,9 @@ onload = async function init() {
     sunTexture = loadTexture(path_img_sun);
     haloTexture = loadTexture(path_img_halo);
     grassTexture= loadTexture(path_img_grass);
-    //bowlTexture= loadTexture(path_img_blue);
-    //bowlTexture = createSolidColorTexture(gl, 220, 205, 180, 255);
-    //bowlTexture = createSolidColorTexture(gl, 125, 150, 175, 255);
-    bowlTexture = loadTexture ("./Textures/bowl_2.png");
+    
+    bowlTexture = loadTexture (path_img_bowl);
 
-    /* bowlTexture = loadTexture(
-        path_folder_bowl + "bowl_BaseColor.png"
-    );
- */
     bowlNormalTexture = loadTexture(
         path_folder_bowl + "bowl_NormalOGL.png"
     );
