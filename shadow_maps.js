@@ -403,10 +403,12 @@ function drawWallLampGlow(viewMatrix, projectionMatrix, scale, alpha) {
 
     var modelMatrix = mat4();
 
+    //var glowOffsetFromWall = 0.16;
+
     modelMatrix = mult(
         modelMatrix,
         translate(
-            -6.30,
+            -6.30 ,
             0.65,
             -2.00
         )

@@ -865,7 +865,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     viewMatrix, projectionMatrix, true, false, false, true, 3);
 
     
-     var modelMatrixWallLamp = getWallLampModelMatrix();
+    /*  var modelMatrixWallLamp = getWallLampModelMatrix();
 
     drawObject(
         wallLampBuffers,
@@ -895,12 +895,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         gl.depthMask(false);
 
-        /*
-            Disegno il glow PRIMA della lampada.
-            Così la struttura nera della lanterna viene disegnata sopra.
-        */
+       
 
-        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.depthMask(false);
         gl.disable(gl.CULL_FACE);
 
 
@@ -918,14 +917,61 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             0.70
         );
 
-        gl.enable(gl.DEPTH_TEST);
         gl.depthMask(true);
+        gl.depthFunc(gl.LESS);
         gl.disable(gl.BLEND);
     }
 
-    /*
-        Subito DOPO disegna normalmente il modello della lampada.
-    */
+   
+    drawObject(
+        wallLampBuffers,
+        wallLampTexture,
+        modelMatrixWallLamp,
+        viewMatrix,
+        projectionMatrix,
+        true,
+        false,
+        false,
+        false,
+        0,
+        false,
+        1.0,
+        true,
+        false
+    ); */
+
+    var modelMatrixWallLamp = getWallLampModelMatrix();
+
+    if (
+        currentScene === "home" &&
+        isNight &&
+        wallLampEnabled
+    ) {
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+
+        gl.depthMask(false);
+        gl.disable(gl.CULL_FACE);
+
+       
+
+        drawWallLampGlow(viewMatrix, projectionMatrix, 0.45, 0.8);
+
+        drawWallLampGlow(
+            viewMatrix,
+            projectionMatrix,
+            0.24,
+            0.95
+        );
+
+        gl.depthMask(true);
+        gl.depthFunc(gl.LESS);
+        gl.disable(gl.BLEND);
+    }
+
     drawObject(
         wallLampBuffers,
         wallLampTexture,
