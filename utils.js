@@ -1,3 +1,262 @@
+function setBallSliderValue(sliderId, value) {
+    var slider = document.getElementById(sliderId);
+
+    if (!slider) {
+        return;
+    }
+
+    slider.value = value;
+
+    if (typeof slider.oninput === "function") {
+        slider.oninput();
+    }
+}
+
+function setWallLampBallDemoValues() {
+    setBallSliderValue("BallVelX", -2.80);
+    setBallSliderValue("BallVelY", 4.20);
+    setBallSliderValue("BallVelZ", -7.40);
+
+    setBallSliderValue("BallBounce", 0.25);
+    setBallSliderValue("BallFriction", 0.80);
+
+    setBallSliderValue("BallAngVelX", 4.00);
+    setBallSliderValue("BallAngVelY", 0.00);
+    setBallSliderValue("BallAngVelZ", 2.00);
+
+    setBallSliderValue("BallLinearDamping", 0.35);
+    setBallSliderValue("BallAngularDamping", 0.75);
+}
+
+function updateWallLampBallDemoButtonVisibility() {
+    var button = document.getElementById("ButtonWallLampBallDemo");
+
+    if (!button) {
+        return;
+    }
+
+    button.style.display =
+        currentScene === "home" && isNight
+            ? "inline-flex"
+            : "none";
+}
+function ensureWallLampOnForDemo() {
+    var buttonWallLamp =
+        document.getElementById("ButtonWallLamp");
+
+    /*
+        Se non siamo in home + notte, la demo non deve accendere nulla.
+    */
+    if (
+        currentScene !== "home" ||
+        !isNight
+    ) {
+        return;
+    }
+
+    /*
+        Se la lampada è già accesa, non clicco,
+        altrimenti il click la spegnerebbe.
+    */
+    if (!wallLampEnabled && buttonWallLamp) {
+        buttonWallLamp.click();
+    }
+
+    /*
+        Sicurezza: anche se il click non parte, forzo lo stato logico.
+    */
+    wallLampEnabled = true;
+
+    if (buttonWallLamp) {
+        buttonWallLamp.classList.remove("hidden");
+        buttonWallLamp.classList.add("wall-lamp-on");
+        buttonWallLamp.title = "Wall Lamp: ON";
+    }
+}
+
+function setWallLampBallDemoButtonActive(active) {
+    var demoButton =
+        document.getElementById("ButtonWallLampBallDemo");
+
+    if (!demoButton) {
+        return;
+    }
+
+    if (active) {
+        demoButton.classList.add("wall-lamp-demo-active");
+    } else {
+        demoButton.classList.remove("wall-lamp-demo-active");
+    }
+}
+
+function stopWallLampBallDemo() {
+    var demoButton =
+        document.getElementById("ButtonWallLampBallDemo");
+
+    var miniGameButton =
+        document.getElementById("ButtonMiniGame");
+
+    var miniGameIcon =
+        document.getElementById("MiniGameIcon");
+
+    var buttonWallLamp =
+        document.getElementById("ButtonWallLamp");
+
+    /*
+        Disattivo il colore del bottone demo.
+    */
+    if (demoButton) {
+        demoButton.classList.remove("wall-lamp-demo-active");
+    }
+
+    /*
+        Spengo la wall lamp usando il suo bottone,
+        così resta coerente con la logica già esistente.
+    */
+    if (wallLampEnabled && buttonWallLamp) {
+        buttonWallLamp.click();
+    } else {
+        wallLampEnabled = false;
+
+        if (buttonWallLamp) {
+            buttonWallLamp.classList.remove("wall-lamp-on");
+            buttonWallLamp.title = "Wall Lamp: OFF";
+        }
+    }
+
+    /*
+        Fermo la palla senza farla ripartire.
+    */
+    if (miniGameActive) {
+        miniGameActive = false;
+
+        if (miniGameButton) {
+            miniGameButton.title = "Start Ball";
+            miniGameButton.classList.remove("active");
+        }
+
+        if (miniGameIcon) {
+            miniGameIcon.alt = "Start Ball";
+
+            if (typeof path_icon_ball !== "undefined") {
+                miniGameIcon.src = path_icon_ball;
+            }
+        }
+
+        stopBallMiniGame();
+
+        ballOutsideHomeWarningShown = false;
+        ballBlockedOutsideHome = false;
+
+        dogFetchObjectType = null;
+        dogFetchBallMode = false;
+        dogFetchLoweringActive = false;
+        dogFetchLowerAmount = 0.0;
+
+        dogCrouchActive = false;
+        dogCrouchAmount = 0.0;
+
+        dogHasBall = false;
+        skinnedDogAlreadyTargeted = false;
+
+        dogPath = [];
+        dogPathIndex = 0;
+        dogFetchTarget = null;
+
+        resetSkinnedDogBallInteraction();
+
+        updateBallSettingsOverlay(false);
+    }
+}
+
+function startWallLampBallDemo() {
+    
+    var demoButton =
+        document.getElementById("ButtonWallLampBallDemo");
+
+    if (
+        demoButton &&
+        demoButton.classList.contains("wall-lamp-demo-active")
+    ) {
+        stopWallLampBallDemo();
+        return;
+    }
+
+
+    if (currentScene !== "home") {
+        showGameMessage(
+            "Wall lamp demo is available only inside the room.",
+            2200
+        );
+        return;
+    }
+
+    if (!isNight) {
+        showGameMessage(
+            "Switch to night mode to show the wall lamp shadow demo.",
+            2500
+        );
+        return;
+    }
+
+    var demoButton =
+        document.getElementById("ButtonWallLampBallDemo");
+
+    if (demoButton) {
+        demoButton.classList.add("wall-lamp-demo-active");
+    }
+
+    ensureWallLampOnForDemo();
+
+    setWallLampDemoLightValues();
+    setWallLampBallDemoValues();
+
+    
+
+    var miniGameButton = document.getElementById("ButtonMiniGame");
+
+    if (!miniGameButton) {
+        return;
+    }
+
+    if (miniGameActive) {
+        miniGameButton.click();
+
+        setTimeout(function () {
+            miniGameButton.click();
+            setWallLampBallDemoButtonActive(true);
+        }, 250);
+    } else {
+        miniGameButton.click();
+        setWallLampBallDemoButtonActive(true);
+    }
+
+    showGameMessage(
+        "Wall lamp shadow demo started!",
+        1800
+    );
+}
+
+function setLightSliderValue(sliderId, value) {
+    var slider = document.getElementById(sliderId);
+
+    if (!slider) {
+        return;
+    }
+
+    slider.value = value;
+
+    if (typeof slider.oninput === "function") {
+        slider.oninput();
+    }
+}
+function setWallLampDemoLightValues() {
+    setLightSliderValue("LightX", -11.5);
+    setLightSliderValue("LightY", 2.8);
+    setLightSliderValue("LightZ", 0.8);
+}
+
+
 function applyPerformanceSaverSettings() {
     if (typeof maxFallingLeaves !== "undefined") {
         maxFallingLeaves = startPerformanceSaverEnabled ? 8 : 18;

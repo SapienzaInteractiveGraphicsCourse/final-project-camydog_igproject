@@ -407,11 +407,6 @@
 
               
             <div id="RotationSettingsPanel" class="control-group">
-               <!--  <summary>Shadow demo controls</summary>
-
-                <p class="shadow-demo-description">
-                    Rotate objects to show dynamic shadows.
-                </p> -->
                 <h3>Debug tools</h3>
 
                 <button id="ButtonCollision">
@@ -421,11 +416,24 @@
 
                  <details class="control-group collapsible-panel">
                     <summary>Shadow demo controls</summary>
+                    
+                    
+                    <button
+                        id="ButtonWallLampBallDemo"
+                        class="rotation-demo-button"
+                        title="Start wall lamp shadow demo"
+                        style="display: none;"
+                    >
+                        Ball& wall lamp shadow demo 
+                    </button>
+                  
 
-                    <button  id="ButtonTex">Disable Textures</button>
+                    <button hidden   id="ButtonTex">Disable Textures</button>
                     <button id="ButtonT" class="rotation-demo-button">
                         Teapot rotation: OFF
                     </button>
+
+                    
 
                     <button id="ButtonTableRotation" class="rotation-demo-button">
                         Table rotation: OFF
@@ -502,6 +510,7 @@
                                 <button id="ButtonMiniGame" class="water-button minigame-icon-button" title="Start Ball">
                                     <img id="MiniGameIcon" src="./Icons/ball.png" alt="Start Ball">
                                 </button>
+                                
                                 <button id="ButtonTeapotChase" class="water-button teapot-icon-button" title="Teapot Chase">
                                     <img id="TeapotChaseIcon" src="./Icons/teapot.png" alt="Teapot Chase">
                                 </button>

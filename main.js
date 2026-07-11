@@ -1641,25 +1641,17 @@ onload = async function init() {
             console.log("Could not reset water sound:", error);
         }
 
-        /*
-            Fix forte:
-            sostituisco proprio il tag audio con una copia.
-            Così anche se il browser aveva una play() pendente,
-            il suono vecchio viene eliminato.
-        */
+       // clone the audio tag so eventually to stop the play()
         var newWaterSound = oldWaterSound.cloneNode(true);
         newWaterSound.muted = true;
 
         oldWaterSound.parentNode.replaceChild(newWaterSound, oldWaterSound);
 
-        /*
-            Aggiorno anche la variabile globale creata dall'id HTML,
-            così i click successivi usano il nuovo audio.
-        */
+       // to avoid issues with the old waterSound reference, update the global reference
         window.waterSound = newWaterSound;
     }
 
-     var globalAudioButton = document.getElementById("ButtonGlobalAudio");
+    var globalAudioButton = document.getElementById("ButtonGlobalAudio");
 
     if (globalAudioButton) {
         globalAudioButton.onclick = function () {
@@ -1749,7 +1741,10 @@ onload = async function init() {
             buttonWallLamp.classList.remove("wall-lamp-on");
         }
     }
-        if (buttonWallLamp) {
+
+
+        
+    if (buttonWallLamp) {
             buttonWallLamp.onclick = function () {
                 if (!isNight) {
                     wallLampEnabled = false;
@@ -2049,6 +2044,13 @@ onload = async function init() {
                 }
 
                 stopBallMiniGame();
+
+                
+
+                if (typeof setWallLampBallDemoButtonActive === "function") {
+                    setWallLampBallDemoButtonActive(false);
+                }
+
                 ballOutsideHomeWarningShown = false;
                 ballBlockedOutsideHome = false;
 
@@ -2075,6 +2077,18 @@ onload = async function init() {
 
 
     };
+
+
+    var wallLampBallDemoButton =
+        document.getElementById("ButtonWallLampBallDemo");
+
+    if (wallLampBallDemoButton) {
+        wallLampBallDemoButton.onclick = function () {
+            startWallLampBallDemo();
+        };
+    }
+
+    updateWallLampBallDemoButtonVisibility();
 
     // settings buttons + sliders
 
@@ -2185,6 +2199,7 @@ onload = async function init() {
 
             wallLampEnabled = false;
         }
+        updateWallLampBallDemoButtonVisibility();
         updateWallLampButton();
     };
 

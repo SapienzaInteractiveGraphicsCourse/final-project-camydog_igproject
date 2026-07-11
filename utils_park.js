@@ -12,10 +12,7 @@ function createParkGrassPatchInstances() {
         var x = minX + Math.random() * (maxX - minX);
         var z = minZ + Math.random() * (maxZ - minZ);
 
-        /*
-            Scala random: meglio piccoli ciuffi,
-            non tutti uguali.
-        */
+        // the scale is random between 0.3 and 0.6, so the grass patches are not too big and they're different
         var s = 0.3 + Math.random() * 0.30;
 
         grassPatchInstances.push({

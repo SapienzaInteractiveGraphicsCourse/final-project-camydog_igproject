@@ -3824,3 +3824,15 @@ body.ui-panel-hidden .toggle-side-panel-button {
 .hidden {
     display: none !important;
 }
+
+
+#ButtonWallLampBallDemo {
+    background: #7893a0;
+    color: white;
+}
+
+#ButtonWallLampBallDemo.wall-lamp-demo-active {
+    background: #cdb66f !important;
+    color: #2b2b2b !important;
+    box-shadow: 0 0 12px rgba(205, 182, 111, 0.75);
+}
