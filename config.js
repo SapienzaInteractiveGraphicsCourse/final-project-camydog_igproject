@@ -15,6 +15,26 @@ var ENABLE_SCREEN_TRANSITION = true; // metti true quando vuoi vederla
 var startSceneChoice = "home";
 var showCameraHelpAtStart = true;
 var startGlobalAudioEnabled = true;
+var masterAudioVolume = 1.0;
+var lastNonZeroAudioVolume = 0.60;
+var lastAudioOffSliderMessageTime = 0;
+
+
+
+var audioBaseVolumes = {
+    ballThrowSound: 0.75,
+    windSound: 0.60,
+    dogBarkSound: 0.35,
+    dogBreathSound: 0.70,
+    waterSound: 1.00,
+    notificationSound: 0.70,
+    dogHappySound: 0.60,
+    dogKibbleSound: 0.75,
+    pouringFoodSound: 0.70,
+    wooshFrisbeeSound: 0.65,
+    dogEatingSound: 0.80,
+    dogDrinkingSound: 0.80
+};
 
 // performance saver variables
 var startPerformanceSaverEnabled = false;

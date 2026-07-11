@@ -300,6 +300,8 @@ onload = async function init() {
             
 
             toggleGlobalAudioMute();
+            syncAudioSliderWithGlobalAudioState();
+
 
             updateGlobalAudioButton();
 
@@ -1257,8 +1259,13 @@ onload = async function init() {
             waterVisible = true;
 
             if (startGlobalAudioEnabled && waterSound && !waterSound.muted) {
-                 waterSound.pause();
+                
+                waterSound.pause();
                
+                 applyMasterVolumeToSound(
+                    waterSound,
+                    audioBaseVolumes.waterSound
+                );
 
                 try {
                     waterSound.currentTime = 0;
@@ -1391,18 +1398,133 @@ onload = async function init() {
         }
     }
 
+    function setAudioSliderAndVolume(volume) {
+        var slider =
+            musicVolumeSlider ||
+            document.getElementById("MusicVolume");
+
+        if (!slider) {
+            return;
+        }
+
+        volume =
+            Math.max(
+                0.0,
+                Math.min(1.0, volume)
+            );
+
+        slider.value = volume.toFixed(2);
+
+        setAllBackgroundMusicVolume(volume);
+        setAllGameSoundsVolume(volume);
+
+        updateMusicSliderStyle();
+    }
+
+    function syncAudioSliderWithGlobalAudioState() {
+        var slider =
+            musicVolumeSlider ||
+            document.getElementById("MusicVolume");
+
+        if (!slider) {
+            return;
+        }
+
+        if (!startGlobalAudioEnabled) {
+            var currentVolume =
+                parseFloat(slider.value);
+
+            if (currentVolume > 0.001) {
+                lastNonZeroAudioVolume = currentVolume;
+            }
+
+            setAudioSliderAndVolume(0.0);
+        } else {
+            var restoredVolume =
+                lastNonZeroAudioVolume;
+
+            if (
+                restoredVolume === undefined ||
+                restoredVolume <= 0.001
+            ) {
+                restoredVolume = 0.60;
+            }
+
+            setAudioSliderAndVolume(restoredVolume);
+        }
+    }
+
+
+    function setAllGameSoundsVolume(volume) {
+        masterAudioVolume = volume;
+
+        var soundList = [
+            { id: "ballThrowSound", baseVolume: 0.8 },
+            { id: "windSound", baseVolume: 0.6 },
+            { id: "dogBarkSound", baseVolume: 0.8 },
+            { id: "dogBreathSound", baseVolume: 0.7 },
+            { id: "waterSound", baseVolume: 0.9 },
+            { id: "notificationSound", baseVolume: 0.7 },
+            { id: "dogKibbleSound", baseVolume: 0.8 },
+            { id: "pouringFoodSound", baseVolume: 0.6 },
+            { id: "wooshFrisbeeSound", baseVolume: 0.6 },
+            { id: "dogEatingSound", baseVolume: 0.8 },
+            { id: "dogDrinkingSound", baseVolume: 0.8 }
+        ];
+
+        for (var i = 0; i < soundList.length; i++) {
+            var sound =
+                document.getElementById(soundList[i].id);
+
+            if (sound) {
+                sound.volume =
+                    soundList[i].baseVolume * masterAudioVolume;
+            }
+        }
+    }
+
 
     // initial volume setup
     var initialMusicVolume = parseFloat(musicVolumeSlider.value);
 
     setAllBackgroundMusicVolume(initialMusicVolume);
+    setAllGameSoundsVolume(initialMusicVolume);
+
     updateMusicSliderStyle();
 
 
     musicVolumeSlider.addEventListener("input", function () {
+        if (!startGlobalAudioEnabled) {
+            this.value = "0.00";
+
+            setAllBackgroundMusicVolume(0.0);
+            setAllGameSoundsVolume(0.0);
+
+            updateMusicSliderStyle();
+
+            var now = performance.now();
+
+            if (now - lastAudioOffSliderMessageTime > 1800) {
+                showGameMessage(
+                    "Global audio is OFF!\nTurn it ON before changing the volume.",
+                    2200
+                );
+
+                lastAudioOffSliderMessageTime = now;
+            }
+
+            return;
+        }
+
         var volume = parseFloat(this.value);
 
+        if (volume > 0.001) {
+            lastNonZeroAudioVolume = volume;
+        }
+
         setAllBackgroundMusicVolume(volume);
+        setAllGameSoundsVolume(volume);
+
         updateMusicSliderStyle();
     });
 
@@ -1455,6 +1577,8 @@ onload = async function init() {
             startGlobalAudioEnabled = !startGlobalAudioEnabled;
 
             toggleGlobalAudioMute();
+            syncAudioSliderWithGlobalAudioState();
+            
             updateGlobalAudioButton();
             updateStartSettingsPanel();
 

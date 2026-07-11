@@ -96,6 +96,54 @@ function isAnyBackgroundMusicPlaying() {
 }
 
 
+function clampVolume(value) {
+    return Math.max(
+        0.0,
+        Math.min(1.0, value)
+    );
+}
+
+function applyMasterVolumeToSound(audioElement, baseVolume) {
+    if (!audioElement) {
+        return;
+    }
+
+    if (baseVolume === undefined) {
+        baseVolume = 1.0;
+    }
+
+    audioElement.volume =
+        clampVolume(baseVolume * masterAudioVolume);
+}
+
+function setAllGameSoundsVolume(volume) {
+    masterAudioVolume = clampVolume(volume);
+
+    for (var soundId in audioBaseVolumes) {
+        var sound =
+            document.getElementById(soundId);
+
+        if (sound) {
+            applyMasterVolumeToSound(
+                sound,
+                audioBaseVolumes[soundId]
+            );
+        }
+    }
+    /*
+        dogHappySound è creato con new Audio(),
+        quindi non esiste come elemento HTML con id.
+        Per questo lo aggiorno separatamente.
+    */
+    if (typeof dogHappySound !== "undefined" && dogHappySound) {
+        applyMasterVolumeToSound(
+            dogHappySound,
+            audioBaseVolumes.dogHappySound
+        );
+    }
+}
+
+
 function refreshBackgroundMusicAfterSceneChange() {
     var wasPlaying = isAnyBackgroundMusicPlaying();
 
@@ -213,17 +261,37 @@ function playBallThrowSound() {
     if (globalAudioMuted) {
         return;
     }
-    var sound = document.getElementById("ballThrowSound");
 
-    if (!sound) return;
+    var sound =
+        document.getElementById("ballThrowSound");
 
-    sound.currentTime = 0.1;
-    sound.volume = 1.0;
+    if (
+        !startGlobalAudioEnabled ||
+        !sound ||
+        sound.muted
+    ) {
+        return;
+    }
+
+    applyMasterVolumeToSound(
+        sound,
+        audioBaseVolumes.ballThrowSound
+    );
+
+    sound.pause();
+
+    try {
+        sound.currentTime = 0.1;
+    } catch (error) {
+        console.log("Could not reset ball throw sound:", error);
+    }
 
     sound.play().catch(function(error) {
         console.log("Ball throw sound blocked:", error);
     });
 }
+
+///////////////
 
 function warmUpBallThrowSound() {
     if (!ballThrowSound) {
@@ -273,7 +341,7 @@ function updateWindSound(windValue) {
     if (wind > 0.05) {
         var volume = Math.min(wind / maxWind, 1.0);
 
-        windSound.volume = volume * 1.0; // volume massimo al 45%
+        windSound.volume = volume * masterAudioVolume; // volume massimo al 45%
 
         if (windSound.paused) {
             windSound.play().catch(function(error) {
@@ -293,11 +361,28 @@ function playDogHappySound() {
 
     if (!dogHappySound) return;
 
-    dogHappySound.currentTime = 0;
+    if (
+        startGlobalAudioEnabled &&
+        !globalAudioMuted &&
+        dogHappySound
+    ) {
+        applyMasterVolumeToSound(
+            dogHappySound,
+            audioBaseVolumes.dogHappySound
+        );
 
-    dogHappySound.play().catch(function(error) {
-        console.log("Dog happy sound could not be played:", error);
-    });
+        dogHappySound.pause();
+
+        try {
+            dogHappySound.currentTime = 0;
+        } catch (error) {
+            console.log("Could not reset dog happy sound:", error);
+        }
+
+        dogHappySound.play().catch(function(error) {
+            console.log("Dog happy sound blocked:", error);
+        });
+    }
 }
 ////////////////////////////////////////
 function playPouringFoodSound() {
@@ -318,10 +403,25 @@ function playDogBarkSound() {
         return;
     }
 
+    if (
+        !startGlobalAudioEnabled ||
+        !barkSound ||
+        barkSound.muted
+    ) {
+        return;
+    }
+
+    applyMasterVolumeToSound(
+        barkSound,
+        audioBaseVolumes.dogBarkSound
+    );
+
+
+
     // reproduce from the beginning every time
     barkSound.pause();
     barkSound.currentTime = 0;
-    barkSound.volume = 0.8;
+    //barkSound.volume = 0.8;
 
     barkSound.play().catch(function(error) {
         console.log("Dog bark sound could not be played:", error);
@@ -357,7 +457,7 @@ function stopDogBreathSound() {
 }
 
 //////////////////////////////////////////
-function playWooshFrisbeeSound() {
+function playWooshFrisbeeSound_old() {
     if (!wooshFrisbeeSound) {
         wooshFrisbeeSound = document.getElementById("wooshFrisbeeSound");
     }
@@ -375,6 +475,40 @@ function playWooshFrisbeeSound() {
 
     wooshFrisbeeSound.play().catch(function(error) {
         console.log("Frisbee woosh sound blocked:", error);
+    });
+}
+
+function playWooshFrisbeeSound() {
+    if (globalAudioMuted) {
+        return;
+    }
+
+    var sound =
+        document.getElementById("wooshFrisbeeSound");
+
+    if (
+        !startGlobalAudioEnabled ||
+        !sound ||
+        sound.muted
+    ) {
+        return;
+    }
+
+    applyMasterVolumeToSound(
+        sound,
+        audioBaseVolumes.wooshFrisbeeSound
+    );
+
+    sound.pause();
+
+    try {
+        sound.currentTime = 0;
+    } catch (error) {
+        console.log("Could not reset frisbee sound:", error);
+    }
+
+    sound.play().catch(function(error) {
+        console.log("Frisbee sound blocked:", error);
     });
 }
 //////////////////////////////////////////////
