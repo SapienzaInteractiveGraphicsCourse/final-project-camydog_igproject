@@ -338,7 +338,6 @@ The Kishu Inu reference icon is from Pinterest and is used only as a visual refe
 | [Audio On](https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912) | Flaticon | Audio enabled icon. |
 | [Teapot Icon](https://www.flaticon.com/free-icon/teapot_491609?term=teapot&page=1&position=4&origin=search&related_id=491609) | Flaticon | Teapot chase minigame. |
 | [Camera Icon](https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651) | Flaticon | Camera/focus controls. |
-| [Shiba Icon](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763) | Flaticon | Dog-related UI icon. |
 | [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576) | Flaticon | Pet/dog UI decoration. |
 | [Light Bulb](https://www.flaticon.com/free-icon/idea_9901812?term=lamp&related_id=9901812) | Flaticon | Wall lamp button. |
 | [Damage](https://www.flaticon.com/free-icon/damage_7037237?term=damage&related_id=7037237) | Flaticon | Teapot smash preset / break interaction button. |
