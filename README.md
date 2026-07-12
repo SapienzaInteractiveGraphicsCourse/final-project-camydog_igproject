@@ -27,9 +27,9 @@ https://sapienzainteractivegraphicscourse.github.io/final-project-camydog_igproj
 
 
 # Exam material
-Slides and instruction manual for the exam:
+The instruction manual for the exam is in this repository : it's the report_petRoom.pdf file
 
-https://canva.link/6hl5piamvf281bk
+<!-- https://canva.link/6hl5piamvf281bk -->
 
 # Overview
 Pet Room is an interactive WebGL project developed for the Interactive Graphics course 2025/26.  
