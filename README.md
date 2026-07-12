@@ -39,7 +39,7 @@ The project combines custom WebGL rendering, hierarchical/skinned animation, sha
 
 | Home Scene | Park Scene | Shadow Demo |
 |---|---|---|
-| <img src="README_assets/home_scene.png" width="300"> | <img src="README_assets/park_scene.png" width="300"> | <img src="README_assets/shadow_demo.png" width="300"> |
+| <img src="README_assets/home_scene.png" width="300"> | <img src="README_assets/park_scene.png" width="300"> | <img src="README_assets/shadow_demo_wallLamp.png" width="300"> |
 
 
 # Main Features & Technical Highlights
