@@ -463,6 +463,11 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     lightProjectionMatrix = classicLightProjectionMatrix;
 
 
+
+    // wall lamp part
+    var modelMatrixWallLamp = getWallLampModelMatrix();
+
+
     /////////////////////
         
     // ===== SHADOW PASS =====
@@ -526,20 +531,10 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(bowlBuffers,modelMatrixBowl);
 
         
-        //drawShadowObject(dogBuffers, modelMatrixDog);
 
+        // use the blockers
 
-        
-
-        //drawShadowObject(roomBoxBuffers, modelMatrixFloor);
-
-        /*drawShadowObject(roomBoxBuffers, modelMatrixBackWall);
-        drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
-        drawShadowObject(roomBoxBuffers, modelMatrixRightWall); */
-
-         // use the blockers
-
-       gl.enable(gl.CULL_FACE);
+        gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.FRONT);
         
 
@@ -586,6 +581,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             drawShadowObject(ballBuffers, modelMatrixBall);
         }
 
+        drawShadowObject(wallLampBuffers, modelMatrixWallLamp);
 
         if (curtain) {
             gl.disable(gl.CULL_FACE);
@@ -607,6 +603,9 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         }
         
     }
+
+    
+
     
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -847,8 +846,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     viewMatrix, projectionMatrix, true, false, false, true, 3);
 
 
-    // wall lamp part
-    var modelMatrixWallLamp = getWallLampModelMatrix();
+    
 
     if (
         currentScene === "home" &&
