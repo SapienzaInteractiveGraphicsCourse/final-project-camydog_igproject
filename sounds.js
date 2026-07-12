@@ -509,3 +509,27 @@ function playWooshFrisbeeSound() {
     });
 }
 //////////////////////////////////////////////
+function playGlassBreakingSound() {
+    if (typeof globalAudioEnabled !== "undefined" && !globalAudioEnabled) {
+        return;
+    }
+
+    var sound =
+        document.getElementById("glassBreakingSound");
+
+    if (!sound) {
+        console.warn("glassBreakingSound element not found");
+        return;
+    }
+
+    /*
+        Restart the sound from the beginning every time
+        the teapot breaks.
+    */
+    sound.currentTime = 0.0;
+    sound.volume = 0.7;
+
+    sound.play().catch(function (error) {
+        console.warn("Glass breaking sound could not be played:", error);
+    });
+}

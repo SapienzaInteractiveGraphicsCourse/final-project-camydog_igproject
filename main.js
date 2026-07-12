@@ -31,7 +31,6 @@ var materialAmbient = vec4(0.5, 0.5, 0.5, 1.0);
 var materialDiffuse = vec4(1.0, 0.8, 0.8, 1.0);
 var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
-//parte joystick
 
 var objPos = vec3(0.0, 0.0, 0.0);
 objPos = vec3(
@@ -133,7 +132,7 @@ var ballAlreadyTargeted = false;
 
 function applyStartChoicesAfterLoading() {
     /*
-        Se l'utente ha scelto Park, parto direttamente dal parco.
+        user has chosen to start in the park, so switch to park scene after loading is complete
     */
     if (startSceneChoice === "park" && currentScene !== "park") {
         setTimeout(function () {
@@ -245,7 +244,7 @@ function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
             }
 
             /*
-                Mostro il loading screen.
+                show loading screen
             */
             if (loadingScreen) {
                 loadingScreen.style.display = "flex";
@@ -253,7 +252,7 @@ function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
             }
 
             /*
-                Aspetto pochissimo solo per far vedere la transizione.
+                Wait a little to show the transition.
             */
             setTimeout(function() {
                 resolve();
@@ -346,9 +345,6 @@ onload = async function init() {
             event.preventDefault();
             event.stopPropagation();
 
-            /*
-                Cambio subito lo stato visivo del pannello Settings.
-            */
             startGlobalAudioEnabled = !startGlobalAudioEnabled;
 
             
@@ -420,8 +416,8 @@ onload = async function init() {
     updateStartSettingsPanel();
 
     /*
-        Prima cosa visibile: start screen.
-        Il loading resta nascosto finché l'utente non preme Start.
+        First visible thing: start screen.
+        The loading screen remains hidden until the user presses Start.
     */
     if (startScreen) {
         startScreen.style.display = "flex";
@@ -429,8 +425,8 @@ onload = async function init() {
         startScreen.classList.remove("start-visible");
 
         /*
-            Piccolo delay per permettere al browser di applicare
-            lo stato iniziale opacity 0 / scale 1.03.
+            Small delay to allow the browser to apply
+            the initial state opacity 0 / scale 1.03.
         */
         setTimeout(function () {
             startScreen.classList.add("start-visible");
@@ -443,8 +439,8 @@ onload = async function init() {
     }
 
     /*
-        Qui il codice si ferma finché l'utente non clicca Start Game.
-        Tutto il caricamento pesante parte DOPO.
+        Here the code stops until the user clicks Start Game.
+        All heavy loading starts AFTER.
     */
     await waitForStartScreenChoice(
         startButton,
@@ -453,7 +449,7 @@ onload = async function init() {
     );
 
     /*
-        Ora applico le scelte prima di creare shadow map, erba, ecc.
+        Now apply the choices before creating shadow map, grass, etc.
     */
     applyPreloadSettings();
 
@@ -556,7 +552,7 @@ onload = async function init() {
         }
 
         /*
-            Flag esplicita: da ora sappiamo che il cane è stato creato.
+            Explicit flag: from now on we know that the dog has been created.
         */
         skinnedDog.isReady = true;
 
@@ -592,8 +588,7 @@ onload = async function init() {
 
     //teapotTexture = loadTexture(path_img_teapot);
     
-    // ocra più elegante
-    //teapotTexture = createSolidColorTexture(gl, 205, 150, 65, 255);
+    
     teapotTexture = createSolidColorTexture(gl, 55, 125, 150, 255);
     tableTexture = loadTexture(path_img_table);
     wallTexture = loadTexture(path_img_wall);
@@ -797,7 +792,7 @@ onload = async function init() {
         console.log("Teapot buffers not created successfully");
     }
 
-    //carico parte del tavolo 
+    //table loading
     await loadOBJ(modelPath_table);
     //console.log("OBJ  Table loaded");
 
@@ -1015,7 +1010,7 @@ onload = async function init() {
     skinnedDogDepthUniforms.pointShadowPass =
         gl.getUniformLocation(skinnedDogDepthProgram, "pointShadowPass");
 
-    //parte program per visualizzazione direzione luce (debug)
+    //debug light part
     debugLineProgram = initShaders(
         gl,
         "debug-line-vertex-shader",
@@ -2073,6 +2068,62 @@ onload = async function init() {
     };
 
 
+    var teapotSmashPresetButton =
+    document.getElementById("ButtonBreakTeapot");
+
+    if (teapotSmashPresetButton) {
+        teapotSmashPresetButton.onclick = function () {
+            if (currentScene !== "home") {
+                showGameMessage(
+                    "The teapot can only be smashed in the home scene.",
+                    2000
+                );
+                return;
+            }
+
+            if (dogFollowTeapotMode) {
+                showGameMessage(
+                    "Teapot Chase is active!\nStop it before starting the ball minigame.",
+                    2500
+                );
+                return;
+            }
+
+            /*
+                Apply the preset first.
+            */
+            applyTeapotSmashBallPreset();
+
+            var miniGameButton =
+                document.getElementById("ButtonMiniGame");
+
+            if (!miniGameButton) {
+                console.warn("ButtonMiniGame not found");
+                return;
+            }
+
+            /*
+                If the ball minigame is already running,
+                stop it first and restart it with the new preset.
+            */
+            if (miniGameActive) {
+                miniGameButton.click();
+
+                setTimeout(function () {
+                    miniGameButton.click();
+                }, 80);
+            } else {
+                miniGameButton.click();
+            }
+
+            showGameMessage(
+                "Teapot smash preset loaded!\nLaunch the ball toward the teapot.",
+                2200
+            );
+        };
+    }
+
+
     var wallLampBallDemoButton =
         document.getElementById("ButtonWallLampBallDemo");
 
@@ -2163,10 +2214,7 @@ onload = async function init() {
             }
         };
     }
-    /* document.getElementById("ButtonLightDir").onclick = function () {
-        showLightDirection = !showLightDirection;
-        this.textContent = showLightDirection ? "Hide Light Direction" : "Show Light Direction";
-    }; */
+   
    
 
     
@@ -2204,9 +2252,9 @@ onload = async function init() {
         buttonTeapotChase.onclick = function () {
 
              /*
-                Se sto cercando di ACCENDERE la teapot,
-                ma la palla è attiva, blocco.
-                Se invece la teapot è già ON, permetto di spegnerla.
+                If I'm trying to TURN ON the teapot,
+                but the ball is active, block.
+                If the teapot is already ON, allow turning it off.
             */
             if (!dogFollowTeapotMode && isBallMinigameBusyForTeapot()) {
                 showGameMessage(
@@ -2309,10 +2357,7 @@ onload = async function init() {
 
     }
  
-   /*  document.getElementById("ButtonDogMove").onclick = function () {
-        moveDog = !moveDog;
-        console.log("Dog walk:", moveDog);
-    }; */
+  
     document.getElementById("ButtonX").onclick = () => axis = 0;
     document.getElementById("ButtonY").onclick = () => axis = 1;
     document.getElementById("ButtonZ").onclick = () => axis = 2;
@@ -2530,8 +2575,8 @@ onload = async function init() {
             );
 
             /*
-                Salvo il punto dove il cane dovrà riportare il frisbee.
-                Uso il punto davanti alla camera nel momento del lancio.
+                Save the point where the dog should return the frisbee.
+                Use the point in front of the camera at the moment of the throw.
             */
             var forward = normalize(subtract(at, eye));
 
@@ -2580,7 +2625,7 @@ onload = async function init() {
         }
 });
 
-    //REVIEW -  MODIFICA PER TELECAMERA
+    //REVIEW - camera modification
     canvas.addEventListener("contextmenu", function(event) {
         event.preventDefault();
     });
@@ -2592,8 +2637,8 @@ onload = async function init() {
         }
 
         /*
-            Evita selezioni, menu contestuale e comportamenti strani
-            del browser mentre controlli la camera.
+            Prevent selections, context menu, and strange browser behaviors
+            while controlling the camera.
         */
         event.preventDefault();
 
@@ -2610,19 +2655,19 @@ onload = async function init() {
             return;
         }
 
-        // Tasto sinistro: orbit
+        // Left button: orbit
         if (event.button === 0) {
             isDraggingCamera = true;
             isPanningCamera = false;
         }
 
-        // Tasto destro: pan
+        // Right button: pan
         else if (event.button === 2) {
             isDraggingCamera = false;
             isPanningCamera = true;
         }
 
-        // Altri tasti mouse: ignora
+        // Other mouse buttons: ignore
         else {
             isDraggingCamera = false;
             isPanningCamera = false;
@@ -2635,8 +2680,8 @@ onload = async function init() {
 
     window.addEventListener("keydown", function (event) {
         /*
-            Se sto usando uno slider/input, non intercetto la tastiera.
-            Così non disturbo altri controlli.
+            If I'm using a slider/input, I don't intercept the keyboard.
+            This way I don't interfere with other controls.
         */
        
             var code = event.code;
@@ -2676,9 +2721,9 @@ onload = async function init() {
                 code === "KeyD";
 
             /*
-                Se sto usando uno slider/input, normalmente non intercetto la tastiera.
-                Però se sono in modalità teapot e premo un tasto della teapot,
-                allora lo gestisco comunque.
+                If I'm using a slider/input, I normally don't intercept the keyboard.
+                However, if I'm in teapot mode and press a teapot key,
+                I handle it anyway.
             */
              if (
                 isInputElement &&
@@ -2689,8 +2734,9 @@ onload = async function init() {
             }
 
             /*
-                Tolgo il focus dallo slider, così le frecce non modificano più
-                lo slider ma tornano a controllare la teapot.
+                Remove focus from the slider,
+                so the arrow keys no longer modify
+                the slider but return to controlling the teapot.
             */
             if (
                 isRangeInput &&
@@ -2703,9 +2749,9 @@ onload = async function init() {
             }
             /*
             1) Teapot keyboard controls
-            Attivi solo quando sei in modalità teapot.
-            Questi NON usano WASD, quindi non entrano in conflitto
-            con la camera.
+            Active only when in teapot mode.
+            These do NOT use WASD, so they do not conflict
+            with the camera.
         */
              if (isTeapotKeyboardControlActive()) {
 
@@ -2715,8 +2761,8 @@ onload = async function init() {
                     teapotKeyboardKeys[code] = true;
 
                     /*
-                        R funziona come A del joystick:
-                        toggle della rotazione automatica.
+                        R works like A on the joystick:
+                        toggle automatic rotation.
                     */
                     if (code === "KeyR" && !event.repeat) {
                         flag_rot_teapot = !flag_rot_teapot;
@@ -2734,8 +2780,8 @@ onload = async function init() {
 
         /*
             2) Camera keyboard pan
-            Ora è attivo anche durante Teapot Chase.
-            WASD muove sempre la camera.
+            Now active even during Teapot Chase.
+            WASD always moves the camera.
         */
         
 
@@ -2781,8 +2827,8 @@ onload = async function init() {
 
     window.addEventListener("blur", function () {
         /*
-            Safety: se cambio tab mentre tengo premuto un tasto,
-            non resta bloccato.
+            Safety: if I change tabs while holding a key,
+            it doesn't stay stuck.
         */
         teapotKeyboardKeys = {};
 
@@ -2855,7 +2901,7 @@ onload = async function init() {
 
         cameraFov += event.deltaY * 0.015;
 
-        // Limiti per evitare crash: FOV troppo piccolo = proiezione instabile
+        // Limits to avoid crashes: FOV too small = unstable projection
         if (cameraFov < 20.0) {
             cameraFov = 20.0;
         }
@@ -2865,7 +2911,7 @@ onload = async function init() {
         }
     }); */
 
-    //REVIEW - MODIFICA PER TELECAMERA - ZOOM CON SLIDER
+    //REVIEW - modification for camera -> slider with wheel
 
     canvas.addEventListener("wheel", function(event) {
         event.preventDefault();
@@ -2891,8 +2937,8 @@ onload = async function init() {
         cameraDistanceValue.innerHTML = currentDistance.toFixed(1);
 
         /*
-            Se sono in dog focus follow/autoAngle, NON rileggo lo slider
-            dell'angolo, perché potrei perdere l'angolo smooth corrente.
+            If I'm in dog focus follow/autoAngle, do NOT read the angle slider
+            because I might lose the current smooth angle.
         */
         if (
             cameraFocusMode === "dog" &&
@@ -3042,7 +3088,7 @@ onload = async function init() {
     render();
 };
 
-/////////////////////// MODIFICA ROTAZIONE TELECAMERA ZOOM // !REVIEW
+/////////////////////// modification for camera 
 
 function updateDogCameraModeButton() {
     var buttonDogCameraMode = document.getElementById("ButtonDogCameraMode");
@@ -3076,10 +3122,10 @@ function clampValue(value, minValue, maxValue) {
 
 function getCameraBaseTarget() {
     /*
-        Target base della camera.
-        In free mode guardo cameraTarget.
-        In dog focus seguo il cane.
-        In curtain focus guardo la tenda.
+        Base target of the camera.
+        In free mode, I look at cameraTarget.
+        In dog focus, I follow the dog.
+        In curtain focus, I look at the curtain.
     */
 
     if (cameraFocusMode === "dog") {
@@ -3121,11 +3167,11 @@ function getCurrentCameraTarget() {
 
 function updateOrbitCameraFromCurrentValues() {
     /*
-        Aggiorna eye/at usando i valori già presenti:
+        Update eye/at using the current values:
         cameraAngle, cameraHeight, cameraDistance.
 
-        Questa funzione NON rilegge gli slider.
-        Serve per follow dog / auto angle, così la camera resta smooth.
+        This function does NOT read the sliders.
+        It is used for follow dog / auto angle, so the camera remains smooth.
     */
 
     if (isNaN(cameraAngle)) {
@@ -3269,8 +3315,8 @@ function updateCameraKeyboardPan(deltaTime) {
     var forwardZ = Math.cos(rad);
 
     /*
-        Velocità proporzionale allo zoom:
-        se sei lontana, il pan è un po' più veloce.
+        Speed proportional to zoom:
+        if you are far away, the pan is a bit faster.
     */
     var speed = Math.max(1.8, cameraDistance * 0.65) * dt;
 
@@ -3286,15 +3332,15 @@ function updateCameraKeyboardPan(deltaTime) {
 
 function panOrbitCamera(dx, dy) {
     /*
-        Pan = sposto il target della camera.
-        Non cambio zoom, non cambio rotazione.
+        Pan = move the camera target.
+        Do not change zoom, do not change rotation.
     */
 
     var rad = radians(cameraAngle);
 
     /*
-        right = direzione laterale rispetto alla camera
-        forward = direzione avanti/indietro sul piano XZ
+        right = lateral direction relative to the camera
+        forward = forward/backward direction on the XZ plane
     */
     var rightX = Math.cos(rad);
     var rightZ = -Math.sin(rad);
@@ -3395,14 +3441,14 @@ async function loadOBJ(url) {
                 });
             }
 
-            // triangolazione a ventaglio
+            // fan triangulation
             for (let i = 1; i < face.length - 1; i++) {
                 faces.push([face[0], face[i], face[i + 1]]);
             }
         }
     }
 
-    // 2. Centra e scala il modello
+    // 2. Center and scale the model
     var min = [Infinity, Infinity, Infinity];
     var max = [-Infinity, -Infinity, -Infinity];
 
@@ -3433,13 +3479,13 @@ async function loadOBJ(url) {
         );
     }
 
-    // 3. Accumulatori per smooth normals
+    // 3. Accumulators for smooth normals
     var vertexNormals = [];
     for (let i = 0; i < vertices.length; i++) {
         vertexNormals.push(vec3(0.0, 0.0, 0.0));
     }
 
-    // 4. Somma normali di faccia sui vertici
+    // 4. Sum face normals onto vertices
     for (let f of faces) {
         let a = vertices[f[0].v];
         let b = vertices[f[1].v];
@@ -3455,13 +3501,13 @@ async function loadOBJ(url) {
         vertexNormals[f[2].v] = add(vertexNormals[f[2].v], faceNormal);
     }
 
-    // 5. Normalizza tutte le normali per vertice
+    // 5. Normalize all vertex normals
     for (let i = 0; i < vertexNormals.length; i++) {
         let n = normalize(vertexNormals[i]);
         vertexNormals[i] = vec3(n[0], n[1], n[2]);
     }
 
-    // 6. Espandi arrays finali
+    // 6. Expand final arrays
     pointsArray = [];
     normalsArray = [];
     texCoordsArray = [];
@@ -3501,22 +3547,22 @@ function updateTeapotKeyboardControls(deltaTime) {
             : 1.0 / 60.0;
 
     /*
-        Evito salti enormi se il browser lagga per un frame.
+        Avoid huge jumps if the browser lags for a frame.
     */
     dt = Math.min(dt, 0.05);
 
     /*
-        Valori equivalenti circa al joystick:
-        - movement joystick: 0.06 per frame * 60 = 3.6 unità/sec
-        - rotation joystick: 2.0 per frame * 60 = 120 gradi/sec
-        - height joystick: 0.045 per frame * 60 = 2.7 unità/sec
+        Equivalent values to the joystick:
+        - movement joystick: 0.06 per frame * 60 = 3.6 units/sec
+        - rotation joystick: 2.0 per frame * 60 = 120 degrees/sec
+        - height joystick: 0.045 per frame * 60 = 2.7 units/sec
     */
     var moveSpeed = 3.6 * dt;
     var rotateSpeed = 120.0 * dt;
     var heightSpeed = 2.7 * dt;
 
     /*
-        Frecce: rotazione teapot.
+        Arrows: teapot rotation.
     */
     if (teapotKeyboardKeys["ArrowLeft"]) {
         theta[1] -= rotateSpeed;
@@ -3535,7 +3581,7 @@ function updateTeapotKeyboardControls(deltaTime) {
     }
 
     /*
-        Movimento rispetto alla camera, come nel joystick.
+        Movement relative to the camera, like the joystick.
     */
     var forwardX = at[0] - eye[0];
     var forwardZ = at[2] - eye[2];
@@ -3559,10 +3605,10 @@ function updateTeapotKeyboardControls(deltaTime) {
 
     /*
         I / K / J / L:
-        I avanti
-        K indietro
-        J sinistra
-        L destra
+        I forward
+        K backward
+        J left
+        L right
     */
     var moveForward = 0.0;
     var moveRight = 0.0;
@@ -3584,8 +3630,8 @@ function updateTeapotKeyboardControls(deltaTime) {
     }
 
     /*
-        Normalizzo la diagonale.
-        Così I+L non va più veloce di I da solo.
+        Normalize the diagonal.
+        This way I+L is not faster than I alone.
     */
     var moveLen = Math.sqrt(
         moveForward * moveForward +
@@ -3604,7 +3650,7 @@ function updateTeapotKeyboardControls(deltaTime) {
     }
 
     /*
-        Q / E: altezza.
+        Q / E: height.
     */
     if (teapotKeyboardKeys["KeyE"]) {
         objPos[1] += heightSpeed;
@@ -3615,7 +3661,7 @@ function updateTeapotKeyboardControls(deltaTime) {
     }
 
     /*
-        Stessi limiti del gamepad.
+        Same limits as the gamepad.
     */
     if (dogFollowTeapotMode) {
         var minTeapotY =
@@ -3659,9 +3705,9 @@ function readGamepad() {
     //console.log("GAMEPAD OK", gp.index, gp.id, gp.axes);
 
     /*
-        La teapot viene controllata col gamepad solo quando:
-        - è attivo Teapot Chase
-        - oppure è attivo Focus Teapot
+        The teapot is controlled by the gamepad only when:
+        - Teapot Chase is active
+        - or Focus Teapot is active
     */
     var teapotGamepadActive =
         dogFollowTeapotMode ||
@@ -3674,7 +3720,7 @@ function readGamepad() {
     }
 
     // -----------------------------
-    // 1) Tasto A -> toggle rotazione automatica
+    // 1) Button A -> toggle automatic rotation
     // -----------------------------
     var pressedA = gp.buttons[0].pressed;
 
@@ -3688,7 +3734,7 @@ function readGamepad() {
     lastButtonA = pressedA;
 
     // -----------------------------
-    // 2) Stick sinistro -> rotazione teapot
+    // 2) Left stick -> teapot rotation
     // -----------------------------
     var lx = gp.axes[0];
     var ly = gp.axes[1];
@@ -3696,11 +3742,11 @@ function readGamepad() {
     if (Math.abs(lx) < 0.15) lx = 0.0;
     if (Math.abs(ly) < 0.15) ly = 0.0;
 
-    theta[1] += lx * 2.0;   // rotazione Y
-    theta[0] += ly * 2.0;   // rotazione X
+    theta[1] += lx * 2.0;   // Y rotation
+    theta[0] += ly * 2.0;   // X rotation
 
     // -----------------------------
-    // 3) Direzioni sul piano X/Z rispetto alla camera attuale
+    // 3) Directions on the X/Z plane relative to the current camera
     // -----------------------------
     var forwardX = at[0] - eye[0];
     var forwardZ = at[2] - eye[2];
@@ -3723,7 +3769,7 @@ function readGamepad() {
     var rightZ = forwardX;
 
     // -----------------------------
-    // 4) Stick destro -> movimento orizzontale teapot
+    // 4) Right stick -> teapot horizontal movement
     // -----------------------------
     var rx = gp.axes[2];
     var ry = gp.axes[3];
@@ -3740,7 +3786,7 @@ function readGamepad() {
     objPos[2] += -ry * moveSpeed * forwardZ;
 
     // -----------------------------
-    // 5) LT / RT -> altezza teapot
+    // 5) LT / RT -> teapot height
     // -----------------------------
     var zOut = gp.buttons[6].value; // LT
     var zIn  = gp.buttons[7].value; // RT
@@ -3765,7 +3811,7 @@ function readGamepad() {
         );
     }
 
-    // Limiti stanza, così non scappa troppo fuori
+    // Room limits, so it doesn't go too far out
     objPos[0] = clampValue(objPos[0], -6.2, 6.2);
     objPos[2] = clampValue(objPos[2], -4.6, 7.4);
 }
@@ -3791,7 +3837,7 @@ function render() {
     updateAutoSun(deltaTime);
 
     
-    //controllo se è stato premuto il tasto A del gamepad per attivare/disattivare la rotazione
+    // Check if the A button on the gamepad has been pressed to toggle rotation
     readGamepad();
     updateTeapotKeyboardControls(deltaTime);
     clampTeapotToTable();
@@ -4183,7 +4229,7 @@ function drawObject(obj,
         flatten(pointLightProjectionMatrix)
     );
 
-    // parte che già c'era 
+    
     gl.uniform1i(
     gl.getUniformLocation(program, "useTexture"),
         useTexture_teapot ? 1 : 0
@@ -4270,7 +4316,7 @@ function drawObject(obj,
 
 function clampTeapotToTable() {
     //if teapot goes under the table we set it back to the table height
-    // altezza del tavolo + metà dell'altezza della teapot
+    // table height + half of the teapot height
     var minY = -2.0+0.6; 
 
     if (objPos[1] < minY) {
@@ -4453,8 +4499,8 @@ function focusTeapotCamera() {
 
 function getDogSafeCameraAngle() {
     /*
-        In home voglio guardare il cane dal lato del centro stanza.
-        Quindi calcolo la direzione dal cane verso il centro.
+        In home scene i want to look at the dog from the center of the room.
+        So I calculate the direction from the dog to the center of the room.
     */
 
     var roomCenterX = 0.0;
@@ -4503,12 +4549,12 @@ function updateDogFocusAutoAngle() {
 ///////////////
 function getDogFrontCameraAngle() {
     /*
-        La direzione forward del cane è:
+        The dog's forward direction is:
         forwardX = sin(angle)
         forwardZ = cos(angle)
 
-        Per mettere la camera davanti al cane, uso lo stesso angolo
-        del cane. Così la camera guarda il muso, non il tavolo.
+        To place the camera in front of the dog, I use the same angle
+        as the dog. This way, the camera looks at the muzzle, not the table.
     */
 
     return normalizeAngleDegrees(dogCurrentAngle);
@@ -4516,8 +4562,8 @@ function getDogFrontCameraAngle() {
 
 function getDogHeadCameraTarget() {
     /*
-        Target un po' davanti al corpo, verso la testa.
-        Così la camera centra il muso/cane, non il centro stanza.
+        Target slightly in front of the body, towards the head.
+        This way, the camera centers on the muzzle/dog, not the center of the room.
     */
 
     var rad = dogCurrentAngle * Math.PI / 180.0;
@@ -4535,15 +4581,15 @@ function getDogHeadCameraTarget() {
 ///////////////////////
 function focusDogCamera() {
     /*
-        Focus Dog iniziale = STATIC.
-        La camera centra il cane nel punto attuale
-        e lo guarda da davanti.
+        Initial Dog Focus = STATIC.
+        The camera centers on the dog at the current position
+        and looks at it from the front.
         
-        Se poi voglio seguirlo o auto-ruotare, uso il bottone
-        Dog Camera Mode.
+        If I want to follow it or auto-rotate later, I use the
+        Dog Camera Mode button.
     */
 
-    // Spengo eventuale focus teapot
+    // Turn off any teapot focus
     teapotFocus = false;
 
     var teapotButton = document.getElementById("ButtonTeapotFocus");
@@ -4558,8 +4604,8 @@ function focusDogCamera() {
     cameraPanOffset = vec3(0.0, 0.0, 0.0);
 
     /*
-        Target sul cane, leggermente verso la testa.
-        Non uso il centro stanza.
+        Target on the dog, slightly towards the head.
+        Not using the center of the room.
     */
     cameraDogStaticTarget = getDogHeadCameraTarget();
     cameraTarget = cameraDogStaticTarget;
@@ -4971,7 +5017,7 @@ function drawSunHalo(
 
     gl.enableVertexAttribArray(positionLoc);
 
-    // Coordinate texture
+    
     gl.bindBuffer(gl.ARRAY_BUFFER, haloBuffers.tBuffer);
 
     var texCoordLoc =

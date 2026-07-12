@@ -4400,11 +4400,30 @@ function breakTeapot(hitPosition, hitVelocity) {
         });
     }
 
+    playGlassBreakingSound();
     showGameMessage(
         "The ball broke the teapot!\nThe dog cannot reach it.",
         4000
     );
     
+    
+}
+
+
+function applyTeapotSmashBallPreset() {
+    setBallSliderValue("BallVelX", 0.90);
+    setBallSliderValue("BallVelY", 5.50);
+    setBallSliderValue("BallVelZ", -5.00);
+
+    setBallSliderValue("BallBounce", 0.25);
+    setBallSliderValue("BallFriction", 0.80);
+
+    setBallSliderValue("BallAngVelX", 4.00);
+    setBallSliderValue("BallAngVelY", 0.00);
+    setBallSliderValue("BallAngVelZ", 2.00);
+
+    setBallSliderValue("BallLinearDamping", 0.35);
+    setBallSliderValue("BallAngularDamping", 0.75);
 }
 
 

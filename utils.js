@@ -1132,6 +1132,17 @@ function updateSceneButtonsVisibility() {
 
     var teapotChaseButton = document.getElementById("ButtonTeapotChase");
 
+    var teapotBreakButton = document.getElementById("ButtonBreakTeapot");
+
+    if (teapotBreakButton) {
+        if (currentScene === "home") {
+            teapotBreakButton.style.display = "flex";
+        } else {
+            teapotBreakButton.style.display = "none";
+            teapotBreakButton.classList.remove("active");
+        }
+    }   
+
     if (teapotChaseButton) {
         if (currentScene === "home") {
             teapotChaseButton.style.display = "flex";

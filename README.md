@@ -269,7 +269,7 @@ Some visual elements do not rely on image files, but are generated directly in c
 | **Water surface** | Generated with a transparent blue solid-color texture and applied to a procedural disk mesh. |
 | **Kibble pieces** | Generated with a solid brown color and procedural geometry. |
 | **Fireflies** | Generated with a solid yellow color and sphere geometry. |
-| **Sun halo billboard** | Uses generated quad geometry combined with a halo texture. |
+| **Sun halo billboard** | Procedural billboard quad combined with a halo texture, alpha blending and a small pulse animation. |
 | **Debug colliders** | Rendered with simple generated helper geometry and transparent/debug colors. |
 
 ## Additional Image Textures
@@ -289,7 +289,7 @@ The original source links were not tracked, therefore these images should be con
 | **Utility textures** | Simple color/material textures used for visual support or debugging | `black.jpg`, `blue_navy.jpg`, `red.jpg`, `hot_pink.jpg` |
 
 
-## Sound References
+# Sound References
 
 All sound effects and background audio tracks used in this project are from **Pixabay**.
 
@@ -309,7 +309,7 @@ All sound effects and background audio tracks used in this project are from **Pi
 | [Dog Eating](https://pixabay.com/es/sound-effects/naturaleza-chewing-dog-eats-crunchy-crackers-29627/) | Dog eating interaction. |
 | [Wind](https://pixabay.com/sound-effects/nature-gust-of-wind-511325/) | Wind sound used with the curtain/park atmosphere. |
 | [Dog Kibble Interaction](https://pixabay.com/sound-effects/film-special-effects-jump-sound-531048/) | Additional feedback sound for dog/food interaction. |
-| [Teapot Lid / Pouring Effect](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-teapot-lid-large-170428-1477-79908/) | Sound effect used for teapot-related interaction. |
+| [Glass Breaking](https://pixabay.com/sound-effects/search/break%20glass/) |
 | [Mouse Click](https://pixabay.com/sound-effects/film-special-effects-mouse-click-290204/) | UI/start button click sound. |
 
 
@@ -342,51 +342,7 @@ The Kishu Inu reference icon is from Pinterest and is used only as a visual refe
 | [Shiba Icon](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763) | Flaticon | Dog-related UI icon. |
 | [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576) | Flaticon | Pet/dog UI decoration. |
 | [Light Bulb](https://www.flaticon.com/free-icon/idea_9901812?term=lamp&related_id=9901812) | Flaticon | Wall lamp button. |
-
-<!-- # Sounds references
-Everyone comes from PixaBay
-
-* [Water](https://pixabay.com/sound-effects/film-special-effects-bubble-sound-effect-1-527144/)
-* [Ball throwing](https://pixabay.com/sound-effects/film-special-effects-movement-swipe-whoosh-3-186577/)
-* [Background_home](https://pixabay.com/music/beats-relax-summer-397430/)
-* [Background_park_night](https://pixabay.com/sound-effects/nature-deep-south-night-sounds-115466/)
-*[Background_park_day](https://pixabay.com/sound-effects/nature-020188-bird-park-ambience-74610/)
-* [Kibbles](https://pixabay.com/sound-effects/household-pouring-cornflakes-in-bowl-138367/)
-* [Frisbee Woosh](https://pixabay.com/sound-effects/film-special-effects-whoosh-1-522923/)
-* [Jingle Dog Happy](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-notification-bell-361840/)
-* [Dog Breath](https://pixabay.com/sound-effects/nature-dog-breathing-5-fx-308616/)
-* [Dog Bark](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-friendly-big-dog-bark-1-535471/)
-* [Dog Drinking](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-dog-drinking-water-5-309519/)
-* [Dog Eating](https://pixabay.com/es/sound-effects/naturaleza-chewing-dog-eats-crunchy-crackers-29627/)
-* [Wind](https://pixabay.com/sound-effects/nature-gust-of-wind-511325/)
-* [Dog Kibble?](https://pixabay.com/sound-effects/film-special-effects-jump-sound-531048/)
-* [Teapot pouring?](https://pixabay.com/it/sound-effects/film-ed-effetti-speciali-teapot-lid-large-170428-1477-79908/)
-* [Mouse click](https://pixabay.com/sound-effects/film-special-effects-mouse-click-290204/)
-# Icons references
-From **FlatIcon**
-
-* [Kishu Inu Icon (Pinterest)](https://it.pinterest.com/pin/56295064084237515/)
-* [Settings](https://www.flaticon.com/free-icon/setting_2040510?term=settings&page=1&position=58&origin=search&related_id=2040510)
-* [Call Dog Hand](https://www.flaticon.com/free-icon/open-hand_889822)
-* [Wave Hand / Caress](https://www.flaticon.com/free-icon/wave_9606501?term=wave+hand&related_id=9606501)
-* [Open Hand Frisbee](https://www.flaticon.com/free-icon/five-fingers_9971672?term=open+hand&related_id=9971672)
-* [Hand Holding Frisbee](https://www.flaticon.com/free-icon/grab_1196462)
-* [Mute / Audio Off](https://www.flaticon.com/free-icon/mute_561228)
-* [Auto Moving Sun](https://www.flaticon.com/free-icon/greenhouse_4772346)
-* [Frisbee](https://www.flaticon.com/free-icon/frisbee_7601483?term=frisbee&page=1&position=23&origin=search&related_id=7601483)
-* [Music On](https://www.flaticon.com/free-icon/musical-note_2995101?term=music+notes&page=1&position=9&origin=search&related_id=2995101)
-* [Music Off](https://www.flaticon.com/free-icon/music-off_13407074?term=music+off&page=1&position=29&origin=search&related_id=13407074)
-* [Ball](https://www.flaticon.com/free-icon/beach-ball_3012458?term=ball&page=1&position=8&origin=search&related_id=3012458)
-* [Dog Water Bowl](https://www.flaticon.com/free-icon/dog-bowl_6004496?term=dog+bowl+water&page=1&position=7&origin=search&related_id=6004496)
-* [Dog Food Bowl](https://www.flaticon.com/free-icon/dog-food_8876508?term=bowl+dog&page=1&position=8&origin=search&related_id=8876508)
-* [Sun](https://www.flaticon.com/free-icon/sun_10484062?term=sun&page=1&position=4&origin=search&related_id=10484062)
-* [Moon](https://www.flaticon.com/free-icon/full-moon_9689786?term=moon&page=1&position=4&origin=tag&related_id=9689786)
-* [Audio On](https://www.flaticon.com/free-icon/volume_10628912?term=audio&related_id=10628912)
-* [Teapot Icon](https://www.flaticon.com/free-icon/teapot_491609?term=teapot&page=1&position=4&origin=search&related_id=491609)
-* [Camera Icon](https://www.flaticon.com/free-icon/cctv-camera_2642651?term=camera&page=1&position=23&origin=search&related_id=2642651)
-* [Shiba Icon (Flaticon)](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763)
-* [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576)
-* [Light Bulb](https://www.flaticon.com/free-icon/idea_9901812?term=lamp&related_id=9901812) -->
+ [Crack](https://www.flaticon.com/free-icon/damage_7037237?term=damage&related_id=7037237)
 
 
 # How to Run Locally
