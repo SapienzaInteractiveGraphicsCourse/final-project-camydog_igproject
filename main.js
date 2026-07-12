@@ -1055,6 +1055,13 @@ onload = async function init() {
     tableMaterialUniforms.lightPosition =
         gl.getUniformLocation(tableMaterialProgram, "lightPosition");
 
+    tableMaterialUniforms.mainLightVisibility =
+        gl.getUniformLocation(
+            tableMaterialProgram,
+            "mainLightVisibility"
+        );
+
+
     tableMaterialUniforms.diffuseMap =
         gl.getUniformLocation(tableMaterialProgram, "diffuseMap");
 
@@ -2073,6 +2080,7 @@ onload = async function init() {
 
     if (teapotSmashPresetButton) {
         teapotSmashPresetButton.onclick = function () {
+
             if (currentScene !== "home") {
                 showGameMessage(
                     "The teapot can only be smashed in the home scene.",
@@ -2080,6 +2088,11 @@ onload = async function init() {
                 );
                 return;
             }
+
+            if (blockTeapotSmashPresetIfBusy()) {
+                return;
+            }
+
 
             if (dogFollowTeapotMode) {
                 showGameMessage(
@@ -2116,10 +2129,10 @@ onload = async function init() {
                 miniGameButton.click();
             }
 
-            showGameMessage(
+            /* showGameMessage(
                 "Teapot smash preset loaded!\nLaunch the ball toward the teapot.",
                 2200
-            );
+            ); */
         };
     }
 
@@ -4869,6 +4882,14 @@ function drawTableMaterial(tableObj, modelMatrix, viewMatrix, projectionMatrix) 
     gl.uniformMatrix4fv(tableMaterialUniforms.projectionMatrix, false, flatten(projectionMatrix));
     gl.uniformMatrix3fv(tableMaterialUniforms.modelNormalMatrix, false, flatten(modelNMat));
     gl.uniform4fv(tableMaterialUniforms.lightPosition, flatten(lightPosition));
+
+    var tableMainLightVisibility =
+        computeMainLightVisibilityForHome();
+
+    gl.uniform1f(
+        tableMaterialUniforms.mainLightVisibility,
+        tableMainLightVisibility
+    );
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tableColorTexture);

@@ -1111,6 +1111,35 @@ function updateMiniGameButtonAvailability() {
     }
 }
 
+function blockTeapotSmashPresetIfBusy() {
+    if (dogBowlInteractionLocked) {
+        showGameMessage(
+            "Please wait until the dog finishes eating or drinking.",
+            2400
+        );
+        return true;
+    }
+
+    if (callDogClickMode) {
+        showGameMessage(
+            "Call Dog mode is active!\nDisable it before using the teapot smash preset.",
+            2400
+        );
+        return true;
+    }
+
+    if (petDogMode) {
+        showGameMessage(
+            "Pet Dog mode is active!\nDisable it before using the teapot smash preset.",
+            2400
+        );
+        return true;
+    }
+
+    return false;
+}
+
+
 function updateSceneButtonsVisibility() {
     var isHome = currentScene === "home";
 
