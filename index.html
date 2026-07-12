@@ -888,11 +888,84 @@ uniform bool isWallLampModel;
 uniform bool isBowlMaterial;
 uniform sampler2D bowlNormalMap;
 uniform sampler2D bowlRoughnessMap;
+
+
 uniform vec3 cameraWorldPosition;
 uniform bool isWallLampBulb;
 
 
 vec3 computeBowlMaterialColor(vec3 objectBaseColor)
+{
+    vec3 normalMapValue =
+        texture2D(bowlNormalMap, fTexCoord).rgb;
+
+    vec3 normalDetail =
+        normalMapValue * 2.0 - 1.0;
+
+    vec3 N =
+        normalize(fWorldNormal + normalDetail * 0.45);
+
+    vec3 L =
+        normalize(lightPosition.xyz - fWorldPos);
+
+    vec3 V =
+        normalize(cameraWorldPosition - fWorldPos);
+
+    vec3 H =
+        normalize(L + V);
+
+    float diffuse =
+        max(dot(N, L), 0.0);
+
+    float roughness =
+        texture2D(bowlRoughnessMap, fTexCoord).r;
+
+    float shininessBowl =
+        mix(90.0, 14.0, roughness);
+
+    float specularStrength =
+        mix(0.75, 0.12, roughness);
+
+    float specular =
+        pow(
+            max(dot(N, H), 0.0),
+            shininessBowl
+        ) * specularStrength;
+
+    /*
+        Same logic used for indoor objects:
+        when the main light is outside / blocked by the room,
+        direct diffuse and specular are reduced.
+    */
+    float visibility =
+        mainLightVisibility;
+
+    float blockedAmount =
+        1.0 - visibility;
+
+    float indoorFillStrength =
+        blockedAmount * 0.20;
+
+    vec3 indoorLightDir =
+        normalize(vec3(-0.35, 0.65, 0.45));
+
+    float indoorShape =
+        max(dot(N, indoorLightDir), 0.0);
+
+    vec3 indoorShapeColor =
+        objectBaseColor * indoorShape * blockedAmount * 0.12;
+
+    vec3 color =
+        objectBaseColor * uAmbientStrength
+        + objectBaseColor * indoorFillStrength
+        + indoorShapeColor
+        + objectBaseColor * diffuse * uLightIntensity * uLightTint * visibility
+        + vec3(specular) * visibility;
+
+    return color;
+}
+
+vec3 computeBowlMaterialColor_old(vec3 objectBaseColor)
 {
     vec3 normalMapValue =
         texture2D(bowlNormalMap, fTexCoord).rgb;
@@ -3111,6 +3184,8 @@ uniform vec4 lightPosition;
 uniform bool receiveShadow;
 uniform bool usePointShadowMap;
 
+
+
 uniform sampler2D pointShadowMap0;
 uniform sampler2D pointShadowMap1;
 uniform sampler2D pointShadowMap2;
@@ -3127,6 +3202,7 @@ uniform mat4 pointLightViewMatrix5;
 
 uniform mat4 pointLightProjectionMatrix;
 
+uniform float mainLightVisibility;
 
 int choosePointShadowFace(vec3 dir)
 {
@@ -3598,33 +3674,68 @@ void main()
             specularMapValue * 0.35;
     }
 
+    float visibility =
+    mainLightVisibility;
+
+    float blockedAmount =
+        1.0 - visibility;
+
     vec3 ambient =
         baseColor * 0.25 * ao;
 
     vec3 diffuse =
-        baseColor * diff * mix(0.85, 0.55, metallic);
+        baseColor *
+        diff *
+        mix(0.85, 0.55, metallic) *
+        visibility;
 
     vec3 specular =
-        vec3(spec) * specularStrength;
+        vec3(spec) *
+        specularStrength *
+        visibility;
+
+    /*
+        Small fill used only when the main light is outside / blocked.
+        It avoids completely flat or dirty-looking table legs.
+    */
+    vec3 indoorFill =
+        baseColor * blockedAmount * 0.12 * ao;
+
+    vec3 indoorLightDir =
+        normalize(vec3(-0.35, 0.65, 0.45));
+
+    float indoorShape =
+        max(dot(N, indoorLightDir), 0.0);
+
+    vec3 indoorShapeColor =
+        baseColor * indoorShape * blockedAmount * 0.08;
 
     float shadow = 1.0;
 
     if (receiveShadow && usePointShadowMap) {
-        /*
-            Per l'ombra uso la normale geometrica originale.
-            La normal map modifica la luce visibile, non la shadow bias.
-        */
         shadow = computePointShadow(
             fWorldPos,
             normalize(fWorldNormal)
         );
     }
 
+    /*
+        The table still receives shadows, but they are softened a bit.
+        This helps especially on the legs, where self-shadow artifacts
+        are more visible.
+    */
+    float tableShadow =
+        mix(1.0, shadow, 0.60);
+
     vec3 color =
-        ambient + (diffuse + specular) * shadow;
+        ambient
+        + indoorFill
+        + indoorShapeColor
+        + (diffuse + specular) * tableShadow;
 
     gl_FragColor =
         vec4(color, 1.0);
+        
 }
 </script>
 
