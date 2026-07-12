@@ -309,8 +309,7 @@ All sound effects and background audio tracks used in this project are from **Pi
 | [Dog Eating](https://pixabay.com/es/sound-effects/naturaleza-chewing-dog-eats-crunchy-crackers-29627/) | Dog eating interaction. |
 | [Wind](https://pixabay.com/sound-effects/nature-gust-of-wind-511325/) | Wind sound used with the curtain/park atmosphere. |
 | [Dog Kibble Interaction](https://pixabay.com/sound-effects/film-special-effects-jump-sound-531048/) | Additional feedback sound for dog/food interaction. |
-| [Glass Breaking](https://pixabay.com/sound-effects/search/break%20glass/) |
-| [Mouse Click](https://pixabay.com/sound-effects/film-special-effects-mouse-click-290204/) | UI/start button click sound. |
+| [Glass Breaking](https://pixabay.com/sound-effects/search/break%20glass/) | Teapot breaking sound effect triggered when the ball hits the teapot. || [Mouse Click](https://pixabay.com/sound-effects/film-special-effects-mouse-click-290204/) | UI/start button click sound. |
 
 
 ## Icon References
@@ -342,7 +341,7 @@ The Kishu Inu reference icon is from Pinterest and is used only as a visual refe
 | [Shiba Icon](https://www.flaticon.com/free-icon/dog_13163763?term=shiba+inu&page=4&position=41&origin=tag&related_id=13163763) | Flaticon | Dog-related UI icon. |
 | [Paw Icon](https://www.flaticon.com/free-icon/paw_18548576?term=paw&page=4&position=90&origin=search&related_id=18548576) | Flaticon | Pet/dog UI decoration. |
 | [Light Bulb](https://www.flaticon.com/free-icon/idea_9901812?term=lamp&related_id=9901812) | Flaticon | Wall lamp button. |
- [Crack](https://www.flaticon.com/free-icon/damage_7037237?term=damage&related_id=7037237)
+| [Damage](https://www.flaticon.com/free-icon/damage_7037237?term=damage&related_id=7037237) | Flaticon | Teapot smash preset / break interaction button. |
 
 
 # How to Run Locally
