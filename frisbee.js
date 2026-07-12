@@ -9,11 +9,12 @@ function isHoldingFrisbeeInHand() {
 }
 
 function setFrisbeeHandCameraView() {
-    /*
-        Salvo l'angolo attuale della camera.
-        Così quando prendo il frisbee non mi forza più a 358°,
-        ma mantiene la direzione da cui stavo già guardando.
-    */
+
+        /**
+         * Save camera angle before switching to frisbee hand camera view.
+         * This ensures that when you pick up the frisbee, the camera
+         * maintains the direction you were already looking from.
+         */
     var currentAngle = cameraAngle;
 
     if (isNaN(currentAngle)) {
@@ -33,10 +34,8 @@ function setFrisbeeHandCameraView() {
 
     cameraPanOffset = vec3(0.0, 0.0, 0.0);
 
-    /*
-        Mantengo l'angolo corrente,
-        ma imposto altezza e zoom specifici per il frisbee.
-    */
+
+    //keep current angle, but set height and zoom specific for frisbee
     cameraAngle = currentAngle;
     cameraHeight = 0.4;
     cameraDistance = 13.0;
@@ -96,17 +95,15 @@ function launchFrisbee() {
     frisbeeStartTime = performance.now();
     frisbeeSpin = 0.0;
 
-    // NON resetto frisbeeStartPos qui:
-    // deve partire dalla posizione della manina/cursore
-    // i DON'T WANT  the same end position every time, so I randomize it a bit
-   // frisbeeEndPos = vec3(3.0, -2.2, -3.2);
 
     var groundY = -2.32;
 
-    // direzione dalla camera verso il frisbee in mano
+    
+    //direction from the camera towards the frisbee in hand
     var dir = normalize(subtract(frisbeeStartPos, eye));
 
-    // fallback se il raggio è quasi parallelo al terreno
+    
+    //fall back if the ray is almost parallel to the ground
     if (Math.abs(dir[1]) < 0.001) {
         frisbeeEndPos = vec3(
             frisbeeStartPos[0],
@@ -116,22 +113,22 @@ function launchFrisbee() {
     } else {
         var t = (groundY - eye[1]) / dir[1];
 
-        // se t viene negativo o troppo piccolo, uso una distanza standard
+        // if t too small, the frisbee is too close to the camera, so we force a minimum distance
         if (t < 1.0) {
             t = 7.0;
         }
 
-        // aumento la distanza del lancio
+        // increase the throw distance
         var throwPower = 1.8;
 
         var endX = eye[0] + dir[0] * t * throwPower;
         var endZ = eye[2] + dir[2] * t * throwPower;
 
-        // limiti del parco
+        // park boundaries
         endX = Math.max(-7.0, Math.min(7.0, endX));
         endZ = Math.max(-7.0, Math.min(7.0, endZ));
 
-        //frisbeeEndPos = vec3(endX, groundY, endZ);
+        
         var safeLanding = pushFrisbeeOutsideBenchCollider(endX, endZ);
 
         frisbeeEndPos = vec3(
@@ -196,8 +193,8 @@ function getFrisbeeModelMatrix() {
         var forwardZ = Math.cos(rad);
 
         /*
-            0 = posizione pickup
-            1 = posizione finale in bocca
+            0 =  pickup pos
+            1 = final position in mouth
         */
         var carryBlend = 1.0;
 
@@ -215,13 +212,13 @@ function getFrisbeeModelMatrix() {
                 headLower = clamp01(dogFetchLowerAmount / 0.50);
             }
 
-            // smooth uguale per evitare scatti
+            
             headLower = headLower * headLower * (3.0 - 2.0 * headLower);
 
             /*
                 carryBlend:
-                0 = posizione pickup bassa
-                1 = posizione finale in bocca
+                0 = low pick up position
+                1 = final position in mouth
             */
             var carryBlend = 1.0 - headLower;
         }
@@ -411,9 +408,9 @@ function getFrisbeeModelMatrix() {
 
 function pushFrisbeeOutsideBenchCollider(x, z) {
     /*
-        Usiamo la stessa zona della panchina,
-        ma con un piccolo margine extra per non far atterrare
-        il frisbee proprio attaccato al bordo.
+        Using the same area as the bench,
+        but with a small extra margin to prevent the frisbee from landing
+        right at the edge.
     */
 
     var extra = 0.35;
@@ -464,8 +461,8 @@ function updateFrisbeeHandPositionFromMouse(event) {
     var mouseY = event.clientY - rect.top;
 
     /*
-        Offset rispetto al cursore/manina.
-        Cambiali se il frisbee non sta bene nel palmo.
+        Offset relative to the cursor/hand.
+        Change these if the frisbee doesn't fit well in the palm.
     */
     mouseX += 18;
     mouseY += 12;
@@ -478,8 +475,8 @@ function updateFrisbeeHandPositionFromMouse(event) {
     var cameraUp = normalize(cross(right, forward));
 
     /*
-        Distanza del frisbee dalla camera.
-        Più basso = più vicino a te.
+        Distance of the frisbee from the camera.
+        Lower = closer to user.
     */
     var distance = frisbeeHandDistanceFromCamera;
 
@@ -611,30 +608,14 @@ function startSkinnedDogFetchFrisbee() {
     dogLookAtBallZ = targetZ;
 
     /*
-        Nel parco non vogliamo clampare alla stanza/tavolo.
-        Però teniamo un margine per non farlo arrivare esattamente sopra il frisbee.
+        In the park, we don't want to clamp to the room/table.
+        But we keep a margin to prevent the dog from landing exactly on the frisbee.
     */
     var dx = targetX - dogFetchX;
     var dz = targetZ - dogFetchZ;
     var dist = Math.sqrt(dx * dx + dz * dz);
 
-    /* var bodyStopOffset = 1.10;
-
-    var bodyTargetX = targetX;
-    var bodyTargetZ = targetZ;
-
-    if (dist > 0.001) {
-        bodyTargetX = targetX - (dx / dist) * bodyStopOffset;
-        bodyTargetZ = targetZ - (dz / dist) * bodyStopOffset;
-    }
-
-    
-    dogPath = [
-        {
-            x: bodyTargetX,
-            z: bodyTargetZ
-        }
-    ]; */
+  
 
     var approachTarget = getSafeFrisbeeApproachTarget(
         dogFetchX,
@@ -643,13 +624,6 @@ function startSkinnedDogFetchFrisbee() {
         targetZ
     );
 
-   /*  dogPath = [
-        {
-            x: approachTarget.x,
-            z: approachTarget.z
-        }
-    ];
- */
     dogPath = computeDogPathAroundBench(
         dogFetchX,
         dogFetchZ,
@@ -683,15 +657,15 @@ function startSkinnedDogReturnFrisbeeToCamera_old() {
     dogPathIndex = 0;
 
     /*
-        Punto vicino alla camera, ma proiettato sul prato.
-        Non uso eye direttamente perché la camera sta in alto.
+        Point near the camera, but projected onto the lawn.
+        I don't use eye directly because the camera is high.
     */
     var forward = normalize(subtract(at, eye));
 
     var targetX = eye[0] + forward[0] * 3.0;
     var targetZ = eye[2] + forward[2] * 3.0;
 
-    // limiti del parco
+    // park limits
     targetX = Math.max(-6.0, Math.min(6.0, targetX));
     targetZ = Math.max(-6.0, Math.min(6.0, targetZ));
 
@@ -741,24 +715,11 @@ function startSkinnedDogReturnFrisbeeToCamera() {
         targetZ = Math.max(-6.0, Math.min(6.0, targetZ));
     }
 
-    /* dogPath = [
-        {
-            x: targetX,
-            z: targetZ
-        }
-    ];
+    
 
-    dogFetchBallMode = true;
-
-    dogFetchTarget = {
-        x: targetX,
-        z: targetZ
-    };
-    */
-
-        /*
-        Anche quando torna con il frisbee, il cane deve evitare la panchina.
-        Prima andava diretto verso la camera e poteva sfiorare il collider.
+    /*
+        Even when returning with the frisbee, the dog must avoid the bench.
+        Previously, it went directly towards the camera and could brush against the collider.
     */
     var safeReturnTarget = keepDogOutsideParkObstacles(
         targetX,
@@ -776,8 +737,8 @@ function startSkinnedDogReturnFrisbeeToCamera() {
     dogFetchBallMode = dogPath && dogPath.length > 0;
 
     /*
-        Mentre cammina guarda il primo waypoint,
-        non direttamente il target finale.
+        While walking, the dog looks at the first waypoint,
+        not directly at the final target.
     */
     if (dogFetchBallMode) {
         dogFetchTarget = {
@@ -795,8 +756,8 @@ function startSkinnedDogReturnFrisbeeToCamera() {
 
 function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     /*
-        Target normale: il cane si ferma un po' prima del frisbee,
-        così non mette il corpo sopra al disco.
+        Normal target: the dog stops a bit before the frisbee,
+        so it doesn't place its body directly over the disc.
     */
     var dx = frisbeeX - dogX;
     var dz = frisbeeZ - dogZ;
@@ -814,8 +775,8 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     }
 
     /*
-        Rettangolo reale della panchina usato dal cane.
-        Deve essere coerente con keepDogOutsideParkObstacles.
+        Actual rectangle of the bench used by the dog.
+        
     */
     var halfX = BENCH_COLLIDER_DEPTH / 2.0 + BENCH_DOG_MARGIN;
     var halfZ = BENCH_COLLIDER_WIDTH / 2.0 + BENCH_DOG_MARGIN;
@@ -853,7 +814,7 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     }
 
     /*
-        Se il target diretto è raggiungibile, uso quello.
+        If the direct target is reachable, use it.
     */
     if (
         !pointInsideBench(directX, directZ) &&
@@ -866,32 +827,32 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     }
 
     /*
-        Caso problematico:
-        il frisbee è vicino/dietro la panchina.
-        Provo 4 punti intorno al collider e scelgo quello più comodo.
+        Problematic case:
+        the frisbee is near/behind the bench.
+        I try 4 points around the collider and choose the most convenient one.
     */
     var extra = 0.05;
 
     var candidates = [
-        // lato sinistro del collider
+        // left side of the collider
         {
             x: minX - extra,
             z: frisbeeZ
         },
 
-        // lato destro del collider
+        // right side of the collider
         {
             x: maxX + extra,
             z: frisbeeZ
         },
 
-        // lato dietro
+        // back side
         {
             x: frisbeeX,
             z: minZ - extra
         },
 
-        // lato davanti
+        // front side
         {
             x: frisbeeX,
             z: maxZ + extra
@@ -921,8 +882,8 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
         var distFrisbee = Math.sqrt(dFrisbeeX * dFrisbeeX + dFrisbeeZ * dFrisbeeZ);
 
         /*
-            Preferisco punti vicini al frisbee,
-            ma comunque raggiungibili dal cane.
+            Prefer points close to the frisbee,
+            but still reachable by the dog.
         */
         var score = distFrisbee * 2.0 + distDog;
 
@@ -937,8 +898,8 @@ function getSafeFrisbeeApproachTarget(dogX, dogZ, frisbeeX, frisbeeZ) {
     }
 
     /*
-        Fallback: se proprio non trova nulla,
-        almeno non mando il cane dentro la panchina.
+        Fallback: if nothing else works,
+        at least don't send the dog into the bench.
     */
     var corrected = keepDogOutsideParkObstacles(directX, directZ);
 
@@ -983,9 +944,9 @@ function shouldDrawFrisbee() {
 
 function cancelDogFrisbeeMission() {
     /*
-        Cancella la missione del cane legata al frisbee.
-        Serve quando il frisbee viene tolto mentre è in volo
-        oppure mentre il cane sta già andando a prenderlo.
+        Cancels the dog's frisbee mission.
+        Used when the frisbee is taken away while in flight
+        or while the dog is already going to fetch it.
     */
 
     if (
@@ -997,13 +958,13 @@ function cancelDogFrisbeeMission() {
         return;
     }
 
-    // Ferma il movimento verso il frisbee
+    // Stops movement towards the frisbee
     dogFetchBallMode = false;
     dogPath = [];
     dogPathIndex = 0;
     dogFetchTarget = null;
 
-    // Toglie abbassamento / posa tipo raccolta
+    // Stops lowering / fetching pose
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
 
@@ -1023,30 +984,30 @@ function cancelDogFrisbeeMission() {
 function putAwayFrisbee(buttonFrisbee) {
 
      /*
-        Reset completo del frisbee.
-        Importante: se il cane sta già andando verso il frisbee,
-        bisogna cancellare anche il suo path, altrimenti continua
-        verso il vecchio target fantasma.
+        Complete reset of the frisbee.
+        Important: if the dog is already going towards the frisbee,
+        the path must also be cleared, otherwise it continues
+        towards the old phantom target.
     */
 
     stopDogFrisbeeFetch();
 
-    // Stop movimento/fetch del cane
+    // Stop dog movement/fetch
     dogFetchBallMode = false;
     dogPath = [];
     dogPathIndex = 0;
     dogFetchTarget = null;
 
-    // Stop target visivo/rotazione verso il frisbee
+    // Stop visual target/rotation towards the frisbee
     dogLookAtBallX = dogFetchX;
     dogLookAtBallZ = dogFetchZ;
 
-    // Stop stati del cane legati al frisbee
+    // Stop dog states related to the frisbee
     dogHasFrisbee = false;
     dogReturningWithFrisbee = false;
     dogFetchObjectType = null;
 
-    // Stop animazioni di raccolta / sdraiamento
+    // Stop fetching / crouching animations
     dogFetchLoweringActive = false;
     dogFetchLowerAmount = 0.0;
 
@@ -1056,7 +1017,7 @@ function putAwayFrisbee(buttonFrisbee) {
     showDogMusicNote = false;
     dogHappySoundPlayed = false;
 
-    // Reset stati del frisbee
+    // Reset frisbee states
     frisbeeThrowMode = false;
     frisbeeAttachedToHand = false;
     frisbeeFlying = false;
@@ -1080,9 +1041,9 @@ function putAwayFrisbee(buttonFrisbee) {
 
 function stopDogFrisbeeFetch() {
     /*
-        Ferma il cane quando il frisbee non è più il suo target.
-        Serve sia quando metti via il frisbee, sia quando lo riprendi in mano
-        mentre il cane sta andando a prenderlo.
+        Stops the dog when the frisbee is no longer its target.
+        Used both when putting away the frisbee and when taking it back in hand
+        while the dog is going to fetch it.
     */
 
     if (dogFetchObjectType !== "frisbee" && !frisbeeAlreadyTargeted) {

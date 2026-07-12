@@ -1,3 +1,4 @@
+
 function setBallSliderValue(sliderId, value) {
     var slider = document.getElementById(sliderId);
 
@@ -268,6 +269,26 @@ function applyPerformanceSaverSettings() {
     ) {
         createParkGrassPatchInstances();
     }
+}
+
+function updateCallDogButtonLabel() {
+    var callDogButton =
+        document.getElementById("ButtonCallDogMode");
+
+    if (!callDogButton) {
+        return;
+    }
+
+    var callDogLabel =
+        callDogButton.querySelector(".dog-action-label");
+
+    if (!callDogLabel) {
+        return;
+    }
+
+    callDogLabel.textContent = callDogClickMode
+        ? "Call: ON"
+        : "Call " + dogName;
 }
 
 function openStartSettingsPanel() {

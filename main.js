@@ -224,6 +224,18 @@ function waitForStartScreenChoice(startButton, startScreen, loadingScreen) {
                 event.stopPropagation();
             }
 
+            var petNameInput =
+                document.getElementById("PetNameInput");
+
+            if (petNameInput) {
+                var chosenName =
+                    petNameInput.value.trim();
+
+                if (chosenName.length > 0) {
+                    dogName = chosenName;
+                }
+            }
+            updateCallDogButtonLabel();
             
             closeStartSettingsPanel();
 
@@ -1249,11 +1261,13 @@ onload = async function init() {
         if (petDogMode) {
             callDogClickMode = false;
             //callDogButton.textContent = "Call Dog: OFF";
-            var callDogLabel = callDogButton.querySelector(".dog-action-label");
+            /* var callDogLabel = callDogButton.querySelector(".dog-action-label");
 
             if (callDogLabel) {
-                callDogLabel.textContent = "Call Dog";
-            }
+                callDogLabel.textContent = "Call " + dogName;
+            } */
+
+            updateCallDogButtonLabel();
 
             dogPetAudioPlayed = false;
             dogIsBeingPetted = false;
@@ -1419,13 +1433,15 @@ onload = async function init() {
         // Block any remaining active dragging
         isDraggingCamera = false;
 
-       var callDogLabel = this.querySelector(".dog-action-label");
+       /* var callDogLabel = this.querySelector(".dog-action-label");
 
         if (callDogLabel) {
             callDogLabel.textContent = callDogClickMode
                 ? "Call: ON"
-                : "Call Dog";
-        }
+                : "Call " + dogName;
+        } */
+
+        updateCallDogButtonLabel();
         updateCanvasCursor();
     };
 

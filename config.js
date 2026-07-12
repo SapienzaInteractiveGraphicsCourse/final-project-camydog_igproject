@@ -1,3 +1,6 @@
+var dogName = "Roger";  
+
+
 // variable to enable start screen
 var ENABLE_START_SCREEN = true; 
 var ENABLE_LOADING_SCREEN = true;
