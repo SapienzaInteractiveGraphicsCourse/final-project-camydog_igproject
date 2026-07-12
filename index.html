@@ -987,9 +987,9 @@ vec3 computeBowlMaterialColor_old(vec3 objectBaseColor)
         normalMapValue * 2.0 - 1.0;
 
     /*
-        Normal map semplificata:
-        aggiungo un piccolo dettaglio alla normale reale.
-        Non è tangent-space PBR perfetto, ma dà rilievo visivo.
+        Normal map simplified:
+        I add a small detail to the real normal.
+        It's not perfect tangent-space PBR, but it gives visual relief.
     */
     vec3 N =
         normalize(fWorldNormal + normalDetail * 0.45);
@@ -1073,8 +1073,8 @@ vec3 computeWallLampLight(vec3 objectBaseColor, vec3 normal)
         wallLampIntensity;
 
     /*
-        Glow vicino alla lampada, ma NON sferico puro.
-        frontMask evita che l'alone appaia dietro la lampada.
+        Glow near the lamp, but NOT purely spherical.
+        frontMask prevents the glow from appearing behind the lamp.
     */
     float frontMask =
         smoothstep(0.00, 0.28, theta);
@@ -1185,11 +1185,12 @@ float unpackDepth(vec4 rgbaDepth)
 float getSoftShadow(sampler2D shadowMap, vec3 projCoords, float currentDepth, float bias, float quantita_luce) {
     float shadowValue = 0.0;
     
-    // QUESTO È IL VALORE MAGICO: se l'ombra è ancora netta, alza questo valore (es. 0.01, 0.02, 0.05)
-    // Se l'ombra è troppo staccata, abbassalo (es. 0.002, 0.001)
+
+    //magic value for soft shadows: 0.001, if the shadow is still sharp, 
+    //increase it (e.g., 0.01, 0.02, 0.05). If the shadow is too detached, decrease it (e.g., 0.002, 0.001).
     float spread = 0.001; 
 
-    // Array di 9 campioni distribuiti in modo irregolare (Poisson Disk)
+    // Array of 9 samples distributed irregularly (Poisson Disk)
     vec2 poissonDisk[9];
     poissonDisk[0] = vec2(0.0, 0.0);
     poissonDisk[1] = vec2(0.278, 0.658);
@@ -1202,7 +1203,7 @@ float getSoftShadow(sampler2D shadowMap, vec3 projCoords, float currentDepth, fl
     poissonDisk[8] = vec2(0.258, -0.902);
 
     for(int i = 0; i < 9; i++) {
-        // Campioniamo la texture usando i punti sparsi
+        // Sample the texture using the scattered points
         float pcfDepth = unpackDepth(texture2D(shadowMap, projCoords.xy + poissonDisk[i] * spread));
         
         if (currentDepth > pcfDepth + bias) {
@@ -1230,14 +1231,14 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     vec4 shadowCoord;
     float closestDepth;
 
-    //modifica per bias custom (gpt)
-    // direzione dal frammento verso la luce
+    //custom bias modification (gpt)
+    // direction from the fragment to the light
     vec3 fragToLight = normalize(lightWorldPos - worldPos);
 
     float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
 
-    // bias piccolo sulle superfici frontali, più alto sugli angoli radenti
-    // attenzione // float bias = max(0.003 * (1.0 - ndotl), 0.0002);
+    // small bias on front-facing surfaces, higher on grazing angles
+    // attention // float bias = max(0.003 * (1.0 - ndotl), 0.0002);
     float bias;
 
     if (wallShadowMode == 8) {
@@ -1440,8 +1441,8 @@ void main(){
     */
     if (isLightMarker) {
         /*
-            Se il marker ha una texture, la uso.
-            Se NON ha texture, lo disegno come piccola sorgente luminosa calda.
+            If the marker has a texture, use it.
+            If it does NOT have a texture, draw it as a small warm light source.
         */
         if (useTexture) {
             gl_FragColor = vec4(
@@ -1613,7 +1614,7 @@ void main(){
 
    vec4 baseColor;
 
-    // Per gli oggetti normali mantieni il comportamento attuale
+    // For normal objects, maintain the current behavior
     
 
     // 4 = curtain / cloth
@@ -1626,10 +1627,10 @@ void main(){
             normalize(fWorldNormal);
 
         /*
-            Se sto vedendo il retro della tenda,
-            uso la normale girata solo per il lato visibile.
-            Questo NON è come twoSided nel vertex shader:
-            qui serve solo a illuminare correttamente la faccia visibile.
+            If I'm seeing the back of the curtain,
+            use the flipped normal only for the visible side.
+            This is NOT like twoSided in the vertex shader:
+            here it only serves to correctly illuminate the visible face.
         */
         if (!gl_FrontFacing) {
             N = -N;
@@ -1642,8 +1643,8 @@ void main(){
             max(dot(N, lightDir), 0.0);
 
         /*
-            Piccolo contributo minimo perché il cloth non diventi nero totale.
-            Se vuoi più scuro, metti 0.02.
+            Small minimum contribution so that the cloth does not become completely black.
+            If you want it darker, set it to 0.02.
         */
         float clothBackLight = 0.05;
 
@@ -1654,7 +1655,7 @@ void main(){
         baseColor = vec4(curtainColor, texColor.a);
     }
 
-    // Per gli oggetti normali
+    // For normal objects
     else if (wallShadowMode == 0 || wallShadowMode == 5 || wallShadowMode == 6
         || wallShadowMode == 8) {
 
@@ -1664,8 +1665,8 @@ void main(){
 
             /*
                 wallShadowMode == 6
-                Grass / ciuffetti del parco.
-                NON lo tocchiamo.
+                Grass / tufts in the park.
+                DO NOT touch it.
             */
             if (wallShadowMode == 6) {
                 vec3 N = normalize(fWorldNormal);
@@ -1685,8 +1686,8 @@ void main(){
 
             /*
                 wallShadowMode == 5
-                Pavimento della home.
-                Qui riduciamo la luce diretta quando il sole è fuori dalla stanza.
+                Floor of the home.
+                Here we reduce the direct light when the sun is outside the room.
             */
             else if (wallShadowMode == 5) {
                 bool lightOutsideRoomForFloor =
@@ -1833,15 +1834,15 @@ void main(){
         vec3 wallNormal = vec3(0.0);
 
         if (wallShadowMode == 1) {
-            // parete posteriore: interno verso +Z
+            // rear wall: inside facing +Z
             wallNormal = vec3(0.0, 0.0, 1.0);
         }
         else if (wallShadowMode == 2) {
-            // parete sinistra: interno verso +X
+            // left wall: inside facing +X
             wallNormal = vec3(1.0, 0.0, 0.0);
         }
         else if (wallShadowMode == 3) {
-            // parete destra con finestra: interno verso -X
+            // right wall with window: inside facing -X
             wallNormal = vec3(-1.0, 0.0, 0.0);
         }
 
@@ -1859,9 +1860,9 @@ void main(){
 
         if (wallShadowMode == 3) {
             /*
-                Parete destra con finestra:
-                è una parete piatta disegnata anche da dietro perché fai gl.disable(CULL_FACE).
-                Quindi uso gl_FrontFacing per decidere quale lato illuminare.
+                Right wall with window:
+                it is a flat wall drawn also from behind because gl.disable(CULL_FACE) is used.
+                So I use gl_FrontFacing to decide which side to illuminate.
             */
 
             bool rightWallInternalFace = gl_FrontFacing;
@@ -1871,7 +1872,7 @@ void main(){
                     max(dot(wallNormal, wallLightDir), 0.0);
             }
             else {
-                 // lato esterno / retro della parete con finestra
+                 // external/back side of the wall with window
                 vec3 externalWallNormal =
                     -wallNormal;
 
@@ -1881,8 +1882,8 @@ void main(){
         }
         else {
             /*
-                Pareti normali fatte con roomBoxBuffers:
-                qui posso usare la normale reale per capire se sto sulla faccia interna.
+                Normal walls made with roomBoxBuffers:
+                here I can use the real normal to understand if I'm on the internal face.
             */
 
             bool isInternalWallFace =
@@ -1909,11 +1910,11 @@ void main(){
             
         */
 
-        // MODIFICA PER OMBRE PARETI
+        // WALL SHADOW MODIFICATION
         
         /*
-            Se il sole è fuori dalla stanza, la luce diretta
-            NON deve entrare attraverso i muri.
+            If the sun is outside the room, direct light
+            should NOT enter through the walls.
         */
         bool lightOutsideRoom =
             lightPosition.x < -8.0 ||
@@ -1926,8 +1927,8 @@ void main(){
 
         if (lightOutsideRoom) {
             /*
-                Niente direct light sulle pareti interne.
-                Resta solo ambient, così non diventa tutto nero totale.
+                No direct light on internal walls.
+                Only ambient remains, so it doesn't become completely black.
             */
             wallDirectStrength = 0.4;
             wallAmbientStrength = uAmbientStrength * 0.82;
@@ -2077,8 +2078,8 @@ void main()
         1.0 - smoothstep(0.0, 1.0, d);
 
     /*
-        Non lo quadro, altrimenti resta visibile solo il centro.
-        Con pow < 1 l'alone resta più largo e morbido.
+        Do not square it, otherwise only the center remains visible.
+        With pow < 1 the halo remains wider and softer.
     */
     a = pow(a, 0.45);
 
@@ -2605,9 +2606,9 @@ vec3 computeWallLampLightForDog(vec3 objectBaseColor, vec3 normal)
         normalize(normal);
 
     /*
-        Diffuse normale + piccolo wrap.
-        Il wrap serve perché il cane è curvo e scuro:
-        così non resta completamente spento se non guarda perfettamente la luce.
+        Normal diffuse + small wrap.
+        The wrap is used because the dog is curved and dark:
+        this way it doesn't remain completely off if it doesn't look directly at the light.
     */
     float normalDiffuse =
         max(dot(N, fragmentToLampDir), 0.0);
@@ -2643,8 +2644,8 @@ vec3 computeWallLampLightForDog(vec3 objectBaseColor, vec3 normal)
         wallLampIntensity;
 
     /*
-        Piccolo fill caldo, solo dentro il cono.
-        Serve a rendere leggibile il cane nella zona illuminata.
+        Small warm fill, only inside the cone.
+        It is used to make the dog readable in the illuminated area.
     */
     vec3 warmFill =
         objectBaseColor *
@@ -2810,14 +2811,14 @@ vec3 getDogNormalFromMap(vec3 originalNormal)
         texture2D(uNormalMap, fTexCoord).xyz * 2.0 - 1.0;
 
     /*
-        Scala presa dal glTF:
-        nel tuo caso normalScale = 0.5.
+        Scale taken from glTF:
+        in your case normalScale = 0.5.
     */
     tangentNormal.xy *= uNormalScale* 3.0;
 
     /*
-        Se dopo il test il pelo sembra "scavato al contrario",
-        abilita questa riga:
+        If after the test the fur seems "dug in the wrong way",
+        enable this line:
         tangentNormal.y = -tangentNormal.y;
     */
 
@@ -2940,8 +2941,8 @@ void main()
 
     if (receiveShadow && usePointShadowMap) {
         /*
-            Per il bias dell'ombra uso la normale geometrica,
-            non quella perturbata dalla normal map.
+            For the shadow bias, I use the geometric normal,
+            not the one perturbed by the normal map.
         */
         shadow =
             computePointShadowForDog(
@@ -3274,13 +3275,12 @@ float computePointShadow(vec3 worldPos, vec3 worldNormal)
     vec4 shadowCoord;
     float closestDepth;
 
-    //modifica per bias custom (gpt)
-    // direzione dal frammento verso la luce
+    
     vec3 fragToLight = normalize(lightWorldPos - worldPos);
 
     float ndotl = max(dot(normalize(worldNormal), fragToLight), 0.0);
 
-    // bias piccolo sulle superfici frontali, più alto sugli angoli radenti
+    // small bias on front-facing surfaces, higher on grazing angles
     float bias = max(0.003 * (1.0 - ndotl), 0.0002); //attenzione
 
    
@@ -3667,8 +3667,8 @@ void main()
         max(dot(N, L), 0.0);
 
     /*
-        Roughness alta -> highlight più largo e meno intenso.
-        Roughness bassa -> highlight più stretto e più lucido.
+        Roughness high -> highlight larger & less intense 
+        Roughness low -> highlight smaller & more intense
     */
     float shininess =
         mix(96.0, 8.0, roughness);
