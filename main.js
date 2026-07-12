@@ -1311,6 +1311,10 @@ onload = async function init() {
 
     waterButton.addEventListener("click", function () {
 
+         if (blockBowlButtonsIfPetMode()) {
+            return;
+        }
+
         if (dogBowlInteractionLocked) {
                 showDogBowlBusyMessage();
                 return;
@@ -1377,6 +1381,10 @@ onload = async function init() {
     foodButton = document.getElementById("ButtonFood");
 
     foodButton.addEventListener("click", function () {
+
+        if (blockBowlButtonsIfPetMode()) {
+            return;
+        }
 
         if (dogBowlInteractionLocked) {
                 showDogBowlBusyMessage();

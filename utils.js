@@ -1243,6 +1243,20 @@ function updateSceneButtonsVisibility() {
         catMoveButton.style.display = isHome ? "flex" : "none";
     }
 }
+/////////////////////////
+
+function blockBowlButtonsIfPetMode() {
+    if (!petDogMode) {
+        return false;
+    }
+
+    showGameMessage(
+        "Pet Dog mode is active!\nTurn it off before using water or food.",
+        2400
+    );
+
+    return true;
+}
 
 /////////////////
 function pointInsideExpandedTableArea(x, z) {
