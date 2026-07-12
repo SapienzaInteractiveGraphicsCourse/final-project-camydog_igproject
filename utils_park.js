@@ -887,3 +887,25 @@ function resetDogForHomeScene() {
         z: dogLookAtBallZ
     };
 }
+
+function showFrisbeeControlsLegend() {
+    var legend =
+        document.getElementById("FrisbeeControlsLegend");
+
+    if (!legend) {
+        return;
+    }
+
+    legend.classList.remove("hidden");
+}
+
+function hideFrisbeeControlsLegend() {
+    var legend =
+        document.getElementById("FrisbeeControlsLegend");
+
+    if (!legend) {
+        return;
+    }
+
+    legend.classList.add("hidden");
+}

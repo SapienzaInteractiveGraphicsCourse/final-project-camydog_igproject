@@ -1286,28 +1286,28 @@ function computeDogPathToTeapot(startX, startZ, targetX, targetZ) {
     var rightX = r.maxX + extra;
 
     var candidates = [
-        // giro davanti al tavolo
+        // path in front of the table
         [
             { x: startX,       z: frontZ },
             { x: safeTarget.x, z: frontZ },
             { x: safeTarget.x, z: safeTarget.z }
         ],
 
-        // giro dietro al tavolo
+        // path behind the table
         [
             { x: startX,       z: backZ },
             { x: safeTarget.x, z: backZ },
             { x: safeTarget.x, z: safeTarget.z }
         ],
 
-        // giro a sinistra del tavolo
+        // path to the left of the table
         [
             { x: leftX,        z: startZ },
             { x: leftX,        z: safeTarget.z },
             { x: safeTarget.x, z: safeTarget.z }
         ],
 
-        // giro a destra del tavolo
+        // path to the right of the table
         [
             { x: rightX,       z: startZ },
             { x: rightX,       z: safeTarget.z },
@@ -1787,7 +1787,7 @@ function initPhysics() {
     // vertical center of the walls
     var wallCenterY = PHYSICS_FLOOR_Y + WALL_HEIGHT * 0.5;
 
-    // parete sinistra
+    // left wall
     addStaticBoxCollider(
         ROOM_MIN_X,
         wallCenterY,
@@ -1798,7 +1798,7 @@ function initPhysics() {
         floorMaterial
     );
 
-    // parete destra
+    // right wall
     addStaticBoxCollider(
         ROOM_MAX_X,
         wallCenterY,
@@ -1809,7 +1809,7 @@ function initPhysics() {
         floorMaterial
     );
 
-    // parete dietro
+    // back wall
     addStaticBoxCollider(
         0.0,
         wallCenterY,
@@ -2062,7 +2062,7 @@ function updateBallBounceAnimation() {
         return;
     }
 
-    var dogSpeed = 1.2; // unità al secondo
+    var dogSpeed = 1.2; 
 
     var dirX = dx / dist;
     var dirZ = dz / dist;
@@ -2070,7 +2070,7 @@ function updateBallBounceAnimation() {
     dogPosX += dirX * dogSpeed * deltaTime;
     dogPosZ += dirZ * dogSpeed * deltaTime;
 }
- 
+
 
 function clamp(value, minValue, maxValue) {
     return Math.max(minValue, Math.min(maxValue, value));
@@ -2441,7 +2441,7 @@ function startSkinnedDogFetchBall() {
     // safe target with respect to the table
     var safeTarget = getReachableBallTarget(ballX, ballZ);
 
-    // target sicuro rispetto alle pareti
+    // safe target with respect to the room walls
     safeTarget = clampDogTargetToRoom(safeTarget.x, safeTarget.z);
 
     
@@ -3009,7 +3009,7 @@ function updateSkinnedDogFetchBall(deltaTime) {
         deltaTime
     );
 
-    //REVIEW -  MODIFICA TEMPO DI MOVIMENTO DEL CANE
+    //REVIEW -  modification for dog moving too fast on high FPS, and too slow on low FPS
     //var speed = 0.035;
 
     var safeDeltaTime =
@@ -4190,7 +4190,7 @@ function startSkinnedDogGoToBowl(kind) {
     dogBowlBusyMessageShown = false;
 
 
-    // quando va alla ciotola non deve restare nello stato "palla in bocca"
+    // when dog goes to the bowl I don't want the dog to have the ball in the mouth
     dogHasBall = false;
 
     if (typeof dogHasFrisbee !== "undefined") {
@@ -4219,13 +4219,14 @@ function startSkinnedDogGoToBowl(kind) {
     showDogMusicNote = true;
 
     /*
-        Il cane guarda la ciotola vera.
+        the dog looks at the real bowl
     */
     dogLookAtBallX = bowlX;
     dogLookAtBallZ = bowlZ;
 
     /*
-        Non deve arrivare sopra la ciotola, ma fermarsi davanti.
+        the dog must not arrive too close to the bowl, otherwise it collides with it and gets stuck.
+        So I calculate a point at a certain distance from the bowl, along the line connecting the dog and the bowl.
     */
     var dx = bowlX - dogFetchX;
     var dz = bowlZ - dogFetchZ;
@@ -4247,8 +4248,8 @@ function startSkinnedDogGoToBowl(kind) {
     var targetZ = bowlZ - (dz / dist) * stopDistance;
 
     /*
-        Tengo il cane fuori da tavolo, bowl e limiti stanza.
-        Questa funzione già gestisce anche la bowl.
+        Keep the dog outside the table, bowl, and room boundaries.
+        This function already handles the bowl as well.
     */
     var safeTarget;
 
@@ -4458,9 +4459,7 @@ function updateTeapotFragments(deltaTime) {
         }
     }
 
-    /* if (teapotBreakTimer > teapotRespawnTime) {
-        resetTeapotBreak();
-    } */
+   
 
 }
 

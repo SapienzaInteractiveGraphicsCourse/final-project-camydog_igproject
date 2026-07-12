@@ -3836,3 +3836,47 @@ body.ui-panel-hidden .toggle-side-panel-button {
     color: #2b2b2b !important;
     box-shadow: 0 0 12px rgba(205, 182, 111, 0.75);
 }
+
+
+.frisbee-controls-legend {
+    position: absolute;
+    top: 56px;
+    left: 12px;
+    z-index: 36;
+
+    width: 270px;
+    padding: 10px 12px;
+    border-radius: 12px;
+
+    background: rgba(0, 0, 0, 0.52);
+    color: white;
+
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 500;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    opacity: 1;
+    transform: translateY(0);
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+.frisbee-controls-legend.hidden {
+    display: none;
+}
+
+.frisbee-controls-legend .ball-settings-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.frisbee-controls-legend div {
+    margin-bottom: 2px;
+}

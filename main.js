@@ -1832,6 +1832,8 @@ onload = async function init() {
 
                     updateCanvasCursor();
 
+                    hideFrisbeeControlsLegend();
+
                     showGameMessage("Frisbee put away!", 1500);
 
                     return;
@@ -1855,6 +1857,8 @@ onload = async function init() {
                 frisbeeThrowMode = true;
                 frisbeeAttachedToHand = true;
 
+                showFrisbeeControlsLegend();
+
                 frisbeeFlying = false;
                 frisbeeLanded = false;
 
@@ -1876,7 +1880,21 @@ onload = async function init() {
     if (wooshFrisbeeSound) {
         wooshFrisbeeSound.volume = 0.6;
     }
-    
+
+    // frisbee isntructions panel
+
+    var closeFrisbeeControlsLegendButton =
+    document.getElementById("CloseFrisbeeControlsLegend");
+
+    if (closeFrisbeeControlsLegendButton) {
+        closeFrisbeeControlsLegendButton.onclick = function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            hideFrisbeeControlsLegend();
+        };
+    }
+        
 
 
     document.getElementById("ButtonGoOut").onclick = function () {

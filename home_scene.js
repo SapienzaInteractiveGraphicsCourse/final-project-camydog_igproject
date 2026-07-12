@@ -165,7 +165,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     //modelMatrixLight = mult(modelMatrixLight, translate(0.0, 1.5, 0.0));
     modelMatrixLight = mult(modelMatrixLight, scalem(1.0, 1.0, 1.0));
 
-    //matrici teapot -- sopra il tavolo, ruota in base a theta e scalato per essere più piccolo
+    //matrici teapot -- on the table , rotates with theta , scaled by 0.5
     var modelMatrix1 = mat4();
     modelMatrix1 = mult(modelMatrix1, translate(objPos[0], objPos[1], objPos[2]));
     modelMatrix1 = mult(modelMatrix1, scalem(0.5, 0.5, 0.5));
@@ -173,13 +173,13 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     modelMatrix1 = mult(modelMatrix1, rotate(theta[1], [0, 1, 0]));
     modelMatrix1 = mult(modelMatrix1, rotate(theta[2], [0, 0, 1]));
 
-    //matrici tavolo -- lui non ruota, ma è scalato e traslato verso il basso per essere sotto il teapot
+    //table matrix -- 
     var modelMatrix2 = mat4();
     modelMatrix2 = mult(modelMatrix2, translate(0.0, -1.9, 0.0));
     modelMatrix2 = mult(modelMatrix2, rotate(tableTheta, [0, 1, 0]));
     modelMatrix2 = mult(modelMatrix2, scalem(3.0, 1.5, 2.0));
 
-    //matrici collider del tavolo (invisibili, usati solo per collisioni)
+    //table collider matrices (invisible, used only for collisions)
     var modelMatrixTableCollider = mat4();
 
     modelMatrixTableCollider = mult(
@@ -208,7 +208,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
   
    
 
-    //matrici dog
+    //dog matrices
     var modelMatrixDog = mat4();
     modelMatrixDog = mult(modelMatrixDog, translate(dogX, dogBasePos[1], dogZ));
     modelMatrixDog = mult(modelMatrixDog, rotate(dogFacingAngle, [0, 1, 0]));
@@ -228,7 +228,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         translate(bowlX, bowlY, bowlZ)
     );
 
-    // cilindro lungo Z -> lo ruotiamo per farlo verticale su Y
+    
     modelMatrixBowlCollider = mult(
         modelMatrixBowlCollider,
         rotate(90, [1, 0, 0])
@@ -238,23 +238,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         modelMatrixBowlCollider,
         scalem(
             bowlColliderRadius,  // radius X
-            bowlColliderRadius,  // radius Z dopo rotazione
-            bowlColliderHeight   // altezza del cilindro
+            bowlColliderRadius,  // radius Z after rotation
+            bowlColliderHeight   // height of the cylinder
         )
     );
 
     //water disk matrix
-    /*  var modelMatrixWaterDisk = mat4();
-
-    modelMatrixWaterDisk = mult(
-        modelMatrixWaterDisk,
-        translate(5.0, -2.15, 5.0)
-    );
-
-    modelMatrixWaterDisk = mult(
-        modelMatrixWaterDisk,
-        scalem(0.3, 0.3, 0.3)
-    );  */
 
     var modelMatrixWaterDisk = mat4();
 
@@ -320,28 +309,29 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, translate(6.8, -0.5, 0.0));
     modelMatrixRightWallBlocker = mult(modelMatrixRightWallBlocker, scalem(0.5, 4.2, 14.6));
 
-    //parete modificata per la parte con finestra // blocker invisibili attorno alla finestra
-    // La parete destra è lungo Z, quindi X rimane quasi fisso.
+    //modified wall with window
+    // there are invisible blockers that cover the window area, so that the shadow map is correct
+    // The right wall is along Z, so X remains almost fixed.
 
     
     var blockerX = 7.20;
     var blockerThickness = 0.03;
 
-    // Limiti della parete
+    // Wall limits
     var wallYMin = -2.5;
     var wallYMax =  1.5;
 
     var wallZMin = -7.2;
     var wallZMax =  7.2;
 
-    // Limiti reali della finestra
+    // Real window limits
     var windowY0 = -1.10;
     var windowY1 =  0.90;
 
     var windowZ0 = -2.52;
     var windowZ1 = -0.36;
 
-    // Piccola sovrapposizione dei blocker dentro il foro
+    // Small overlap of the blockers inside the hole
     var overlap = 0.10;
 
     var blockerWindowY0 = windowY0 + overlap;
@@ -364,7 +354,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     var topSizeY =
         wallYMax - blockerWindowY1;
 
-    // Lati: coprono tutta l’altezza della finestra
+    // Sides: cover the entire height of the window
     var sideCenterY =
         (windowY0 + windowY1) * 0.5;
 
@@ -435,32 +425,32 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     // ===== PAINTING =====
 
-    // pannello del quadro sulla parete dietro
+    // panel of the painting on the back wall
     var modelMatrixPainting = mat4();
     modelMatrixPainting = mult(modelMatrixPainting, translate(0.0, 0.7, -6.93));
     modelMatrixPainting = mult(modelMatrixPainting, scalem(2.2, 1.3, 0.04));
 
-    // cornice sopra
+    // top frame
     var modelMatrixFrameTop = mat4();
     modelMatrixFrameTop = mult(modelMatrixFrameTop, translate(0.0, 1.4, -6.88));
     modelMatrixFrameTop = mult(modelMatrixFrameTop, scalem(2.45, 0.10, 0.10));
 
-    // cornice sotto
+    // bottom frame
     var modelMatrixFrameBottom = mat4();
     modelMatrixFrameBottom = mult(modelMatrixFrameBottom, translate(0.0, 0.0, -6.88));
     modelMatrixFrameBottom = mult(modelMatrixFrameBottom, scalem(2.45, 0.10, 0.10));
 
-    // cornice sinistra
+    // left frame
     var modelMatrixFrameLeft = mat4();
     modelMatrixFrameLeft = mult(modelMatrixFrameLeft, translate(-1.22, 0.7, -6.88));
     modelMatrixFrameLeft = mult(modelMatrixFrameLeft, scalem(0.10, 1.45, 0.10));
 
-    // cornice destra
+    // right frame
     var modelMatrixFrameRight = mat4();
     modelMatrixFrameRight = mult(modelMatrixFrameRight, translate(1.22, 0.7, -6.88));
     modelMatrixFrameRight = mult(modelMatrixFrameRight, scalem(0.10, 1.45, 0.10));
 
-    // prima dello shadow pass
+    // before the shadow pass
     var classicLightViewMatrix = lookAt(
         vec3(lightPosition[0], lightPosition[1], lightPosition[2]),
         vec3(0.0, 0.0, 0.0),
@@ -489,8 +479,8 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Nella shadow pass elimino le facce frontali.
-    // Questo può aiutare a ridurre la shadow acne.
+    // In the shadow pass, I eliminate the front faces.
+    // This can help reduce shadow acne.
    // gl.cullFace(gl.FRONT);
     gl.disable(gl.CULL_FACE);
     gl.useProgram(shadowProgram);
@@ -498,7 +488,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     gl.disable(gl.CULL_FACE);
 
-    //altra parte per shadow map point light
+    //another part for shadow map point light
     isPointShadowPass = true;
     pointLightProjectionMatrix = perspective(90.0, 1.0, 0.1, POINT_SHADOW_FAR);
   
@@ -525,7 +515,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         gl.useProgram(shadowProgram);
 
-        // qui usiamo temporaneamente le matrici globali già usate da drawShadowObject
+        // here we temporarily use the global matrices already used by drawShadowObject
         lightViewMatrix = pointLightViewMatrices[i];
         lightProjectionMatrix = pointLightProjectionMatrix;
 
@@ -547,7 +537,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWall);
         drawShadowObject(roomBoxBuffers, modelMatrixRightWall); */
 
-         // uso i blockers
+         // use the blockers
 
        gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.FRONT);
@@ -556,7 +546,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         drawShadowObject(roomBoxBuffers, modelMatrixBackWallBlocker);
         drawShadowObject(roomBoxBuffers, modelMatrixLeftWallBlocker);
 
-        // parete destra bucata reale
+        // real right wall with hole
         
 
         drawShadowObject(
@@ -583,7 +573,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
          //gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
 
-        //perparete destra con finestra bucata
+        // prepare right wall with hole
         //drawShadowObject(roomBoxBuffers, modelMatrixRightWallBlocker);
        gl.disable(gl.CULL_FACE);
         
@@ -621,12 +611,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    // Ripristino per il render normale
+    // Restore for the normal render
     //gl.enable(gl.CULL_FACE);
     //gl.cullFace(gl.BACK);
 
-    // Ripristino le matrici della shadow map classica,
-    // perché per ora il fragment shader usa ancora shadowMap 2D.
+    // Restore the classic shadow map matrices,
+    // because for now the fragment shader still uses 2D shadowMap.
     lightViewMatrix = classicLightViewMatrix;
     lightProjectionMatrix = classicLightProjectionMatrix;
 
@@ -638,14 +628,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // disegno prima la skybox
+    // draw the skybox first
     DrawSkybox(gl, viewMatrix, projectionMatrix);
 
-    //torno al programma normale
+    // return to the normal program
     gl.useProgram(program);
 
-    // Nella render pass normale torno al culling classico:
-    // elimino le facce posteriori.
+    // In the normal render pass, return to classic culling:
+    // eliminate the back faces.
     gl.enable(gl.DEPTH_TEST);
     gl.depthMask(true);
     gl.enable(gl.CULL_FACE);
@@ -689,25 +679,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthMask(false);
 
-        
-
-        /* drawObject(
-            waterDiskBuffers,
-            waterDiskTexture,
-            modelMatrixWaterDisk,
-            viewMatrix,
-            projectionMatrix,
-            true,   // useTexture
-            false,  // isLightMarker
-            true,   // twoSided
-            true,  // receiveShadow
-            false,  // wallShadowMode
-            false,
-            0.25  // isSunHalo   // globalAlpha
-
-
-            
-        ); */
+    
 
           drawObject(
             waterDiskBuffers,
@@ -756,9 +728,6 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
         
-
-    /* drawObject(tableBuffers, tableTexture, modelMatrix2, viewMatrix,
-         projectionMatrix, useTexture_table, false,false,true); */
     
     drawTableMaterial(
         tableBuffers,
@@ -777,7 +746,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
         drawObject(
             heartBuffers,
-            heartTexture, // temporaneamente, solo per vedere il modello
+            heartTexture, 
             heartMatrix,
             viewMatrix,
             projectionMatrix,
@@ -849,7 +818,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         );
     }
 
-    //parte per disegnaare direzione luce (debug)
+    //part for debug light direction (not showed in the final version)
     DrawLightDirectionArrow(
         gl,
         lightPosition,
@@ -873,86 +842,12 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     gl.disable(gl.CULL_FACE);
     
-    //draw parete destra (bucata da finestra)
+    //draw right wall (with window hole)
     drawObject(rightWallWindowBuffers, wallTexture, modelMatrixRightWall,
     viewMatrix, projectionMatrix, true, false, false, true, 3);
 
-    
-    /*  var modelMatrixWallLamp = getWallLampModelMatrix();
 
-    drawObject(
-        wallLampBuffers,
-        wallLampTexture,
-        modelMatrixWallLamp,
-        viewMatrix,
-        projectionMatrix,
-        true,   // useTexture
-        false,  // isLightMarker
-        false,  // twoSided
-        false,  // receiveShadow
-        0,      // wallShadowMode
-        false,  // isSunHalo
-        1.0,    // globalAlpha
-        true,   // isWallLampModel
-        false   // isBowlMaterial
-    );
-
-    
-    if (
-        currentScene === "home" &&
-        isNight &&
-        wallLampEnabled
-    ) {
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-
-        gl.depthMask(false);
-
-       
-
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.depthMask(false);
-        gl.disable(gl.CULL_FACE);
-
-
-        drawWallLampGlow(
-            viewMatrix,
-            projectionMatrix,
-            0.35,
-            0.22
-        );
-
-        drawWallLampGlow(
-            viewMatrix,
-            projectionMatrix,
-            0.14,
-            0.70
-        );
-
-        gl.depthMask(true);
-        gl.depthFunc(gl.LESS);
-        gl.disable(gl.BLEND);
-    }
-
-   
-    drawObject(
-        wallLampBuffers,
-        wallLampTexture,
-        modelMatrixWallLamp,
-        viewMatrix,
-        projectionMatrix,
-        true,
-        false,
-        false,
-        false,
-        0,
-        false,
-        1.0,
-        true,
-        false
-    ); */
-
+    // wall lamp part
     var modelMatrixWallLamp = getWallLampModelMatrix();
 
     if (
@@ -1012,7 +907,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             projectionMatrix,
             true,   // useTexture
             false,  // isLightMarker
-            true,   // twoSided: importante per vedere entrambi i lati della stoffa
+            true,   // twoSided: important so to see the curtain from both sides
             true,   // receiveShadow
             4
         );
@@ -1029,7 +924,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
 
     if (showCollisionDebug) {
         
-        //parte per collisione tavolo
+        //part for table collision
         drawObject(
             roomBoxBuffers,
             null,
@@ -1042,7 +937,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false   // receiveShadow
         );  
 
-        //debug collider gambe del tavolo
+        //debug collider table legs
         var legOffsetX = TABLE_TOP_WIDTH / 2.0 - TABLE_LEG_MARGIN_X;
         var legOffsetZ = TABLE_TOP_DEPTH / 2.0 - TABLE_LEG_MARGIN_Z;
 
@@ -1075,14 +970,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthMask(false);
 
-        // opzionale: per debug lo vedi anche se una faccia è girata male
+        // optional: for debug, you can see it even if a face is flipped
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
         
 
         drawObject(
-            curtainRodBuffers,              // cilindro che hai già
-            null,       // texture rossa/verde/blu
+            curtainRodBuffers,              
+            null,       // red/green/blue texture
             modelMatrixBowlCollider,
             viewMatrix,
             projectionMatrix,
@@ -1092,7 +987,7 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
             false,  // receiveShadow
             false,  // wallShadowMode
             false,  // isSunHalo
-            0.35    // alpha trasparente
+            0.35    // transparent alpha
         );
 
         gl.enable(gl.CULL_FACE);
@@ -1203,14 +1098,14 @@ function drawHomeScene(gl, viewMatrix, projectionMatrix) {
         gl.depthMask(true);
         gl.disable(gl.BLEND);
 
-        // Ripristina il programma principale
+        // reset to the normal program
         gl.useProgram(program);
 
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LESS);
         gl.depthMask(true);
 
-        // Sole
+        // sun marker (the sun itself, not the halo)
         drawObject(
             sunBuffers,
             sunTexture,
@@ -1267,11 +1162,11 @@ function getTableLegDebugMatrix(offsetX, offsetZ) {
     var m = mat4();
 
     /*
-        Stessa logica del compound collider Cannon:
-        1. posizione del corpo tavolo
-        2. rotazione del corpo tavolo
-        3. offset locale della singola gamba
-        4. scala della gamba
+        Same logic as the compound collider in Cannon:
+        1. position of the table body
+        2. rotation of the table body
+        3. local offset of the individual leg
+        4. scale of the leg
     */
 
     m = mult(m, translate(
