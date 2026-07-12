@@ -480,7 +480,7 @@ function smoothstepJS(edge0, edge1, x) {
     return t * t * (3.0 - 2.0 * t);
 }
 
-function computeMainLightVisibilityForHome() {
+function computeMainLightVisibilityForHome_old() {
     if (currentScene !== "home") {
         return 1.0;
     }
@@ -497,6 +497,31 @@ function computeMainLightVisibilityForHome() {
 
     var zVisibility =
         1.0 - smoothstepJS(5.5,15.0, absZ);
+
+    return Math.min(xVisibility, zVisibility);
+}
+
+function computeMainLightVisibilityForHome() {
+    if (currentScene !== "home") {
+        return 1.0;
+    }
+
+    var absX = Math.abs(lightPosition[0]);
+    var absZ = Math.abs(lightPosition[2]);
+
+    /*
+        Inner = starts fading.
+        Outer = almost fully blocked.
+
+        These values are intentionally smaller than the room limits,
+        so when the main light goes outside the room, its direct
+        contribution on indoor objects is reduced earlier.
+    */
+    var xVisibility =
+        1.0 - smoothstepJS(6.8, 7.8, absX);
+
+    var zVisibility =
+        1.0 - smoothstepJS(6.2, 7.4, absZ);
 
     return Math.min(xVisibility, zVisibility);
 }
