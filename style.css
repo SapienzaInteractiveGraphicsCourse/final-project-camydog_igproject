@@ -247,29 +247,7 @@ body.game-not-started .main-layout {
     letter-spacing: 0.2px;
 }
 
-/* .control-row {
-    display: grid;
-    grid-template-columns: 115px 120px 45px;
-    align-items: center;
-    column-gap: 10px;
-    margin-bottom: 12px;
-    color: #555;
-}
 
-.control-row label {
-    font-size: 13px;
-    line-height: 1.1;
-    white-space: nowrap;
-}
-
-.control-row input[type="range"] {
-    width: 120px;
-}
-
-.control-row span {
-    font-size: 13px;
-    text-align: right;
-} */
 .control-row {
     display: grid;
     grid-template-columns: 118px minmax(60px, 1fr) 48px;
@@ -394,23 +372,6 @@ button:active {
     background: rgba(255, 255, 255, 0.35);
 }
 
-/* =========================
-   Smaller screens
-   ========================= */
-/* @media (max-width: 900px) {
-    .controls-panel {
-        flex-basis: 280px;
-        width: 280px;
-    }
-
-    .control-row {
-        grid-template-columns: 95px 100px 40px;
-    }
-
-    .control-row input[type="range"] {
-        width: 100px;
-    }
-} */
 
 @media (max-width: 900px) {
     .controls-panel {
@@ -960,23 +921,22 @@ button:active {
     transform: translateY(-50%) scale(0.96);
 }
 
-/* Nella schermata iniziale non si vede */
+
 body.game-not-started .toggle-side-panel-button {
     display: none;
 }
 
-/* Quando il pannello è nascosto, la linguetta resta sul bordo sinistro */
+
 body.ui-panel-hidden .toggle-side-panel-button {
     left: 0;
     border-radius: 0 14px 14px 0;
 }
 
-/* Nasconde il pannello laterale */
+
 body.ui-panel-hidden .controls-panel {
     display: none !important;
 }
 
-/* Il canvas si prende tutto lo spazio */
 body.ui-panel-hidden .canvas-container {
     width: 100% !important;
     max-width: none !important;
@@ -1370,7 +1330,7 @@ button {
     height: 48px;
 }
 
-/* Volume più compatto */
+
 .music-volume-control {
     height: 46px;
     min-width: 220px;
@@ -1389,7 +1349,7 @@ button {
     width: 120px;
 }
 
-/* Canvas più stabile dentro lo spazio disponibile */
+
 .canvas-container {
     min-height: 0;
 }
@@ -1459,7 +1419,7 @@ button {
     border-radius: 8px;
 }
 
-/* Icone top bar e minigame più piccole */
+/* Icon top bar and minigames smaller */
 #ButtonMusic,
 #ButtonGlobalAudio,
 #ButtonNightDay,
@@ -1480,7 +1440,7 @@ button {
     height: 42px;
 }
 
-/* Volume ancora più compatto */
+
 .music-volume-control {
     height: 40px;
     min-width: 200px;
@@ -1499,14 +1459,14 @@ button {
     width: 105px;
 }
 
-/* FPS meno gigante */
+
 .fps-overlay {
     font-size: 16px;
     padding: 5px 8px;
     border-radius: 8px;
 }
 
-/* Pannelli HUD leggermente più piccoli */
+
 .teapot-controls-legend {
     top: 46px;
     left: 10px;
@@ -1672,7 +1632,7 @@ button {
     --side-panel-width: 230px;
 }
 
-/* Pannello sinistro un po' più piccolo */
+
 .controls-panel {
     width: var(--side-panel-width) !important;
     min-width: var(--side-panel-width) !important;
@@ -1681,7 +1641,7 @@ button {
     padding: 10px !important;
 }
 
-/* Testi del pannello leggermente più compatti */
+
 .control-group {
     margin-bottom: 11px !important;
 }
@@ -1707,13 +1667,13 @@ button {
     min-width: 30px !important;
 }
 
-/* Bottoni nel pannello un po' più piccoli */
+
 .controls-panel button {
     padding: 6px 9px !important;
     font-size: 12px !important;
 }
 
-/* Icone minigame/notte nel pannello sinistro più piccole */
+
 .controls-panel .water-button,
 .controls-panel .night-day-icon-button,
 .controls-panel .auto-sun-button {
@@ -1730,7 +1690,7 @@ button {
     height: 36px !important;
 }
 
-/* Freccia: NON farla diventare minuscola */
+
 .toggle-side-panel-button {
     width: 36px !important;
     height: 76px !important;
@@ -1744,7 +1704,7 @@ button {
     border-radius: 0 14px 14px 0 !important;
 }
 
-/* Quando il menu è chiuso, resta sul bordo sinistro */
+
 body.ui-panel-hidden .toggle-side-panel-button {
     left: 0 !important;
 }
@@ -1758,7 +1718,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     --side-panel-width: 215px;
 }
 
-/* Barra laterale ancora più stretta */
+
 .controls-panel {
     width: var(--side-panel-width) !important;
     min-width: var(--side-panel-width) !important;
@@ -1767,14 +1727,14 @@ body.ui-panel-hidden .toggle-side-panel-button {
     padding: 9px !important;
 }
 
-/* Titoli più piccoli */
+
 .control-group h3 {
     font-size: 12px !important;
     margin-bottom: 5px !important;
     padding-bottom: 4px !important;
 }
 
-/* Righe normali degli slider */
+
 .control-row {
     grid-template-columns: 72px minmax(42px, 1fr) 30px !important;
     column-gap: 4px !important;
@@ -1792,7 +1752,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     min-width: 28px !important;
 }
 
-/* Bottoni nel menu più piccoli */
+
 .controls-panel button {
     padding: 6px 8px !important;
     font-size: 11px !important;
@@ -1814,7 +1774,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     font-weight: 700 !important;
 }
 
-/* Freccia laterale: resta grande e allineata al nuovo pannello */
+
 .toggle-side-panel-button {
     left: var(--side-panel-width) !important;
 
@@ -1870,7 +1830,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     background: #1f78ea;
     border: none;
 
-    margin-top: -5px; /* centra il pallino sulla track */
+    margin-top: -5px; 
 }
 
 .controls-panel input[type="range"]::-moz-range-thumb {
@@ -1887,7 +1847,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
 }
 
 
-/* Wind strength row more compact */
+
 #CurtainSettingsPanel {
     display: grid;
     grid-template-columns: 58px 82px 34px;
@@ -1926,7 +1886,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     --side-panel-width: 205px;
 }
 
-/* Top bar più compatta */
+
 .top-control-bar {
     flex: 0 0 var(--topbar-height) !important;
     height: var(--topbar-height) !important;
@@ -1947,7 +1907,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     gap: 5px !important;
 }
 
-/* Menu sinistro più stretto */
+
 .controls-panel {
     width: var(--side-panel-width) !important;
     min-width: var(--side-panel-width) !important;
@@ -1957,7 +1917,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     border-radius: 9px !important;
 }
 
-/* Titoli e spazi del menu */
+
 .control-group {
     margin-bottom: 10px !important;
 }
@@ -1968,7 +1928,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     padding-bottom: 4px !important;
 }
 
-/* Slider del menu */
+
 .control-row {
     grid-template-columns: 68px minmax(38px, 1fr) 28px !important;
     column-gap: 4px !important;
@@ -1986,14 +1946,14 @@ body.ui-panel-hidden .toggle-side-panel-button {
     min-width: 26px !important;
 }
 
-/* Bottoni generici */
+
 button {
     padding: 5px 8px !important;
     font-size: 10.5px !important;
     border-radius: 7px !important;
 }
 
-/* Icone top bar e menu */
+
 #ButtonMusic,
 #ButtonGlobalAudio,
 #ButtonNightDay,
@@ -2015,7 +1975,7 @@ button {
     height: 34px !important;
 }
 
-/* Volume compatto */
+
 .music-volume-control {
     height: 34px !important;
     min-width: 165px !important;
@@ -2034,7 +1994,7 @@ button {
     width: 84px !important;
 }
 
-/* Wind / Strength compatto */
+
 #CurtainSettingsPanel {
     display: grid !important;
     grid-template-columns: 48px 76px 32px !important;
@@ -2060,14 +2020,14 @@ button {
     font-weight: 700 !important;
 }
 
-/* FPS compatto */
+
 .fps-overlay {
     font-size: 13px !important;
     padding: 4px 7px !important;
     border-radius: 7px !important;
 }
 
-/* Freccia: grande abbastanza, ma allineata al menu più stretto */
+
 .toggle-side-panel-button {
     left: var(--side-panel-width) !important;
 
@@ -2083,7 +2043,6 @@ body.ui-panel-hidden .toggle-side-panel-button {
     left: 0 !important;
 }
 
-/* Canvas: NON deformare, resta 16:9 */
 #gl-canvas {
     aspect-ratio: 16 / 9 !important;
     width: 100% !important;
@@ -2208,7 +2167,7 @@ body.ui-panel-hidden .toggle-side-panel-button {
     border-radius: 18px !important;
 }
 
-/* Matricola and name ***********/
+
 .student-credit {
     margin-top: 18px;
     padding-top: 14px;
@@ -3572,29 +3531,26 @@ body.ui-panel-hidden .toggle-side-panel-button {
    Smooth start screen entrance - no UI flash behind
    ========================================================= */
 
-/* =========================================================
-   Smooth start screen entrance - fade only
-   ========================================================= */
 
 #startScreen {
     opacity: 1;
     transform: none;
 }
 
-/* Lo sfondo copre subito tutto, la card parte solo trasparente */
+
 #startScreen .start-card {
     opacity: 0;
     transform: none;
     transition: opacity 0.65s ease;
 }
 
-/* Entra solo in fade, senza zoom */
+
 #startScreen.start-visible .start-card {
     opacity: 1;
     transform: none;
 }
 
-/* Uscita quando clicchi Start */
+
 #startScreen.hidden {
     opacity: 0;
     pointer-events: none;
